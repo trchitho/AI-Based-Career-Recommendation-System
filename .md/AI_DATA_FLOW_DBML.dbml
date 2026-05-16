@@ -1,0 +1,156 @@
+// AI Data Flow Diagram - Database Schema
+// Docs: https://dbml.dbdiagram.io/docs
+
+// ══════════════════════════════════════════════════════════════
+// Schema: analytics
+// ══════════════════════════════════════════════════════════════
+
+Table analytics.career_events {
+  id bigint [pk]
+  user_id bigint [ref: > core.users.id]
+  job_id text [not null]
+  event_type text [not null]
+  rank_pos int
+  score_shown real
+  source text [not null]
+  dwell_ms int
+  created_at timestamptz [not null]
+}
+
+Table analytics.career_feedback {
+  id bigint [pk]
+  user_id bigint [ref: > core.users.id, not null]
+  job_onet text [not null]
+  alpha int [not null]
+  beta int [not null]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+
+  Indexes {
+    (user_id, job_onet) [unique]
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// Schema: ai
+// ══════════════════════════════════════════════════════════════
+
+Table ai.user_trait_fused {
+  user_id bigint [pk, ref: > core.users.id, not null]
+  riasec_scores_fused varchar [not null]
+  big5_scores_fused varchar [not null]
+  source_components jsonb [not null]
+  model_name text [not null]
+  built_at timestamptz
+}
+
+Table ai.user_embeddings {
+  user_id bigint [pk, ref: > core.users.id, not null]
+  emb varchar [not null]
+  source text
+  model_name text
+  built_at timestamptz
+}
+
+Table ai.user_trait_preds {
+  user_id bigint [not null]
+  essay_id bigint [not null]
+  riasec_pred varchar [not null]
+  big5_pred varchar [not null]
+  source text [not null]
+  model_name text [not null]
+  built_at timestamptz
+
+  Indexes {
+    (user_id, essay_id) [pk]
+  }
+}
+
+Table ai.retrieval_jobs_visbert {
+  id bigint [pk]
+  job_id text [not null]
+  title text
+  tags_vi text
+  tag_tokens varchar
+  riasec_centroid varchar
+  embedding varchar [not null]
+  created_at timestamptz
+}
+
+Table ai.career_embeddings {
+  career_id bigint [pk, not null]
+  job_id text
+  emb varchar [not null]
+  model_name text
+  built_at timestamptz
+}
+
+// ══════════════════════════════════════════════════════════════
+// Schema: core
+// ══════════════════════════════════════════════════════════════
+
+Table core.users {
+  id bigint [pk]
+  email text [not null]
+  full_name text [not null]
+  role text
+  riasec_top_dim text
+  big5_profile text
+  created_at timestamptz
+  last_login timestamptz
+}
+
+Table core.essays {
+  id bigint [pk]
+  user_id bigint [ref: > core.users.id, not null]
+  prompt_id bigint
+  lang text
+  content text [not null]
+  created_at timestamptz
+}
+
+Table core.careers {
+  id bigint [pk]
+  slug text [not null]
+  title_en text
+  title_vi text
+  onet_code text
+  short_desc_en text
+  short_desc_vi text
+  description_en text
+  description_vi text
+  industry_category varchar
+  alternative_titles_vi varchar
+  alternative_titles_en varchar
+  created_at timestamptz
+  updated_at timestamptz
+}
+
+Table core.career_recommendations {
+  id int [pk]
+  user_id int [ref: > core.users.id]
+  assessment_id int
+  career_id int [ref: > core.careers.id]
+  score numeric
+  rank int
+  created_at timestamptz
+}
+
+Table interview.interview_audio {
+  id uuid [pk]
+  session_id int [not null]
+  message_id int
+  audio_type varchar [not null]
+  file_url text [not null]
+  transcript text
+  duration_seconds float
+  file_size_bytes bigint
+  created_at timestamptz
+}
+
+// ══════════════════════════════════════════════════════════════
+// References (cross-schema, only those NOT already inline)
+// ══════════════════════════════════════════════════════════════
+
+Ref: ai.user_trait_preds.user_id > core.users.id
+Ref: ai.career_embeddings.career_id > core.careers.id

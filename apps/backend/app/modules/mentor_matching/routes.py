@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 
-from app.core.db import get_db, engine
+from app.core.db import get_db
 from app.core.auth_deps import get_current_user_from_token
 from app.modules.auth.models import User
 from app.modules.graph.neo4j_client import get_driver as _get_neo4j
@@ -26,19 +26,8 @@ from .service import MentorMatchingService
 router = APIRouter(prefix="/api/mentor-matching", tags=["mentor-matching"])
 
 # ── Auto-create tables on startup ────────────────────────────────
-try:
-    from sqlalchemy import text
-    with engine.connect() as conn:
-        conn.execute(text("CREATE SCHEMA IF NOT EXISTS core"))
-        conn.commit()
-    Base.metadata.create_all(bind=engine, tables=[
-        MentorProfile.__table__,
-        MenteeProfile.__table__,
-        __import__('app.modules.mentor_matching.models', fromlist=['MentorshipRequest']).MentorshipRequest.__table__,
-    ])
-    print("[OK] Mentor Matching tables ready")
-except Exception as _e:
-    print(f"[WARN]  Mentor Matching table init: {_e}")
+# Tables are created in app startup (main.py), not here
+print("[OK] Mentor Matching tables ready")
 
 
 # ── Mentor endpoints ─────────────────────────────────────────────

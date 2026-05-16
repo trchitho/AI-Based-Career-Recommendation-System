@@ -17,12 +17,14 @@ import time
 from typing import Optional
 
 import requests
+from app.core.ai_core_config import AI_CORE_BASE_URL, requests_timeout
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
-AI_CORE_URL = os.getenv("AI_CORE_URL", "http://localhost:9000")
+# URL AI-core — dùng config tập trung từ app.core.ai_core_config.
+AI_CORE_URL = AI_CORE_BASE_URL
 EMBEDDING_DIM = 768
 _GEMINI_EMBED_MODELS = [
     m.strip()
@@ -90,7 +92,7 @@ def get_embedding(text_input: str, task_type: str = "RETRIEVAL_DOCUMENT") -> lis
         res = requests.post(
             f"{AI_CORE_URL}/ai/encode",
             json={"text": text_input[:2000]},
-            timeout=8,
+            timeout=requests_timeout(),
         )
         if res.status_code == 200:
             data = res.json()
@@ -143,7 +145,7 @@ def _analyze_via_aicore(essay_text: str, lang: str = "vi") -> dict | None:
         res = requests.post(
             f"{AI_CORE_URL}/ai/infer_user_traits",
             json={"essay_text": essay_text, "lang": lang},
-            timeout=15,
+            timeout=requests_timeout(),
         )
         if res.status_code == 200:
             data = res.json()

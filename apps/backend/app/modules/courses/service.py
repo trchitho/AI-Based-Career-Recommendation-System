@@ -32,7 +32,7 @@ PRIORITY_LABELS = {
 
 PRIORITY_ORDER = {"critical": 0, "important": 1, "nice_to_have": 2}
 DEFAULT_GEMINI_COURSE_MODEL = "gemini-flash-latest"
-CACHEABLE_SKILL_LIMITS = {"critical": 6, "important": 6, "nice_to_have": 5}
+CACHEABLE_SKILL_LIMITS = {"critical": 0, "important": 20, "nice_to_have": 20}
 DEPRECATED_GEMINI_COURSE_MODELS = {"gemini-1.5-flash", "models/gemini-1.5-flash"}
 
 TRUSTED_COURSE_SOURCES = {
@@ -67,6 +67,13 @@ def _skill_name(skill) -> str:
     return ""
 
 
+def _bool_env(name: str, default: bool = False) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "y", "on"}
+
+
 def _norm_key(value: str) -> str:
     return re.sub(r"\s+", " ", (value or "").strip().lower())
 
@@ -93,6 +100,20 @@ def _grouped_counts(recs: list[CourseRecommendation]) -> dict[str, int]:
         if rec.priority_group in counts:
             counts[rec.priority_group] += 1
     return counts
+
+
+def _dedupe_course_recommendations(recs: list[CourseRecommendation]) -> list[CourseRecommendation]:
+    deduped: list[CourseRecommendation] = []
+    seen: set[tuple[str, str]] = set()
+    for rec in recs:
+        course = rec.course
+        course_key = getattr(course, "external_id", None) or getattr(course, "url", None) or getattr(course, "title", "")
+        key = (_norm_key(rec.skill_name), _norm_key(str(course_key)))
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(rec)
+    return deduped
 
 
 def _cache_key(
@@ -212,12 +233,72 @@ def _save_skill_gap_cache(
 
 
 def _is_trusted_url(url: str, platform: str) -> bool:
+    """Validate that a URL is from a trusted domain AND has a valid path structure."""
     try:
-        host = urlparse(url).netloc.lower()
+        parsed = urlparse(url)
+        host = parsed.netloc.lower()
     except Exception:
         return False
     allowed = TRUSTED_COURSE_SOURCES.get(platform.lower(), {}).get("domains", ())
-    return bool(host) and any(host == d or host.endswith("." + d) for d in allowed)
+    if not host or not any(host == d or host.endswith("." + d) for d in allowed):
+        return False
+    # Reject URLs with spaces in path (Gemini hallucination indicator)
+    path = parsed.path or ""
+    if " " in path or "\t" in path:
+        return False
+    # Reject URLs that look like search queries embedded in path (not real course pages)
+    if path.count("/") <= 1 and len(path) > 100:
+        return False
+    return True
+
+
+def _validate_course_url(url: str, platform: str, skill: str, title: str) -> str:
+    """
+    Validate a course URL. If invalid or likely dead, return a safe search URL instead.
+    
+    Rules to catch dead links:
+    1. URL must start with http/https
+    2. URL must be from trusted domain
+    3. URL path must not contain spaces (Gemini hallucination)
+    4. URL path must be properly encoded
+    5. URL must not be too long (>300 chars usually means garbage)
+    6. Udemy course slugs must be lowercase-hyphenated (no spaces, no special chars)
+    """
+    if not url or not url.startswith("http"):
+        return _search_url(platform, skill, title)
+    
+    # Check trusted domain
+    if not _is_trusted_url(url, platform):
+        return _search_url(platform, skill, title)
+    
+    # Check for spaces in URL (common Gemini hallucination)
+    if " " in url or "\t" in url:
+        return _search_url(platform, skill, title)
+    
+    # Check URL length (too long = garbage)
+    if len(url) > 300:
+        return _search_url(platform, skill, title)
+    
+    # Platform-specific validation
+    parsed = urlparse(url)
+    path = parsed.path or ""
+    
+    # Udemy: course slugs must be lowercase-hyphenated
+    if "udemy.com" in (parsed.netloc or ""):
+        if "/course/" in path:
+            slug = path.split("/course/")[-1].strip("/")
+            # Valid Udemy slugs: lowercase, hyphens, no spaces, no special chars
+            if not re.match(r'^[a-z0-9][a-z0-9\-]*[a-z0-9]$', slug):
+                return _search_url(platform, skill, title)
+    
+    # Coursera: paths should be properly formatted
+    if "coursera.org" in (parsed.netloc or ""):
+        if "/learn/" in path or "/specializations/" in path or "/professional-certificates/" in path:
+            slug = path.split("/")[-1].strip("/")
+            if not re.match(r'^[a-zA-Z0-9][a-zA-Z0-9\-]*$', slug):
+                return _search_url(platform, skill, title)
+    
+    return url
 
 
 def _search_url(platform: str, skill: str, title: str = "") -> str:
@@ -225,6 +306,48 @@ def _search_url(platform: str, skill: str, title: str = "") -> str:
     source = TRUSTED_COURSE_SOURCES.get(platform_key) or TRUSTED_COURSE_SOURCES["coursera"]
     q = quote_plus(f"{skill} {title} course".strip())
     return source["search"].format(q=q)
+
+
+def _boost_similarity_score(base_score: float, skill: str, course_title: str) -> float:
+    """
+    Boost similarity score when skill name appears directly in course title.
+    
+    Logic:
+    - Cosine similarity between short skill names ("Docker", "CI/CD") and long course
+      descriptions tends to be low (0.4-0.6) even when the course is highly relevant.
+    - If the skill name appears literally in the course title, the course is almost
+      certainly relevant → boost score to reflect this.
+    - Boost formula: base + (1 - base) * boost_factor
+      This ensures scores approach but never exceed 1.0.
+    """
+    skill_lower = skill.lower().strip()
+    title_lower = (course_title or "").lower()
+    
+    if not skill_lower or not title_lower:
+        return base_score
+    
+    # Exact skill name in title → strong boost
+    if skill_lower in title_lower:
+        # Stronger boost for shorter skill names (they suffer more from embedding dilution)
+        if len(skill_lower) <= 8:
+            boost = 0.45  # e.g., "Docker", "Redis", "CI/CD"
+        elif len(skill_lower) <= 15:
+            boost = 0.35  # e.g., "Unit Testing", "Web Security"
+        else:
+            boost = 0.25  # Longer names already embed well
+        boosted = base_score + (1.0 - base_score) * boost
+        return min(round(boosted, 4), 0.95)
+    
+    # Check for partial matches (e.g., "docker" in "docker-compose", "ci/cd" in "ci cd pipeline")
+    skill_words = set(re.split(r'[\s/\-]+', skill_lower))
+    title_words = set(re.split(r'[\s/\-]+', title_lower))
+    overlap = skill_words & title_words
+    if overlap and len(overlap) >= len(skill_words) * 0.5:
+        boost = 0.20
+        boosted = base_score + (1.0 - base_score) * boost
+        return min(round(boosted, 4), 0.90)
+    
+    return base_score
 
 
 def _clean_platform(platform: str) -> str:
@@ -447,7 +570,7 @@ def recommend_courses_for_skill_groups(
     """
     owned = {_norm_key(s) for s in (owned_skills or []) if _skill_name(s)}
     grouped = {
-        "critical": _dedupe_skills(critical or [], owned, limit=CACHEABLE_SKILL_LIMITS["critical"]),
+        "critical": [],
         "important": _dedupe_skills(important or [], owned, limit=CACHEABLE_SKILL_LIMITS["important"]),
         "nice_to_have": _dedupe_skills(nice_to_have or [], owned, limit=CACHEABLE_SKILL_LIMITS["nice_to_have"]),
     }
@@ -468,7 +591,10 @@ def recommend_courses_for_skill_groups(
 
     key = _cache_key(analysis_id, grouped, owned_skills, top_k_per_skill)
     cached_recs = _load_skill_gap_cache(db, key)
-    if cached_recs:
+    cached_skill_keys = {_norm_key(rec.skill_name) for rec in (cached_recs or [])}
+    missing_cache_keys = {_norm_key(skill) for skill in ordered_skills} - cached_skill_keys
+    cache_is_complete = bool(cached_recs) and not missing_cache_keys
+    if cache_is_complete:
         return CourseRecommendationsResponse(
             missing_skills=ordered_skills,
             recommendations=cached_recs,
@@ -477,25 +603,30 @@ def recommend_courses_for_skill_groups(
             grouped_counts=_grouped_counts(cached_recs),
         )
 
-    ai_recs = _recommend_with_gemini(grouped, career_name, top_k_per_skill)
-    if ai_recs:
-        _save_skill_gap_cache(db, key, analysis_id, career_name, grouped, owned_skills, "gemini", ai_recs)
-        return CourseRecommendationsResponse(
-            missing_skills=ordered_skills,
-            recommendations=ai_recs,
-            total=len(ai_recs),
-            source="gemini",
-            grouped_counts=_grouped_counts(ai_recs),
-        )
+    if _bool_env("COURSE_USE_AI_DISCOVERY", default=False):
+        ai_recs = _recommend_with_gemini(grouped, career_name, top_k_per_skill)
+        if ai_recs:
+            _save_skill_gap_cache(db, key, analysis_id, career_name, grouped, owned_skills, "gemini", ai_recs)
+            return CourseRecommendationsResponse(
+                missing_skills=ordered_skills,
+                recommendations=ai_recs,
+                total=len(ai_recs),
+                source="gemini",
+                grouped_counts=_grouped_counts(ai_recs),
+            )
+    else:
+        logger.info("COURSE_USE_AI_DISCOVERY disabled; using DB/search course fallback")
 
-    fallback_recs: list[CourseRecommendation] = []
+    fallback_recs: list[CourseRecommendation] = list(cached_recs or [])
     for group, skills in grouped.items():
-        for rec in recommend_courses_for_skills(db, skills, top_k_per_skill).recommendations:
+        skills_to_query = [skill for skill in skills if _norm_key(skill) not in cached_skill_keys]
+        for rec in recommend_courses_for_skills(db, skills_to_query, top_k_per_skill).recommendations:
             rec.priority_group = group
             rec.priority_label = PRIORITY_LABELS[group]
-            rec.reason = rec.reason or f"Đề xuất fallback theo kỹ năng còn thiếu: {rec.skill_name}"
+            rec.reason = rec.reason or f"Khóa học phù hợp để bổ sung kỹ năng: {rec.skill_name}"
             fallback_recs.append(rec)
 
+    fallback_recs = _dedupe_course_recommendations(fallback_recs)
     fallback_recs.sort(key=lambda r: (
         PRIORITY_ORDER.get(r.priority_group or "", 99),
         r.skill_name.lower(),
@@ -576,8 +707,7 @@ def _recommend_with_gemini(
         if not title or len(title) < 6:
             continue
         url = str(item.get("url") or "").strip()
-        if not url.startswith("http") or not _is_trusted_url(url, platform):
-            url = _search_url(platform, canonical_skill, title)
+        url = _validate_course_url(url, platform, canonical_skill, title)
 
         dedupe_key = _norm_key(url or title)
         if dedupe_key in seen:
@@ -660,7 +790,13 @@ Hard validation rules:
 5. For important skills: prefer applied courses that produce portfolio evidence.
 6. For nice_to_have skills: prefer concise free or low-cost resources when possible.
 7. Avoid duplicate URLs and duplicate course titles.
-8. If unsure about an exact course URL, provide the platform search URL for that skill on the allowed platform, but keep the title honest as a search/research item.
+8. URL RULES (CRITICAL - violations cause dead links):
+   a. NEVER invent or guess course URLs. Only provide URLs you are 100% certain exist.
+   b. If unsure, use the platform SEARCH URL format: https://www.coursera.org/search?query=SKILL+course
+   c. Udemy course slugs MUST be lowercase-hyphenated (e.g., /course/docker-mastery/) — NEVER spaces.
+   d. Coursera paths MUST use hyphens (e.g., /learn/docker-kubernetes/) — NEVER spaces.
+   e. NEVER put spaces in any URL path. Use hyphens or %20 encoding.
+   f. When in doubt, ALWAYS use the search URL format instead of guessing a direct course page.
 9. Rating must be 0-5. Use 0 only if unavailable. Do not invent exact ratings when unknown; use conservative estimates.
 10. duration_hrs must be numeric hours or null.
 11. price must be numeric USD estimate; is_free true implies price 0.
@@ -770,7 +906,7 @@ def _build_online_search_recs(skills: list[str], top_k: int) -> list[CourseRecom
     ]
 
     recs: list[CourseRecommendation] = []
-    for skill in skills[:top_k * 2]:  # limit skills
+    for skill in skills:
         for p in PLATFORMS[:top_k]:
             q = urllib.parse.quote_plus(f"{skill} course")
             url = p["url_tpl"].format(q=q)
@@ -858,6 +994,10 @@ def _query_from_pg(db: "Session", skills: list[str], top_k: int) -> list[CourseR
                 continue
             seen.add(course.id)
             recs.append(_to_rec(course, skill, mapping.similarity_score))
+    found_skill_keys = {_norm_key(rec.skill_name) for rec in recs}
+    missing_skills = [skill for skill in skills if _norm_key(skill) not in found_skill_keys]
+    if missing_skills:
+        recs.extend(_build_online_search_recs(missing_skills, min(top_k, 2)))
     return recs
 
 
@@ -891,15 +1031,22 @@ def _on_the_fly(db: "Session", skills: list[str], top_k: int) -> list[CourseReco
             seen.add(course.id)
             recs.append(_to_rec(course, skill, score))
 
+    found_skill_keys = {_norm_key(rec.skill_name) for rec in recs}
+    missing_skills = [skill for skill in skills if _norm_key(skill) not in found_skill_keys]
+    if missing_skills:
+        recs.extend(_build_online_search_recs(missing_skills, min(top_k, 2)))
+
     return recs
 
 
 def _to_rec(course: CourseCatalog, skill: str, score: float) -> CourseRecommendation:
+    # Boost score when skill name appears in course title (fixes low cosine for short skill names)
+    boosted_score = _boost_similarity_score(score, skill, course.title or "")
     return CourseRecommendation(
         course=CourseOut.model_validate(course),
         skill_name=skill,
-        similarity_score=round(score, 4),
-        relevance_label=relevance_label(score),
+        similarity_score=round(boosted_score, 4),
+        relevance_label=relevance_label(boosted_score),
     )
 
 

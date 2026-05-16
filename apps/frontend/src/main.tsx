@@ -8,6 +8,13 @@ import { AppSettingsProvider } from './contexts/AppSettingsContext'
 
 // Apply saved theme before first render to avoid flash
 const STORAGE_KEY = 'app-theme';
+
+// Sửa URL cũ /learning_path/* sang /learning-path/* trước khi React Router boot
+// (tránh trang trắng khi user gõ tay hoặc bookmark sai)
+if (typeof window !== 'undefined' && window.location.pathname.startsWith('/learning_path')) {
+  const newPath = window.location.pathname.replace(/^\/learning_path/, '/learning-path');
+  window.history.replaceState(null, '', newPath + window.location.search + window.location.hash);
+}
 const LEGACY_THEME_MAP: Record<string, 'light' | 'dark'> = {
   'default': 'light',
   'cream': 'light',

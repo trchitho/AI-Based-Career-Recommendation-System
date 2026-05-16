@@ -20,9 +20,9 @@ const EssayInputPage = () => {
     try {
       // Giả định assessmentId 'latest' được BE hỗ trợ như code gốc
       await assessmentService.submitEssay({ assessmentId: 'latest', essayText: text, lang: 'en' });
-      setDone('Essay submitted successfully for NLP processing.');
+      setDone('Bài luận đã được gửi thành công để phân tích NLP.');
     } catch (err: any) {
-      setError(err?.response?.data?.detail || err?.message || 'Failed to submit essay');
+      setError(err?.response?.data?.detail || err?.message || 'Không thể gửi bài luận');
     } finally {
       setLoading(false);
     }

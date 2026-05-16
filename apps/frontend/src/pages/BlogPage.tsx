@@ -33,7 +33,7 @@ const BlogPage = () => {
     { key: "industry", label: "Góc nhìn ngành" }
   ];
 
-  const trendingTopics = ['Remote Work', 'AI Careers', 'Leadership', 'Salary Negotiation'];
+  const trendingTopics = ['Xu Hướng', 'Làm Việc Từ Xa', 'AI & Nghề Nghiệp', 'Kỹ Năng Lãnh Đạo', 'Đàm Phán Lương'];
 
   // Load all posts
   const loadAllPosts = async () => {
@@ -224,21 +224,21 @@ const BlogPage = () => {
             {/* Main Heading with Gradient */}
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black mb-4 tracking-tight leading-[1.05]"
               style={{ letterSpacing: '-0.04em' }}>
-              <span className="text-slate-900 dark:text-white">Latest </span>
+              <span className="text-slate-900 dark:text-white">Tin Tức </span>
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 dark:from-blue-400 dark:via-purple-400 dark:to-pink-400"
                 style={{
                   backgroundImage: 'linear-gradient(90deg, #4F46E5 0%, #7C3AED 50%, #EC4899 100%)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent'
                 }}>
-                News & Articles
+                & Bài Viết Mới Nhất
               </span>
             </h1>
 
             {/* Subtitle */}
             <p className="text-base sm:text-lg md:text-xl max-w-[860px] mx-auto mb-7 leading-relaxed
                         text-slate-600 dark:text-slate-300/86">
-              Expert career guidance, interview strategies, and professional development insights.
+              Hướng dẫn nghề nghiệp, chiến lược phỏng vấn và kiến thức phát triển chuyên môn.
             </p>
 
             {/* Search Bar */}
@@ -249,7 +249,7 @@ const BlogPage = () => {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => handleSearchChange(e.target.value)}
-                  placeholder="Search career advice, interview tips..."
+                  placeholder="Tìm kiếm lời khuyên nghề nghiệp, mẹo phỏng vấn..."
                   className="w-full h-[74px] pl-14 pr-6 rounded-[20px] text-base
                            bg-white dark:bg-slate-800
                            border border-indigo-100 dark:border-indigo-500/30
@@ -270,7 +270,7 @@ const BlogPage = () => {
             <div className="flex items-center justify-center gap-3 flex-wrap mb-7">
               <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
                 <TrendingUp className="w-4 h-4 text-purple-500 dark:text-violet-400" />
-                <span className="font-medium">Trending:</span>
+                <span className="font-medium">Nổi bật:</span>
               </div>
               {trendingTopics.map((topic) => (
                 <button
@@ -307,7 +307,7 @@ const BlogPage = () => {
                 }}
               >
                 <Edit3 className="w-5 h-5" />
-                Write Article
+                Viết Bài
               </button>
 
               {isAdmin && (

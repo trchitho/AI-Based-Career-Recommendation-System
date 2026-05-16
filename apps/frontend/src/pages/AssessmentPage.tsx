@@ -211,7 +211,7 @@ const AssessmentPage = () => {
         setAssessmentSessionId(realSessionId);
       } catch (err) {
         console.error('Failed to load questions:', err);
-        setError('Failed to load questions. Please try again.');
+        setError('Không thể tải câu hỏi. Vui lòng thử lại.');
         return;
       } finally {
         setLoading(false);
@@ -378,7 +378,7 @@ const AssessmentPage = () => {
       setStep('processing');
     } catch (err) {
       console.error('Error submitting essay:', err);
-      setError('Failed to submit essay. Redirecting to results...');
+      setError('Gửi bài viết thất bại. Đang chuyển đến kết quả...');
       // Dừng nhạc khi có lỗi
       submitSound.stop();
       setTimeout(() => {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BookOpen, BookMarked, Gamepad2, Puzzle, FileText } from 'lucide-react';
+import { BookOpen, BookMarked, Gamepad2, Puzzle, FileText, Pencil, Check, X } from 'lucide-react';
 import { profileService } from '../services/profileService';
 import { ProfileData, AssessmentHistoryItem } from '../types/profile';
 import MainLayout from '../components/layout/MainLayout';
@@ -21,9 +21,9 @@ function displayName(profile: ProfileData['profile']) {
 }
 
 const RIASEC_LABELS: Record<string, string> = {
-  realistic: 'Kỹ Thuật', investigative: 'Nghiên Cứu',
-  artistic: 'Nghệ Thuật', social: 'Xã Hội',
-  enterprising: 'Kinh Doanh', conventional: 'Nghiệp Vụ',
+  realistic: 'Kỹ Thuật (Realistic)', investigative: 'Nghiên Cứu (Investigative)',
+  artistic: 'Nghệ Thuật (Artistic)', social: 'Xã Hội (Social)',
+  enterprising: 'Kinh Doanh (Enterprising)', conventional: 'Nghiệp Vụ (Conventional)',
 };
 
 const RIASEC_COLORS: Record<string, string> = {
@@ -36,8 +36,8 @@ const RIASEC_COLORS: Record<string, string> = {
 };
 
 const BIG5_LABELS: Record<string, string> = {
-  openness: 'Cởi Mở', conscientiousness: 'Tận Tâm',
-  extraversion: 'Hướng Ngoại', agreeableness: 'Dễ Chịu', neuroticism: 'Nhạy Cảm',
+  openness: 'Cởi Mở (Openness)', conscientiousness: 'Tận Tâm (Conscientiousness)',
+  extraversion: 'Hướng Ngoại (Extraversion)', agreeableness: 'Dễ Chịu (Agreeableness)', neuroticism: 'Nhạy Cảm (Neuroticism)',
 };
 
 function big5Level(score: number) {
@@ -120,7 +120,7 @@ function AssessmentCard({ item }: { item: AssessmentHistoryItem }) {
         border: '1px solid var(--neu-border, #e5e7eb)',
         borderRadius: 14, padding: '1rem 1.1rem',
         cursor: 'pointer', transition: 'box-shadow 0.15s, transform 0.15s',
-        minWidth: 160, flex: '1 0 160px',
+        display: 'flex', flexDirection: 'column', height: '100%',
       }}
       onMouseEnter={e => {
         (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 16px rgba(0,0,0,0.1)';
@@ -135,16 +135,26 @@ function AssessmentCard({ item }: { item: AssessmentHistoryItem }) {
         {date}
       </div>
       <div style={{ marginBottom: 6, color: 'var(--neu-accent)' }}>{icon}</div>
-      <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--neu-text, #111)', marginBottom: 2 }}>
-        {mode === 'traditional' ? 'Truyền Thống' : mode === 'story' ? 'Câu Chuyện' : mode.charAt(0).toUpperCase() + mode.slice(1)} Chế Độ
+      <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--neu-text, #111)', marginBottom: 2, lineHeight: '1.25em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        {mode === 'traditional' ? 'Truyền Thống' : mode === 'story' ? 'Câu Chuyện' : mode.charAt(0).toUpperCase() + mode.slice(1)}
       </div>
       {topType && (
-        <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: 8 }}>
-          Hàng đầu: <strong style={{ color: 'var(--neu-text, #111)' }}>{RIASEC_LABELS[topType] || topType}</strong>
+        <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: 8, lineHeight: '1.3em' }}>
+          <div style={{ marginBottom: 1 }}>Hàng đầu:</div>
+          <strong style={{ color: 'var(--neu-text, #111)', display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {(RIASEC_LABELS[topType] || topType).split(' (')[0]}
+          </strong>
         </div>
       )}
-      <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', marginBottom: 2 }}>Điểm</div>
-      <div style={{ fontWeight: 900, fontSize: '1.3rem', color: 'var(--neu-accent)' }}>{topScore}/100</div>
+      {!topType && (
+        <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: 8, minHeight: '2.4em', lineHeight: '1.2em' }}>
+          &nbsp;
+        </div>
+      )}
+      <div style={{ marginTop: 'auto' }}>
+        <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', marginBottom: 2 }}>Điểm</div>
+        <div style={{ fontWeight: 900, fontSize: '1.3rem', color: 'var(--neu-accent)' }}>{topScore}/100</div>
+      </div>
     </div>
   );
 }
@@ -154,6 +164,13 @@ const ProfilePage = () => {
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Edit profile state
+  const [isEditing, setIsEditing] = useState(false);
+  const [editFullName, setEditFullName] = useState('');
+  const [editDateOfBirth, setEditDateOfBirth] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   useEffect(() => {
     profileService.getProfileData()
@@ -360,21 +377,295 @@ const ProfilePage = () => {
 
               {/* Account Info */}
               <div style={{ background: 'var(--neu-bg-card, #fff)', borderRadius: 16, padding: '1.5rem', border: '1px solid var(--neu-border, #e5e7eb)', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
-                <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--neu-text, #111)', marginBottom: '1.1rem' }}>
-                  Thông tin tài khoản
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  {[
-                    { label: 'Email', value: profileData.profile.email },
-                    { label: 'Họ tên', value: displayName(profileData.profile) },
-                    { label: 'Ngày sinh', value: profileData.profile.date_of_birth ? new Date(profileData.profile.date_of_birth).toLocaleDateString('vi-VN') : 'Chưa cập nhật' },
-                    { label: 'Tham gia', value: new Date(profileData.profile.created_at).toLocaleDateString('vi-VN') },
-                  ].map(({ label, value }) => (
-                    <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0', borderBottom: '1px solid var(--neu-border, #f3f4f6)' }}>
-                      <span style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 500 }}>{label}</span>
-                      <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--neu-text, #111)' }}>{value}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.1rem' }}>
+                  <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--neu-text, #111)' }}>
+                    Thông tin tài khoản
+                  </div>
+                  {!isEditing ? (
+                    <button
+                      onClick={() => {
+                        setIsEditing(true);
+                        setSaveError(null);
+                        setEditFullName(displayName(profileData.profile));
+                        setEditDateOfBirth(profileData.profile.date_of_birth || '');
+                      }}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 4,
+                        padding: '5px 10px', borderRadius: 8,
+                        border: '1px solid var(--neu-border, #e5e7eb)',
+                        background: 'transparent', cursor: 'pointer',
+                        fontSize: '0.75rem', fontWeight: 600,
+                        color: 'var(--neu-accent, #6366f1)',
+                        transition: 'all 0.15s',
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.background = 'var(--neu-accent, #6366f1)'; e.currentTarget.style.color = '#fff'; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--neu-accent, #6366f1)'; }}
+                      title="Chỉnh sửa thông tin"
+                    >
+                      <Pencil size={13} />
+                      Sửa
+                    </button>
+                  ) : (
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      <button
+                        onClick={async () => {
+                          // ═══ VALIDATION ═══
+                          const trimmedName = editFullName.trim();
+
+                          // 1) Họ tên không được rỗng
+                          if (!trimmedName) {
+                            setSaveError('Họ tên không được để trống.');
+                            return;
+                          }
+
+                          // 2) Họ tên tối thiểu 2 ký tự
+                          if (trimmedName.length < 2) {
+                            setSaveError('Họ tên phải có ít nhất 2 ký tự.');
+                            return;
+                          }
+
+                          // 3) Họ tên tối đa 60 ký tự
+                          if (trimmedName.length > 60) {
+                            setSaveError('Họ tên không được vượt quá 60 ký tự.');
+                            return;
+                          }
+
+                          // 4) Họ tên chỉ chứa chữ cái (Unicode), khoảng trắng, dấu gạch ngang
+                          const nameRegex = /^[\p{L}\s\-'.]+$/u;
+                          if (!nameRegex.test(trimmedName)) {
+                            setSaveError('Họ tên chỉ được chứa chữ cái, khoảng trắng và dấu gạch ngang. Không được chứa số hoặc ký tự đặc biệt.');
+                            return;
+                          }
+
+                          // 5) Không chứa nhiều khoảng trắng liên tiếp
+                          if (/\s{2,}/.test(trimmedName)) {
+                            setSaveError('Họ tên không được chứa nhiều khoảng trắng liên tiếp.');
+                            return;
+                          }
+
+                          // 6) Validate ngày sinh nếu có nhập
+                          if (editDateOfBirth) {
+                            // Parse YYYY-MM-DD format
+                            const dateParts = editDateOfBirth.split('-');
+                            if (dateParts.length !== 3) {
+                              setSaveError('Ngày sinh không đúng định dạng. Vui lòng chọn lại từ lịch.');
+                              return;
+                            }
+
+                            const inputYear = parseInt(dateParts[0], 10);
+                            const inputMonth = parseInt(dateParts[1], 10);
+                            const inputDay = parseInt(dateParts[2], 10);
+
+                            // Kiểm tra các phần có phải số hợp lệ không
+                            if (isNaN(inputYear) || isNaN(inputMonth) || isNaN(inputDay)) {
+                              setSaveError('Ngày sinh chứa ký tự không hợp lệ. Vui lòng nhập lại.');
+                              return;
+                            }
+
+                            // Kiểm tra tháng hợp lệ (1-12)
+                            if (inputMonth < 1 || inputMonth > 12) {
+                              setSaveError('Tháng sinh phải từ 1 đến 12.');
+                              return;
+                            }
+
+                            // Kiểm tra số ngày tối đa của tháng (bao gồm năm nhuận)
+                            const daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+                            // Năm nhuận: chia hết cho 4, NHƯNG không chia hết cho 100, TRỪ KHI chia hết cho 400
+                            const isLeapYear = (inputYear % 4 === 0 && inputYear % 100 !== 0) || (inputYear % 400 === 0);
+                            if (isLeapYear) {
+                              daysInMonth[1] = 29; // Tháng 2 năm nhuận có 29 ngày
+                            }
+
+                            const maxDay = daysInMonth[inputMonth - 1];
+                            if (inputDay < 1 || inputDay > maxDay) {
+                              if (inputMonth === 2 && inputDay === 29 && !isLeapYear) {
+                                setSaveError(`Năm ${inputYear} không phải năm nhuận. Tháng 2 chỉ có 28 ngày.`);
+                              } else if (inputMonth === 2 && inputDay > 29) {
+                                setSaveError(`Tháng 2 chỉ có tối đa ${isLeapYear ? 29 : 28} ngày.`);
+                              } else {
+                                setSaveError(`Tháng ${inputMonth} chỉ có ${maxDay} ngày. Ngày ${inputDay} không hợp lệ.`);
+                              }
+                              return;
+                            }
+
+                            // Năm phải >= 1900
+                            if (inputYear < 1900) {
+                              setSaveError('Năm sinh phải từ 1900 trở đi.');
+                              return;
+                            }
+
+                            // Năm không được quá xa tương lai (phòng trường hợp nhập nhầm)
+                            const currentYear = new Date().getFullYear();
+                            if (inputYear > currentYear) {
+                              setSaveError('Năm sinh không thể là năm trong tương lai.');
+                              return;
+                            }
+
+                            // Tạo Date object và verify lại (double-check)
+                            const dobDate = new Date(inputYear, inputMonth - 1, inputDay);
+                            if (
+                              dobDate.getFullYear() !== inputYear ||
+                              dobDate.getMonth() !== inputMonth - 1 ||
+                              dobDate.getDate() !== inputDay
+                            ) {
+                              setSaveError('Ngày sinh không hợp lệ. Vui lòng kiểm tra lại.');
+                              return;
+                            }
+
+                            const today = new Date();
+                            today.setHours(0, 0, 0, 0);
+
+                            // Không được là ngày trong tương lai
+                            if (dobDate > today) {
+                              setSaveError('Ngày sinh không thể là ngày trong tương lai.');
+                              return;
+                            }
+
+                            // Tuổi tối thiểu 10
+                            const age = today.getFullYear() - dobDate.getFullYear();
+                            const monthDiff = today.getMonth() - dobDate.getMonth();
+                            const actualAge = monthDiff < 0 || (monthDiff === 0 && today.getDate() < dobDate.getDate()) ? age - 1 : age;
+                            if (actualAge < 10) {
+                              setSaveError('Bạn phải ít nhất 10 tuổi để sử dụng hệ thống.');
+                              return;
+                            }
+
+                            // Tuổi tối đa 120
+                            if (actualAge > 120) {
+                              setSaveError('Ngày sinh không hợp lệ. Vui lòng kiểm tra lại năm sinh.');
+                              return;
+                            }
+                          }
+
+                          // ═══ SAVE ═══
+                          setSaving(true);
+                          setSaveError(null);
+                          try {
+                            const nameParts = trimmedName.split(/\s+/);
+                            const firstName = nameParts.slice(0, -1).join(' ') || nameParts[0] || '';
+                            const lastName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : '';
+                            await profileService.updateProfile({
+                              firstName,
+                              lastName,
+                              dateOfBirth: editDateOfBirth || undefined,
+                            });
+                            // Reload profile data
+                            const updated = await profileService.getProfileData();
+                            setProfileData(updated);
+                            setIsEditing(false);
+                          } catch (err: any) {
+                            const detail = err?.response?.data?.detail || '';
+                            // Translate common backend errors to Vietnamese
+                            if (detail.includes('date_of_birth') || detail.includes('Invalid date')) {
+                              setSaveError('Ngày sinh không hợp lệ. Vui lòng nhập đúng định dạng.');
+                            } else if (detail.includes('full_name')) {
+                              setSaveError('Họ tên không hợp lệ. Vui lòng kiểm tra lại.');
+                            } else if (detail) {
+                              setSaveError(`Lưu thất bại: ${detail}`);
+                            } else {
+                              setSaveError('Đã xảy ra lỗi khi lưu. Vui lòng thử lại sau.');
+                            }
+                          } finally {
+                            setSaving(false);
+                          }
+                        }}
+                        disabled={saving}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: 3,
+                          padding: '5px 10px', borderRadius: 8,
+                          border: 'none', cursor: saving ? 'not-allowed' : 'pointer',
+                          background: 'var(--neu-accent, #6366f1)', color: '#fff',
+                          fontSize: '0.75rem', fontWeight: 600, opacity: saving ? 0.6 : 1,
+                        }}
+                        title="Lưu thay đổi"
+                      >
+                        <Check size={13} />
+                        {saving ? 'Đang lưu...' : 'Lưu'}
+                      </button>
+                      <button
+                        onClick={() => { setIsEditing(false); setSaveError(null); }}
+                        disabled={saving}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: 3,
+                          padding: '5px 10px', borderRadius: 8,
+                          border: '1px solid #ef4444', cursor: 'pointer',
+                          background: 'transparent', color: '#ef4444',
+                          fontSize: '0.75rem', fontWeight: 600,
+                        }}
+                        title="Hủy"
+                      >
+                        <X size={13} />
+                        Hủy
+                      </button>
                     </div>
-                  ))}
+                  )}
+                </div>
+
+                {saveError && (
+                  <div style={{ marginBottom: '0.75rem', padding: '8px 12px', borderRadius: 8, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#dc2626', fontSize: '0.78rem', fontWeight: 500 }}>
+                    {saveError}
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  {/* Email - không cho sửa */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0', borderBottom: '1px solid var(--neu-border, #f3f4f6)' }}>
+                    <span style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 500 }}>Email</span>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--neu-text, #111)' }}>{profileData.profile.email}</span>
+                  </div>
+
+                  {/* Họ tên - editable */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0', borderBottom: '1px solid var(--neu-border, #f3f4f6)' }}>
+                    <span style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 500 }}>Họ tên</span>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        value={editFullName}
+                        onChange={e => setEditFullName(e.target.value)}
+                        maxLength={60}
+                        style={{
+                          fontSize: '0.85rem', fontWeight: 600, color: 'var(--neu-text, #111)',
+                          border: '1px solid var(--neu-accent, #6366f1)', borderRadius: 6,
+                          padding: '4px 8px', width: '60%', textAlign: 'right',
+                          outline: 'none', background: 'var(--neu-bg, #f9fafb)',
+                        }}
+                        placeholder="Nhập họ tên"
+                        autoFocus
+                      />
+                    ) : (
+                      <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--neu-text, #111)' }}>{displayName(profileData.profile)}</span>
+                    )}
+                  </div>
+
+                  {/* Ngày sinh - editable */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0', borderBottom: '1px solid var(--neu-border, #f3f4f6)' }}>
+                    <span style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 500 }}>Ngày sinh</span>
+                    {isEditing ? (
+                      <input
+                        type="date"
+                        value={editDateOfBirth}
+                        onChange={e => setEditDateOfBirth(e.target.value)}
+                        min="1900-01-01"
+                        max={new Date().toISOString().split('T')[0]}
+                        style={{
+                          fontSize: '0.85rem', fontWeight: 600, color: 'var(--neu-text, #111)',
+                          border: '1px solid var(--neu-accent, #6366f1)', borderRadius: 6,
+                          padding: '4px 8px', textAlign: 'right',
+                          outline: 'none', background: 'var(--neu-bg, #f9fafb)',
+                        }}
+                      />
+                    ) : (
+                      <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--neu-text, #111)' }}>
+                        {profileData.profile.date_of_birth ? new Date(profileData.profile.date_of_birth).toLocaleDateString('vi-VN') : 'Chưa cập nhật'}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Tham gia - không cho sửa */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0', borderBottom: '1px solid var(--neu-border, #f3f4f6)' }}>
+                    <span style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 500 }}>Tham gia</span>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--neu-text, #111)' }}>{new Date(profileData.profile.created_at).toLocaleDateString('vi-VN')}</span>
+                  </div>
                 </div>
                 <a href="/assessment" style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
@@ -402,7 +693,7 @@ const ProfilePage = () => {
                 Lịch Sử Đánh Giá
               </div>
               {profileData.assessmentHistory.length > 0 ? (
-                <div style={{ display: 'flex', gap: '0.85rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.85rem' }}>
                   {sortedAssessments
                     .slice(0, 8)
                     .map(item => <AssessmentCard key={item.id} item={item} />)}

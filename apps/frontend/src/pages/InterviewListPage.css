@@ -8,8 +8,10 @@
     min-height: 580px;
     position: relative;
     overflow: hidden;
-    background: radial-gradient(circle at 78% 35%, rgba(124, 58, 237, 0.16), transparent 42%),
-        linear-gradient(180deg, #fbfbff 0%, #f8f7ff 100%);
+    background:
+        radial-gradient(ellipse at 20% 80%, rgba(124, 58, 237, 0.06), transparent 50%),
+        radial-gradient(ellipse at 80% 20%, rgba(99, 102, 241, 0.08), transparent 45%),
+        linear-gradient(180deg, #ffffff 0%, #f8f7ff 40%, #f1eeff 100%);
 }
 
 .hero-inner {
@@ -51,14 +53,14 @@
     line-height: 1.08;
     font-weight: 900;
     letter-spacing: -0.035em;
-    color: #0f172a;
+    color: #1e1b4b;
     margin: 0 0 22px 0;
     width: 100%;
     text-align: center;
 }
 
 .hero-title-gradient {
-    background: linear-gradient(90deg, #6d28d9 0%, #8b5cf6 45%, #a855f7 100%);
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 60%, #c084fc 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -67,7 +69,7 @@
 .hero-subtitle {
     font-size: 21px;
     line-height: 1.65;
-    color: #64748b;
+    color: #475569;
     max-width: 760px;
     margin-bottom: 42px;
     width: 100%;
@@ -82,9 +84,10 @@
     height: 76px;
     border-radius: 999px;
     background: #ffffff;
-    border: 1px solid rgba(148, 163, 184, 0.18);
-    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08),
-        inset 0 1px 0 rgba(255, 255, 255, 0.85);
+    border: 1.5px solid rgba(124, 58, 237, 0.12);
+    box-shadow:
+        0 4px 16px rgba(124, 58, 237, 0.06),
+        0 12px 40px rgba(15, 23, 42, 0.05);
     display: flex;
     align-items: center;
     padding: 0 32px;
@@ -93,8 +96,10 @@
 }
 
 .hero-search:focus-within {
-    border-color: rgba(139, 92, 246, 0.4);
-    box-shadow: 0 20px 48px rgba(139, 92, 246, 0.12), 0 4px 16px rgba(0, 0, 0, 0.04);
+    border-color: rgba(124, 58, 237, 0.35);
+    box-shadow:
+        0 0 0 4px rgba(124, 58, 237, 0.08),
+        0 12px 40px rgba(124, 58, 237, 0.1);
 }
 
 .hero-search-icon {
@@ -115,10 +120,23 @@
     margin-left: 22px;
 }
 
+/* Disable browser autofill grey/yellow background that bleeds through */
+.hero-search-input:-webkit-autofill,
+.hero-search-input:-webkit-autofill:hover,
+.hero-search-input:-webkit-autofill:focus,
+.hero-search-input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+    -webkit-text-fill-color: #334155 !important;
+    transition: background-color 9999s ease-in-out 0s;
+    caret-color: #334155;
+}
+
 .hero-search-input::placeholder {
     color: #8a90a3;
     font-size: 21px;
     font-weight: 500;
+    /* Ensure no datalist/suggestion overlay shows through */
+    opacity: 1;
 }
 
 .hero-search-loader {
@@ -376,7 +394,7 @@
     width: 28px;
     height: 14px;
     border-radius: 10px 10px 0 0;
-    background: #1F2937;
+    background: #6366F1;
 }
 
 .avatar-body {
@@ -1117,69 +1135,5 @@
             transparent 70%);
 }
 
-/* System preference dark mode */
-@media (prefers-color-scheme: dark) {
-    .hero-section {
-        background: radial-gradient(circle at 78% 35%, rgba(124, 58, 237, 0.14), transparent 42%),
-            linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
-    }
-
-    .hero-title {
-        color: #ffffff;
-    }
-
-    .hero-subtitle {
-        color: #94a3b8;
-    }
-
-    .hero-search {
-        background: rgba(30, 41, 59, 0.85);
-        border-color: rgba(71, 85, 105, 0.5);
-    }
-
-    .hero-search-input {
-        color: #ffffff;
-    }
-
-    .hero-search-input::placeholder {
-        color: #8a90a3;
-    }
-
-    .popular-jobs-title {
-        color: #cbd5e1;
-    }
-
-    /* Force purple gradient in dark mode */
-    .hero-section .popular-jobs .popular-job-chip,
-    .popular-job-chip {
-        background: linear-gradient(180deg, #8b5cf6 0%, #7c3aed 48%, #6d28d9 100%) !important;
-        color: #ffffff !important;
-        box-shadow: 0 10px 22px rgba(124, 58, 237, 0.36),
-            inset 0 1px 0 rgba(255, 255, 255, 0.18) !important;
-    }
-
-    .hero-section .popular-jobs .popular-job-chip:hover,
-    .popular-job-chip:hover {
-        box-shadow: 0 14px 28px rgba(124, 58, 237, 0.44),
-            inset 0 1px 0 rgba(255, 255, 255, 0.22) !important;
-    }
-
-    .resume-card {
-        background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
-        border-color: rgba(71, 85, 105, 0.5);
-    }
-
-    .line {
-        background: rgba(148, 163, 184, 0.2);
-    }
-
-    .search-bubble {
-        background: rgba(30, 41, 59, 0.8);
-        border-color: rgba(71, 85, 105, 0.5);
-    }
-
-    .mini-card {
-        background: rgba(30, 41, 59, 0.84);
-        border-color: rgba(71, 85, 105, 0.5);
-    }
-}
+/* System preference dark mode - REMOVED to prevent conflict with class-based
+   theme toggle. Only .dark class is used for dark mode. */

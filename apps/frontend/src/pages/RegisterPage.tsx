@@ -141,7 +141,7 @@ const RegisterPage = () => {
     try {
       await authTokenService.verify(verificationCode.trim());
       setError("");
-      setInfo("Email verified successfully. Redirecting to login...");
+      setInfo("Email đã xác thực thành công. Đang chuyển hướng đến trang đăng nhập...");
       setAlreadyRegistered(true);
       setCodeSent(false);
       setTimeout(() => navigate("/login"), 1200);

@@ -265,19 +265,52 @@ def get_history(request: Request, user_id: int):
 
 @router.get("/{user_id}/progress")
 def get_progress(request: Request, user_id: int):
-    # Return demo progress data used by dashboard
-    return [
-        {
-            "roadmap_id": "roadmap-frontend",
-            "title": "Frontend Developer Roadmap",
-            "completed_milestones": ["html-css-basics", "react-hooks"],
-        },
-        {
-            "roadmap_id": "roadmap-data",
-            "title": "Data Analyst Roadmap",
-            "completed_milestones": ["python-basics"],
-        },
-    ]
+    """Return real user progress from core.user_progress table."""
+    session = _db(request)
+    # Verify the requesting user has access (either same user or admin)
+    requesting_user_id = require_user(request)
+    # Allow self-access or admin access
+    if requesting_user_id != user_id:
+        u = session.get(User, requesting_user_id)
+        if not u or u.role != "admin":
+            raise HTTPException(status_code=403, detail="Not authorized")
+
+    try:
+        rows = session.execute(
+            text("""
+                SELECT
+                    r.id AS roadmap_id,
+                    COALESCE(r.title_vn, r.title_en, 'Lộ trình') AS title,
+                    COALESCE(up.completed_milestones, '[]'::jsonb) AS completed_milestones,
+                    COALESCE(up.progress_percentage, 0) AS progress_percentage
+                FROM core.user_progress up
+                JOIN core.roadmaps r ON r.id = up.roadmap_id
+                WHERE up.user_id = :user_id
+                ORDER BY up.last_updated_at DESC
+            """),
+            {"user_id": user_id},
+        ).mappings().all()
+
+        result = []
+        for row in rows:
+            milestones = row["completed_milestones"]
+            # completed_milestones is stored as jsonb array
+            if isinstance(milestones, str):
+                import json
+                milestones = json.loads(milestones)
+            elif milestones is None:
+                milestones = []
+            result.append({
+                "roadmap_id": str(row["roadmap_id"]),
+                "title": row["title"],
+                "completed_milestones": milestones if isinstance(milestones, list) else [],
+                "progress_percentage": float(row["progress_percentage"] or 0),
+            })
+        return result
+    except Exception as e:
+        print(f"[users] get_progress error: {repr(e)}")
+        # Fallback: return empty array instead of crashing
+        return []
 
 
 @router.get("/progress")

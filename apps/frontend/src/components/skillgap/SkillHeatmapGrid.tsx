@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { SkillGapAnalysis } from '../../types/skillGap';
 import { useTheme } from '../../contexts/ThemeContext';
 import { translateSkillCategory, translateSkillName } from '../../utils/skillTranslation';
 
 interface Props {
   analysis: SkillGapAnalysis;
+  careerName?: string;
 }
 
-type Status = 'matched' | 'critical' | 'important' | 'nice_to_have';
+type Status = 'matched' | 'important' | 'extra' | 'nice_to_have';
 
 interface SkillCell {
   name: string;
@@ -16,23 +17,28 @@ interface SkillCell {
 }
 
 const STATUS_CONFIG: Record<Status, { label: string; bg: string; border: string; text: string; dot: string }> = {
-  matched:     { label: ' Đã có',         bg: '#dcfce7', border: 'var(--color-primary)', text: '#15803d', dot: '#16a34a' },
-  critical:    { label: ' Thiếu nghiêm trọng', bg: '#fee2e2', border: '#dc2626', text: '#991b1b', dot: '#dc2626' },
-  important:   { label: ' Quan trọng',    bg: '#ffedd5', border: '#ea580c', text: '#9a3412', dot: '#ea580c' },
-  nice_to_have:{ label: ' Nên có',        bg: '#fef9c3', border: '#ca8a04', text: '#854d0e', dot: '#ca8a04' },
+  matched:      { label: 'Đã có',                  bg: '#dcfce7', border: 'var(--color-primary)', text: '#15803d', dot: '#16a34a' },
+  important:    { label: 'Quan trọng',             bg: '#ffedd5', border: '#ea580c', text: '#9a3412', dot: '#ea580c' },
+  extra:        { label: 'Nên có (nghề CV)',       bg: '#fef9c3', border: '#ca8a04', text: '#854d0e', dot: '#ca8a04' },
+  nice_to_have: { label: 'Nên có (nghề Target)',   bg: '#ede9fe', border: '#7c3aed', text: '#5b21b6', dot: '#7c3aed' },
 };
 
-const SkillHeatmapGrid: React.FC<Props> = ({ analysis }) => {
+const SkillHeatmapGrid: React.FC<Props> = ({ analysis, careerName }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
-  const [activeFilter, setActiveFilter] = useState<Status | 'all'>('all');
+  const [activeFilter, setActiveFilter] = useState<Status>('important');
   const [tooltip, setTooltip] = useState<{ skill: SkillCell; x: number; y: number } | null>(null);
+
+  const extraSkills = analysis.extra_skills || [];
+  const cvCareerLabel = extraSkills[0]?.current_career || 'nghề CV';
+  const targetCareerLabel = careerName || extraSkills[0]?.target_career || 'nghề Target';
 
   // Build unified skill list
   const allSkills: SkillCell[] = [
     ...(analysis.matched_skills || []).map(s => ({ name: translateSkillName(s.name), status: 'matched' as Status, category: translateSkillCategory(s.category) })),
-    ...(analysis.skill_gaps?.critical || []).map(s => ({ name: translateSkillName(s.name), status: 'critical' as Status, category: translateSkillCategory(s.category) })),
+    ...(analysis.skill_gaps?.critical || []).map(s => ({ name: translateSkillName(s.name), status: 'important' as Status, category: translateSkillCategory(s.category) })),
     ...(analysis.skill_gaps?.important || []).map(s => ({ name: translateSkillName(s.name), status: 'important' as Status, category: translateSkillCategory(s.category) })),
+    ...extraSkills.map(s => ({ name: translateSkillName(s.name), status: 'extra' as Status, category: translateSkillCategory(s.category) })),
     ...(analysis.skill_gaps?.nice_to_have || []).map(s => ({ name: translateSkillName(s.name), status: 'nice_to_have' as Status, category: translateSkillCategory(s.category) })),
   ];
 
@@ -45,14 +51,28 @@ const SkillHeatmapGrid: React.FC<Props> = ({ analysis }) => {
   });
 
   const filtered = (skills: SkillCell[]) =>
-    activeFilter === 'all' ? skills : skills.filter(s => s.status === activeFilter);
+    skills.filter(s => s.status === activeFilter);
 
   const counts = {
     matched:      allSkills.filter(s => s.status === 'matched').length,
-    critical:     allSkills.filter(s => s.status === 'critical').length,
     important:    allSkills.filter(s => s.status === 'important').length,
+    extra:        allSkills.filter(s => s.status === 'extra').length,
     nice_to_have: allSkills.filter(s => s.status === 'nice_to_have').length,
   };
+
+  useEffect(() => {
+    if (counts[activeFilter] > 0) return;
+    const next = (['important', 'matched', 'extra', 'nice_to_have'] as Status[]).find((key) => counts[key] > 0);
+    if (next && next !== activeFilter) setActiveFilter(next);
+  }, [activeFilter, counts.important, counts.matched, counts.extra, counts.nice_to_have]);
+
+  // Dynamic labels with career names
+  const filterButtons: [Status, string, number][] = [
+    ['matched', 'Đã có', counts.matched],
+    ['important', 'Quan trọng', counts.important],
+    ['extra', `Nên có (${cvCareerLabel})`, counts.extra],
+    ['nice_to_have', `Nên có (${targetCareerLabel})`, counts.nice_to_have],
+  ];
 
   return (
     <div style={{ background: isDark ? '#1e293b' : 'white', borderRadius: 16, padding: '1.5rem', boxShadow: isDark ? '0 2px 12px rgba(0,0,0,0.3)' : '0 2px 12px rgba(0,0,0,0.08)' }}>
@@ -65,15 +85,15 @@ const SkillHeatmapGrid: React.FC<Props> = ({ analysis }) => {
 
       {/* Filter chips */}
       <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
-        {([['all', ' Tất cả', allSkills.length], ['matched', ' Đã có', counts.matched], ['critical', ' Thiếu nghiêm trọng', counts.critical], ['important', ' Quan trọng', counts.important], ['nice_to_have', ' Nên có', counts.nice_to_have]] as [Status | 'all', string, number][]).map(([key, label, count]) => (
+        {filterButtons.filter(([, , count]) => count > 0).map(([key, label, count]) => (
           <button
             key={key}
             onClick={() => setActiveFilter(key)}
             style={{
               padding: '0.35rem 0.85rem',
               borderRadius: 20,
-              border: `2px solid ${activeFilter === key ? 'var(--color-primary)' : '#e2e8f0'}`,
-              background: activeFilter === key ? 'var(--color-primary)' : 'white',
+              border: `2px solid ${activeFilter === key ? STATUS_CONFIG[key].border : '#e2e8f0'}`,
+              background: activeFilter === key ? STATUS_CONFIG[key].border : 'white',
               color: activeFilter === key ? 'white' : '#64748b',
               fontWeight: 600,
               fontSize: '0.82rem',
@@ -133,12 +153,15 @@ const SkillHeatmapGrid: React.FC<Props> = ({ analysis }) => {
 
       {/* Legend */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid #e2e8f0' }}>
-        {(Object.entries(STATUS_CONFIG) as [Status, typeof STATUS_CONFIG[Status]][]).map(([key, cfg]) => (
+        {(['matched', 'important', 'extra', 'nice_to_have'] as Status[]).filter(key => counts[key] > 0).map((key) => {
+          const cfg = STATUS_CONFIG[key];
+          return (
           <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.82rem', color: '#475569' }}>
             <span style={{ width: 10, height: 10, borderRadius: 3, background: cfg.bg, border: `1.5px solid ${cfg.border}`, display: 'inline-block' }} />
             {cfg.label}
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Tooltip */}

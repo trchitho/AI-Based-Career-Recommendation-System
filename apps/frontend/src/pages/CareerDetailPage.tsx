@@ -8,6 +8,7 @@ import { useUsageTracking } from '../hooks/useUsageTracking';
 import { useFeatureAccess } from '../hooks/useFeatureAccess';
 import { useSubscription } from '../hooks/useSubscription';
 import CareerMentorSection from '../components/mentor/CareerMentorSection';
+import ONetAttribution from '../components/common/ONetAttribution';
 import { CAREER_IMAGES } from './CareersByGroupPage';
 
 // Technology Grouped Component with expand/collapse
@@ -992,6 +993,7 @@ const CareerDetailPage = () => {
           )}
         </div>
       </div>
+      <ONetAttribution />
     </MainLayout>
   );
 };

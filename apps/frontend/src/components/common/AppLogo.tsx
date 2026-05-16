@@ -20,7 +20,7 @@ const AppLogo = ({ linkTo = '/home', className = '' }: AppLogoProps) => {
       ) : null}
 
       <span className="text-[24px] font-[800] tracking-[-0.04em] text-[#0f172a] dark:text-[#f8fafc]">
-        career<span className="text-[#4f46e5]">bridge.</span>
+        Career<span className="text-[#4f46e5]">Verse</span>
       </span>
     </div>
   );

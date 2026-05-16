@@ -209,7 +209,7 @@ const InterviewListPage: React.FC = () => {
 
                             {/* Title */}
                             <h1 className="hero-title">
-                                <span className="text-[#0F172A] dark:text-white">Phỏng vấn AI </span>
+                                <span>Phỏng vấn AI </span>
                                 <span className="hero-title-gradient">thông minh</span>
                             </h1>
 
@@ -223,10 +223,13 @@ const InterviewListPage: React.FC = () => {
                                 <Search className="hero-search-icon" />
                                 <input
                                     type="text"
-                                    placeholder="Tìm kiếm kỹ năng, vị trí, công ty..."
+                                    placeholder="Tìm kiếm nghề nghiệp muốn phỏng vấn..."
                                     value={searchQuery}
                                     onChange={handleSearchChange}
                                     className="hero-search-input"
+                                    autoComplete="off"
+                                    autoCorrect="off"
+                                    spellCheck={false}
                                 />
                                 {isSearching && (
                                     <Loader2 className="hero-search-loader" />

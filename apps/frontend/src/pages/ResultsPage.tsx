@@ -133,25 +133,40 @@ const ResultsPage = () => {
       hour: '2-digit', minute: '2-digit',
     });
 
-  const getTopRIASEC = () => {
-    if (results?.top_interest) return getRIASECFullName(results.top_interest).toUpperCase();
+  const getTopRIASECParts = () => {
+    if (results?.top_interest) {
+      const fullName = getRIASECFullName(results.top_interest);
+      // Format: "Nghiên Cứu (Investigative)" → split into vi + en
+      const match = fullName.match(/^(.+?)\s*\((.+)\)$/);
+      if (match) return { vi: match[1].toUpperCase(), en: match[2].toUpperCase() };
+      return { vi: fullName.toUpperCase(), en: '' };
+    }
     const order = ['realistic','investigative','artistic','social','enterprising','conventional'];
     const entries = Object.entries(results?.riasec_scores ?? {});
     entries.sort((a, b) => {
       const d = b[1] - a[1];
       return d !== 0 ? d : order.indexOf(a[0].toLowerCase()) - order.indexOf(b[0].toLowerCase());
     });
-    return getRIASECFullName(entries[0]?.[0] ?? '').toUpperCase();
+    const fullName = getRIASECFullName(entries[0]?.[0] ?? '');
+    const match = fullName.match(/^(.+?)\s*\((.+)\)$/);
+    if (match) return { vi: match[1].toUpperCase(), en: match[2].toUpperCase() };
+    return { vi: fullName.toUpperCase(), en: '' };
   };
 
-  const getTopBigFive = () => {
+  const getTopBigFiveParts = () => {
     const BIG5_VI: Record<string, string> = {
       openness: 'Cởi Mở', conscientiousness: 'Tận Tâm',
       extraversion: 'Hướng Ngoại', agreeableness: 'Dễ Chịu', neuroticism: 'Nhạy Cảm',
     };
+    const BIG5_EN: Record<string, string> = {
+      openness: 'Openness', conscientiousness: 'Conscientiousness',
+      extraversion: 'Extraversion', agreeableness: 'Agreeableness', neuroticism: 'Neuroticism',
+    };
     const key = Object.entries(results?.big_five_scores ?? {}).sort((a, b) => b[1] - a[1])[0]?.[0];
-    if (!key) return 'N/A';
-    return (BIG5_VI[key.toLowerCase()] || key).toUpperCase();
+    if (!key) return { vi: 'N/A', en: '' };
+    const vi = (BIG5_VI[key.toLowerCase()] || key).toUpperCase();
+    const en = (BIG5_EN[key.toLowerCase()] || key).toUpperCase();
+    return { vi, en };
   };
 
   return (
@@ -258,7 +273,7 @@ const ResultsPage = () => {
                 {activeTab === 'summary' && (
                   <div className="res-summary-grid">
                     {/* Highlights */}
-                    <div className="res-section">
+                    <div className="res-section res-highlights-section">
                       <div className="res-section-header">
                         <span className="res-section-icon green">
                           <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -272,14 +287,20 @@ const ResultsPage = () => {
                       <div className="res-highlights">
                         <div className="res-highlight-card green">
                           <p className="res-highlight-label">Sở Thích Nghề Nghiệp Hàng Đầu</p>
-                          <p className="res-highlight-value">{getTopRIASEC()}</p>
+                          <p className="res-highlight-value">{getTopRIASECParts().vi}</p>
+                          {getTopRIASECParts().en && (
+                            <p className="res-highlight-code">({getTopRIASECParts().en})</p>
+                          )}
                           <svg className="res-highlight-bg-icon" width="100" height="100" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M13 10V3L4 14h7v7l9-11h-7z" />
                           </svg>
                         </div>
                         <div className="res-highlight-card blue">
                           <p className="res-highlight-label">Đặc Điểm Nổi Trội</p>
-                          <p className="res-highlight-value">{getTopBigFive()}</p>
+                          <p className="res-highlight-value">{getTopBigFiveParts().vi}</p>
+                          {getTopBigFiveParts().en && (
+                            <p className="res-highlight-code">({getTopBigFiveParts().en})</p>
+                          )}
                           <svg className="res-highlight-bg-icon" width="100" height="100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
@@ -361,28 +382,6 @@ const ResultsPage = () => {
                           <RIASECLineChart scores={results.riasec_scores} />
                         </div>
                       </div>
-
-                      <div className="res-chart-box">
-                        <p className="res-chart-title">Chi Tiết Điểm</p>
-                        <div className="res-score-grid">
-                          {Object.entries(results.riasec_scores)
-                            .sort((a, b) => b[1] - a[1])
-                            .map(([key, value], index) => (
-                              <div key={key} className="res-score-item">
-                                <div className="res-score-label-row">
-                                  <span className="res-score-name">{getRIASECFullName(key)}</span>
-                                  <span className="res-score-val">{value.toFixed(0)}/100</span>
-                                </div>
-                                <div className="res-score-track">
-                                  <div
-                                    className={`res-score-fill c${index % 6}`}
-                                    style={{ width: `${Math.min(value, 100)}%` }}
-                                  />
-                                </div>
-                              </div>
-                            ))}
-                        </div>
-                      </div>
                     </div>
 
                     {/* Big Five */}
@@ -429,7 +428,7 @@ const ResultsPage = () => {
               </div>
 
               {/* 4. Feedback */}
-              {!fbDone && (
+              {!fbDone ? (
                 <div className="res-feedback">
                   <h3>Kết quả có hữu ích không?</h3>
                   <p>Giúp chúng tôi cải thiện AI bằng cách đánh giá kết quả của bạn.</p>
@@ -476,6 +475,27 @@ const ResultsPage = () => {
                       Gửi phản hồi
                     </button>
                   </div>
+                </div>
+              ) : (
+                <div className="res-feedback res-feedback-thanks">
+                  <div className="res-thanks-icon" aria-hidden="true">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  </div>
+                  <h3>Cảm ơn phản hồi của bạn!</h3>
+                  <p>
+                    Đánh giá <strong>{fbRating}/5</strong> của bạn đã được ghi nhận. Chúng tôi sẽ
+                    sử dụng phản hồi này để:
+                  </p>
+                  <ul className="res-thanks-list">
+                    <li>Cải thiện độ chính xác của thuật toán AI gợi ý nghề nghiệp.</li>
+                    <li>Tinh chỉnh nội dung báo cáo và biểu đồ trực quan.</li>
+                    <li>Phát triển các tính năng mới phù hợp hơn với nhu cầu người dùng.</li>
+                  </ul>
+                  <p className="res-thanks-note">
+                    Phản hồi của bạn được lưu ẩn danh và chỉ dùng cho mục đích nghiên cứu nội bộ.
+                  </p>
                 </div>
               )}
             </>
