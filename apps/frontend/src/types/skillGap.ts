@@ -34,7 +34,15 @@ export interface SkillGapAnalysis {
   cv_skills: SkillInfo[];
   matched_skills: SkillInfo[];
   skill_gaps: SkillGapCategory;
-  extra_skills: Array<{ name: string; category: string; source?: string }>;
+  extra_skills: Array<{
+    name: string;
+    category: string;
+    source?: string;
+    description_vn?: string;
+    description_en?: string;
+    current_career?: string;
+    target_career?: string;
+  }>;
   created_at: string;
 }
 

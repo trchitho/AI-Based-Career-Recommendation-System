@@ -171,8 +171,8 @@
 
 .section-title.critical { color: #dc2626; }
 .section-title.important { color: #ea580c; }
-.section-title.nice-to-have { color: #ca8a04; }
-.section-title.extra { color: #7c3aed; }
+.section-title.nice-to-have { color: #7c3aed; }
+.section-title.extra { color: #d97706; }
 
 .section-description { margin: 0 0 1.5rem 0; color: var(--neu-text-muted); font-size: 0.9rem; }
 
@@ -199,8 +199,8 @@
 .skill-badge.matched  { border-color: var(--color-success); }
 .skill-badge.critical { border-color: #ef4444; }
 .skill-badge.important { border-color: #f59e0b; }
-.skill-badge.nice-to-have { border-color: #eab308; }
-.skill-badge.extra { border-color: #a855f7; }
+.skill-badge.nice-to-have { border-color: #a855f7; }
+.skill-badge.extra { border-color: #f59e0b; }
 
 .skill-name { font-weight: 600; color: var(--neu-text); font-size: 0.95rem; }
 .skill-category { font-size: 0.82rem; color: var(--neu-text-muted); }
@@ -218,7 +218,8 @@
 }
 .important-section { border-top: 3px solid #f97316; }
 .nice-section { border-top: 3px solid #eab308; }
-.extra-section { border-top: 3px solid #8b5cf6; }
+.extra-section { border-top: 3px solid #f59e0b; }
+.nice-to-have-section { border-top: 3px solid #8b5cf6; }
 
 .insight-grid {
   grid-template-columns: repeat(auto-fill, minmax(min(270px, 100%), 1fr));
@@ -372,12 +373,36 @@
 .sw-list li {
   position: relative;
   margin-bottom: 0.6rem;
-  line-height: 1.6;
+  line-height: 1.7;
   font-size: 0.9rem;
   color: var(--neu-text-muted);
   padding-left: 0.5rem;
 }
 .sw-list li:before { content: "•"; position: absolute; left: -1rem; color: var(--neu-accent); font-weight: bold; }
+.sw-list strong {
+  color: var(--neu-text);
+  font-weight: 800;
+}
+.weaknesses-card .sw-list li {
+  margin-bottom: 0.85rem;
+}
+.sw-more-btn {
+  margin-top: 0.75rem;
+  border: 1.5px solid rgba(239, 68, 68, 0.28);
+  background: rgba(239, 68, 68, 0.08);
+  color: #b91c1c;
+  font-size: 0.82rem;
+  font-weight: 800;
+  padding: 0.55rem 0.9rem;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.2s, background 0.2s;
+}
+.sw-more-btn:hover {
+  transform: translateY(-1px);
+  background: rgba(239, 68, 68, 0.12);
+  box-shadow: var(--neu-raised-sm);
+}
 
 /* ── Learning path section ───────────────────────────────────── */
 .learning-path-section {
@@ -508,7 +533,20 @@
 }
 
 .skill-report-exporting #skill-gap-report {
-  background: #f8fafc;
+  background: #ffffff;
+  overflow: visible !important;
+  height: auto !important;
+  max-height: none !important;
+  position: relative !important;
+}
+
+.skill-report-exporting .skill-gap-result {
+  overflow: visible !important;
+  max-height: none !important;
+}
+
+.skill-report-exporting .skills-grid {
+  page-break-inside: avoid;
 }
 
 /* ── Responsive ──────────────────────────────────────────────── */
