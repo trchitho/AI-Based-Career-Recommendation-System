@@ -131,6 +131,106 @@ def to_float_list_from_scores(scores_val: Any, expected_len: int) -> list[float]
 # ========= Main =========
 
 
+def build_features(
+    db_url: str = "postgresql://postgres:postgres@localhost:5433/career_ai?sslmode=prefer&connect_timeout=10",
+    user_out: str = "data/processed/user_feats.json",
+    item_out: str = "data/processed/item_feats.json",
+    item_id_mode: str = "career_id",
+    use_assessments: bool = True,
+) -> dict:
+    """
+    Build user_feats.json and item_feats.json from database.
+    Callable from API/scheduler — không cần argparse.
+
+    Returns dict with stats: {users: int, items: int}
+    """
+    with psycopg.connect(db_url) as conn:
+        conn.autocommit = True
+
+        # 1) user_feats
+        user_feats: dict[str, dict[str, Any]] = {}
+
+        # 1.1) quick_text_embeddings (base)
+        with conn.cursor() as cur:
+            try:
+                cur.execute(SQL_USER_QTE)
+                for uid, emb, source in cur.fetchall():
+                    user_feats[uid] = {
+                        "text": np.array(vec_to_list(emb), dtype=np.float32).tolist(),
+                        "riasec": [0, 0, 0, 0, 0, 0],
+                        "big5": [0, 0, 0, 0, 0],
+                        "source": source or "essay",
+                    }
+            except Exception:
+                pass
+
+        # 1.2) user_embeddings (override)
+        with conn.cursor() as cur:
+            cur.execute(SQL_USER_UE)
+            for uid, emb, source in cur.fetchall():
+                user_feats[uid] = {
+                    "text": np.array(vec_to_list(emb), dtype=np.float32).tolist(),
+                    "riasec": user_feats.get(uid, {}).get("riasec", [0, 0, 0, 0, 0, 0]),
+                    "big5": user_feats.get(uid, {}).get("big5", [0, 0, 0, 0, 0]),
+                    "source": source or "essay",
+                }
+
+        # 2) Test scores (optional)
+        if use_assessments:
+            with conn.cursor() as cur:
+                cur.execute(SQL_USER_SCORES)
+                rows = cur.fetchall()
+            for uid, a_type, scores in rows:
+                if uid not in user_feats:
+                    user_feats[uid] = {
+                        "text": [],
+                        "riasec": [0, 0, 0, 0, 0, 0],
+                        "big5": [0, 0, 0, 0, 0],
+                        "source": "profile",
+                    }
+                if a_type == "RIASEC":
+                    user_feats[uid]["riasec"] = to_float_list_from_scores(scores, 6)
+                elif a_type == "BigFive":
+                    user_feats[uid]["big5"] = to_float_list_from_scores(scores, 5)
+
+        # 3) item_feats
+        onet_to_riasec: dict[str, list[float]] = {}
+        with conn.cursor() as cur:
+            cur.execute(SQL_JOB_RIASEC)
+            for onet, r, i, a, s, e, c in cur.fetchall():
+                onet_to_riasec[onet] = [float(r), float(i), float(a), float(s), float(e), float(c)]
+
+        sql_item = SQL_ITEM_BY_CAREER_ID if item_id_mode == "career_id" else SQL_ITEM_BY_ONET
+
+        item_feats: dict[str, dict[str, Any]] = {}
+        with conn.cursor() as cur:
+            cur.execute(sql_item)
+            for item_id, onet, emb, title in cur.fetchall():
+                item_feats[str(item_id)] = {
+                    "text": np.array(vec_to_list(emb), dtype=np.float32).tolist(),
+                    "riasec": onet_to_riasec.get(onet, [0, 0, 0, 0, 0, 0]),
+                    "title": title or "",
+                }
+
+    # 4) Write files atomically (write to .tmp, then rename)
+    user_path = Path(user_out)
+    item_path = Path(item_out)
+    user_path.parent.mkdir(parents=True, exist_ok=True)
+    item_path.parent.mkdir(parents=True, exist_ok=True)
+
+    user_tmp = user_path.with_suffix(user_path.suffix + ".tmp")
+    item_tmp = item_path.with_suffix(item_path.suffix + ".tmp")
+
+    user_tmp.write_text(json.dumps(user_feats, ensure_ascii=False, indent=2), encoding="utf-8")
+    item_tmp.write_text(json.dumps(item_feats, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    # Atomic rename (Windows compatible)
+    user_tmp.replace(user_path)
+    item_tmp.replace(item_path)
+
+    return {"users": len(user_feats), "items": len(item_feats)}
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument(
@@ -152,82 +252,17 @@ def main():
     )
     args = ap.parse_args()
 
-    with psycopg.connect(args.db) as conn:
-        conn.autocommit = True
-
-        # 1) user_feats
-        user_feats: dict[str, dict[str, Any]] = {}
-
-        # 1.1) quick_text_embeddings (base)
-        with conn.cursor() as cur:
-            try:
-                cur.execute(SQL_USER_QTE)
-                for uid, emb, source in cur.fetchall():
-                    user_feats[uid] = {
-                        "text": np.array(vec_to_list(emb), dtype=np.float32).tolist(),
-                        "riasec": [0, 0, 0, 0, 0, 0],
-                        "big5": [0, 0, 0, 0, 0],
-                        "source": source or "essay",
-                    }
-            except Exception:
-                pass  # bảng có thể chưa tồn tại
-
-        # 1.2) user_embeddings (override)
-        with conn.cursor() as cur:
-            cur.execute(SQL_USER_UE)
-            for uid, emb, source in cur.fetchall():
-                user_feats[uid] = {
-                    "text": np.array(vec_to_list(emb), dtype=np.float32).tolist(),
-                    "riasec": user_feats.get(uid, {}).get("riasec", [0, 0, 0, 0, 0, 0]),
-                    "big5": user_feats.get(uid, {}).get("big5", [0, 0, 0, 0, 0]),
-                    "source": source or "essay",
-                }
-
-        # 2) điểm test (optional)
-        if args.use_assessments:
-            with conn.cursor() as cur:
-                cur.execute(SQL_USER_SCORES)
-                rows = cur.fetchall()
-            for uid, a_type, scores in rows:
-                if uid not in user_feats:
-                    user_feats[uid] = {
-                        "text": [],
-                        "riasec": [0, 0, 0, 0, 0, 0],
-                        "big5": [0, 0, 0, 0, 0],
-                        "source": "profile",
-                    }
-                if a_type == "RIASEC":
-                    user_feats[uid]["riasec"] = to_float_list_from_scores(scores, 6)
-                elif a_type == "BigFive":
-                    user_feats[uid]["big5"] = to_float_list_from_scores(scores, 5)
-
-        # 3) item_feats (text + riasec + title)
-        onet_to_riasec: dict[str, list[float]] = {}
-        with conn.cursor() as cur:
-            cur.execute(SQL_JOB_RIASEC)
-            for onet, r, i, a, s, e, c in cur.fetchall():
-                onet_to_riasec[onet] = [float(r), float(i), float(a), float(s), float(e), float(c)]
-
-        sql_item = SQL_ITEM_BY_CAREER_ID if args.item_id_mode == "career_id" else SQL_ITEM_BY_ONET
-
-        item_feats: dict[str, dict[str, Any]] = {}
-        with conn.cursor() as cur:
-            cur.execute(sql_item)
-            for item_id, onet, emb, title in cur.fetchall():
-                item_feats[str(item_id)] = {
-                    "text": np.array(vec_to_list(emb), dtype=np.float32).tolist(),
-                    "riasec": onet_to_riasec.get(onet, [0, 0, 0, 0, 0, 0]),
-                    "title": title or "",
-                }
-
-    # 4) Ghi file
-    Path(args.user_out).parent.mkdir(parents=True, exist_ok=True)
-    Path(args.user_out).write_text(json.dumps(user_feats, ensure_ascii=False, indent=2), encoding="utf-8")
-    Path(args.item_out).write_text(json.dumps(item_feats, ensure_ascii=False, indent=2), encoding="utf-8")
+    stats = build_features(
+        db_url=args.db,
+        user_out=args.user_out,
+        item_out=args.item_out,
+        item_id_mode=args.item_id_mode,
+        use_assessments=args.use_assessments,
+    )
 
     print(f"[OK] Write → {args.user_out}, {args.item_out}")
     print(f"[INFO] item_id_mode = {args.item_id_mode}, use_assessments={args.use_assessments}")
-    print(f"[INFO] users={len(user_feats)}, items={len(item_feats)}")
+    print(f"[INFO] users={stats['users']}, items={stats['items']}")
 
 
 if __name__ == "__main__":
