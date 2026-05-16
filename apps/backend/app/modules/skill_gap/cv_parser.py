@@ -4,11 +4,19 @@ Trích xuất kỹ năng từ CV (PDF/Word) sử dụng NLP
 Updated to use 3-stream system
 """
 import re
+import time
 from io import BytesIO
 from typing import Dict, List
 
 import pypdf as PyPDF2
 from app.core.gemini_manager import multi_stream_manager
+
+
+# Module-level cache: shared across all CVParser instances and requests.
+# career_ksas changes infrequently, so a long-lived cache is safe.
+_SKILLS_CACHE: Dict[str, str] = {}
+_SKILLS_CACHE_AT: float = 0.0
+_SKILLS_CACHE_TTL: float = 3600.0  # 1 hour
 
 
 class CVParser:
@@ -26,11 +34,18 @@ class CVParser:
     
     def _load_skills_from_database(self) -> Dict[str, str]:
         """
-        Load danh sách skills từ database (core.career_ksas)
-        
-        Returns:
-            Dict[str, str]: Dict mapping skill_name -> category
+        Load danh sách skills từ database (core.career_ksas).
+        Cache ở module-level để tránh query lại trên mỗi request.
         """
+        global _SKILLS_CACHE, _SKILLS_CACHE_AT
+
+        # Module-level cache (process-wide) — query is expensive (13s on cold cache)
+        now = time.time()
+        if _SKILLS_CACHE and (now - _SKILLS_CACHE_AT) < _SKILLS_CACHE_TTL:
+            self._skill_cache = _SKILLS_CACHE
+            return _SKILLS_CACHE
+
+        # Per-instance cache short-circuit (fallback)
         if self._skill_cache is not None:
             return self._skill_cache
         
@@ -57,6 +72,8 @@ class CVParser:
             
             print(f"[OK] Loaded {len(skills_dict)} skills with categories from database")
             self._skill_cache = skills_dict
+            _SKILLS_CACHE = skills_dict
+            _SKILLS_CACHE_AT = now
             return skills_dict
             
         except Exception as e:
@@ -367,15 +384,16 @@ class CVParser:
             
             # Extract phone number (Vietnamese format)
             # Supports: 0123456789, +84123456789, (012) 345-6789, etc.
-            phone_pattern = r'(?:\+84|0)[\d\s.-]{9,15}'
+            phone_pattern = r'(?:\+84|84|0)[\d\s().-]{8,16}'
             phone_matches = re.findall(phone_pattern, text)
             if phone_matches:
                 # Clean phone number - take first valid one
                 for phone in phone_matches:
-                    phone_clean = re.sub(r'[\s.-]', '', phone)  # Remove spaces, dots, dashes
-                    # Validate length (should be 10-11 digits)
-                    if 10 <= len(phone_clean) <= 11 and phone_clean.isdigit():
-                        info['phone'] = phone_clean
+                    phone_digits = re.sub(r'\D', '', phone)
+                    if phone_digits.startswith('84') and len(phone_digits) in (11, 12):
+                        phone_digits = '0' + phone_digits[2:]
+                    if 10 <= len(phone_digits) <= 11 and phone_digits.isdigit():
+                        info['phone'] = phone_digits
                         break
             
             # Extract name - ALWAYS use AI for better accuracy
