@@ -60,6 +60,7 @@ def get_profile(request: Request):
             "id": user.id,
             "email": user.email,
             "full_name": user.full_name,
+            "date_of_birth": user.date_of_birth.isoformat() if getattr(user, "date_of_birth", None) else None,
             "role": user.role,
             "created_at": user.created_at.isoformat() if user.created_at else None,
             "goals": [{"id": str(g.id), "goal_text": g.goal_text} for g in goals]
@@ -80,6 +81,7 @@ def get_profile(request: Request):
             "id": user.id,
             "email": user.email,
             "full_name": user.full_name,
+            "date_of_birth": user.date_of_birth.isoformat() if getattr(user, "date_of_birth", None) else None,
             "role": user.role,
             "created_at": user.created_at.isoformat() if user.created_at else None,
             "goals": []

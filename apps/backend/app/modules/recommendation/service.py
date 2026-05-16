@@ -2,16 +2,23 @@
 from __future__ import annotations
 
 import logging
-import os
+import time
 import uuid
 from typing import Any, Dict, List, Optional
 
 import httpx
+from app.core.ai_core_config import (
+    AI_CORE_BASE_URL,
+    AI_CORE_CONNECT_TIMEOUT,
+    AI_CORE_READ_TIMEOUT,
+    HTTPX_CONNECT_TIMEOUT,
+    HTTPX_NETWORK_ERRORS,
+    HTTPX_READ_TIMEOUT,
+    httpx_timeout,
+)
 from app.core.logging import logger
 from sqlalchemy import text
 from sqlalchemy.orm import Session
-
-AI_CORE_BASE_URL = os.getenv("AI_CORE_BASE_URL", "http://localhost:9000").rstrip("/")
 
 
 class RecService:
@@ -60,14 +67,24 @@ class RecService:
         items: List[Dict[str, Any]],
     ) -> List[Dict[str, Any]]:
         """
-        Nhận list item từ AI-core:
+        Nhận list item từ AI-core (với multi-signal scoring):
         [
-          {"career_id": "11-1011.00", "final_score": 0.92},
+          {
+            "career_id": "11-1011.00",
+            "final_score": 0.92,
+            "display_match": 89.4,
+            "embedding_score": 0.85,
+            "riasec_score": 0.91,
+            "big5_score": 0.72,
+            "neumf_score": 0.45,
+            "confidence": 0.875
+          },
           ...
         ]
 
         - Map career_id (O*NET code) -> row trong core.careers + nhãn RIASEC.
         - Trả về list DTO thô cho FE.
+        - GIỮ NGUYÊN display_match từ AI-core (đã được calibrated qua sigmoid).
         """
         dto_list: List[Dict[str, Any]] = []
 
@@ -78,7 +95,6 @@ class RecService:
 
             meta = self._load_career_meta(db, onet_code)
             if not meta:
-                # chưa enrich metadata thì bỏ qua nghề này
                 continue
 
             slug = meta.get("slug") or onet_code
@@ -87,19 +103,24 @@ class RecService:
             score = raw.get("match_score") or raw.get("score") or raw.get("final_score") or 0.0
 
             dto = {
-                "career_id": slug,  # FE dùng slug làm id
+                "career_id": slug,
                 "slug": slug,
-                "job_onet": onet_code,  # giữ O*NET để log / debug
+                "job_onet": onet_code,
                 "title": meta.get("title_vi") or meta.get("title_en") or slug,
                 "title_vn": meta.get("title_vi"),
                 "title_vi": meta.get("title_vi"),
                 "title_en": meta.get("title_en"),
-                # Ưu tiên mô tả tiếng Việt
                 "description": (meta.get("short_desc_vi") or meta.get("short_desc_en") or meta.get("description") or ""),
-                "tags": riasec_codes,  # ["R", "RI", ...]
+                "tags": riasec_codes,
                 "job_zone": meta.get("job_zone"),
                 "match_score": float(score),
+                # Multi-signal explainability (passed through to FE as needed)
                 "display_match": raw.get("display_match"),
+                "embedding_score": raw.get("embedding_score"),
+                "riasec_score": raw.get("riasec_score"),
+                "big5_score": raw.get("big5_score"),
+                "neumf_score": raw.get("neumf_score"),
+                "confidence": raw.get("confidence"),
                 "position": raw.get("position", 0),
             }
             dto_list.append(dto)
@@ -641,13 +662,24 @@ class RecService:
         url = f"{AI_CORE_BASE_URL}/recs/top_careers"
         payload = {"assessment_id": assessment_id, "top_k": top_k}
 
-        logger.info(f"[Recommendations] Calling AI-core: {url} with assessment_id={assessment_id}, top_k={top_k}")
+        logger.info(
+            f"[Recommendations] Calling AI-core: {url} with assessment_id={assessment_id}, "
+            f"top_k={top_k} (connect={AI_CORE_CONNECT_TIMEOUT}s, read={AI_CORE_READ_TIMEOUT}s)"
+        )
 
+        # Tách connect timeout (fail nhanh nếu AI-core down) khỏi read timeout
+        # (chờ pipeline inference cold path).
+        timeout = httpx_timeout()
+
+        started = time.monotonic()
         try:
-            with httpx.Client(timeout=5.0) as client:
+            with httpx.Client(timeout=timeout) as client:
                 resp = client.post(url, json=payload)
 
-            logger.info(f"[Recommendations] AI-core response status: {resp.status_code}")
+            elapsed = time.monotonic() - started
+            logger.info(
+                f"[Recommendations] AI-core response status={resp.status_code} in {elapsed:.2f}s"
+            )
 
             if resp.status_code != 200:
                 logger.error(f"[Recommendations] AI-core error {resp.status_code}: {resp.text[:200]}")
@@ -659,16 +691,36 @@ class RecService:
                 logger.error("[Recommendations] AI-core returned invalid format (items not a list)")
                 return []  # Return empty to trigger saved recommendations fallback
 
-            logger.info(f"[Recommendations] AI-core returned {len(items)} career recommendations")
+            logger.info(f"[Recommendations] AI-core returned {len(items)} career recommendations in {elapsed:.2f}s")
 
-        except httpx.TimeoutException as e:
-            logger.error(f"[Recommendations] AI-core timeout: {str(e)}")
-            return []  # Return empty to trigger saved recommendations fallback
-        except httpx.ConnectError as e:
-            logger.error(f"[Recommendations] AI-core not reachable: {str(e)}")
-            return []  # Return empty to trigger saved recommendations fallback
+        except HTTPX_CONNECT_TIMEOUT as e:
+            elapsed = time.monotonic() - started
+            logger.error(
+                f"[Recommendations] AI-core connect timeout after {elapsed:.2f}s "
+                f"(limit={AI_CORE_CONNECT_TIMEOUT}s) — service offline?: {e}"
+            )
+            return []
+        except HTTPX_READ_TIMEOUT as e:
+            elapsed = time.monotonic() - started
+            logger.error(
+                f"[Recommendations] AI-core read timeout after {elapsed:.2f}s "
+                f"(limit={AI_CORE_READ_TIMEOUT}s) — pipeline too slow. "
+                f"Tăng AI_CORE_READ_TIMEOUT hoặc kiểm tra pgvector index. Lỗi: {e}"
+            )
+            return []
+        except HTTPX_NETWORK_ERRORS as e:
+            elapsed = time.monotonic() - started
+            logger.error(
+                f"[Recommendations] AI-core unreachable after {elapsed:.2f}s: "
+                f"{type(e).__name__}: {e}"
+            )
+            return []
         except Exception as e:
-            logger.error(f"[Recommendations] AI-core unexpected error: {type(e).__name__}: {str(e)}")
+            elapsed = time.monotonic() - started
+            logger.error(
+                f"[Recommendations] AI-core unexpected error after {elapsed:.2f}s: "
+                f"{type(e).__name__}: {e}"
+            )
             return []  # Return empty to trigger saved recommendations fallback
 
         out: List[Dict[str, Any]] = []
@@ -681,6 +733,13 @@ class RecService:
                 {
                     "career_id": str(cid),
                     "final_score": float(score),
+                    # Multi-signal explainability (NEW — AI-core multi_signal_scorer)
+                    "display_match": float(it["display_match"]) if it.get("display_match") is not None else None,
+                    "embedding_score": float(it["embedding_score"]) if it.get("embedding_score") is not None else None,
+                    "riasec_score": float(it["riasec_score"]) if it.get("riasec_score") is not None else None,
+                    "big5_score": float(it["big5_score"]) if it.get("big5_score") is not None else None,
+                    "neumf_score": float(it["neumf_score"]) if it.get("neumf_score") is not None else None,
+                    "confidence": float(it["confidence"]) if it.get("confidence") is not None else None,
                 }
             )
 
@@ -888,22 +947,56 @@ class RecService:
     # ====================================================================== #
 
     def _apply_display_match(self, items: List[Dict[str, Any]]) -> None:
+        """
+        Set display_match for FE.
+
+        Multi-signal pipeline (NEW):
+          - AI-core returns display_match already calibrated via sigmoid
+          - We just preserve it
+          - Only synthesize one if missing (e.g., DB-only fallback path)
+        """
         if not items:
             return
 
-        scores = [float(it.get("match_score", 0.0)) for it in items]
-        min_s = min(scores)
-        max_s = max(scores)
+        # Check if AI-core already provided display_match (multi-signal pipeline)
+        has_calibrated = all(
+            it.get("display_match") is not None and it.get("display_match") > 0
+            for it in items
+        )
 
-        if max_s <= min_s:
+        if has_calibrated:
+            # Already calibrated by AI-core multi-signal scorer — just round
             for it in items:
-                it["display_match"] = 95.0
-        else:
-            for it in items:
-                s = float(it.get("match_score", 0.0))
-                normalized = (s - min_s) / (max_s - min_s)
-                display = 70.0 + normalized * 25.0
-                it["display_match"] = round(display, 1)
+                it["display_match"] = round(float(it["display_match"]), 1)
+            for idx, it in enumerate(items, start=1):
+                it["position"] = idx
+            return
+
+        # Fallback path: synthesize display_match from match_score using sigmoid
+        # (used when items come from DB cache or catalog fallback without AI-core)
+        import math
+
+        def _sigmoid_calibrate(raw: float) -> float:
+            """Same calibration as AI-core multi_signal_scorer."""
+            raw = max(0.0, min(1.0, raw))
+            sharpness = 7.0
+            center = 0.50
+            offset = 5.0
+            range_ = 90.0
+            x = sharpness * (raw - center)
+            try:
+                if x >= 0:
+                    s = 1.0 / (1.0 + math.exp(-x))
+                else:
+                    e = math.exp(x)
+                    s = e / (1.0 + e)
+            except OverflowError:
+                s = 0.5
+            return round(offset + range_ * s, 1)
+
+        for it in items:
+            score = float(it.get("match_score", 0.0))
+            it["display_match"] = _sigmoid_calibrate(score)
 
         for idx, it in enumerate(items, start=1):
             it["position"] = idx

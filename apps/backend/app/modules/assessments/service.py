@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import json
-import os
 import random
 from typing import Any, Literal, Optional
 
 import requests
+from app.core.ai_core_config import AI_CORE_BASE_URL, requests_timeout
 from app.core.exceptions import NotFoundError
 from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session
@@ -24,8 +24,8 @@ from .models import (
 )
 from .schemas import TraitSnapshot
 
-# URL AI-core (có thể override qua env)
-AI_CORE_URL = os.getenv("AI_CORE_URL", "http://localhost:9000")
+# URL AI-core — dùng config tập trung từ app.core.ai_core_config.
+AI_CORE_URL = AI_CORE_BASE_URL
 
 # ĐÃ CÓ: fuse_user_traits(session, user_id, test_riasec=None, test_big5=None)
 # Mình chỉ wrap lại cho gọn.
@@ -148,10 +148,23 @@ def infer_user_traits_for_essay(
         resp = requests.post(
             url,
             json={"essay_text": essay_text, "lang": "vi"},
-            timeout=60,
+            timeout=requests_timeout(),
         )
 
         print(f"[assessments] AI-core response status: {resp.status_code}")
+
+        if resp.status_code == 422:
+            # AI-core validation error (essay too short or malformed request)
+            detail = ""
+            try:
+                detail = resp.json().get("detail", resp.text[:200])
+            except Exception:
+                detail = resp.text[:200]
+            print(
+                f"[assessments] infer_user_traits_for_essay: AI-core returned 422 "
+                f"(essay_len={len(essay_text)}, detail={detail}). Skipping."
+            )
+            return
 
         resp.raise_for_status()
         data = resp.json()

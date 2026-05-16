@@ -324,14 +324,16 @@ async def send_report_email(
     current_user_data: Dict[str, Any] = Depends(get_current_user),
 ):
     """
-    Send the full report to an email address.
+    Send the full report to an email address as a PDF attachment.
 
     - If use_logged_in_email is True, send to the logged-in user's email
     - Otherwise, send to the provided email address
+    - Generates a professional PDF report and attaches it to the email
     """
     from datetime import datetime
 
-    from ...core.email_utils import send_email
+    from ...core.email_utils import EmailAttachment, send_email_with_attachment
+    from .pdf_generator import generate_report_pdf
 
     user_id = current_user_data.get("user_id")
     if not user_id:
@@ -353,7 +355,7 @@ async def send_report_email(
     elif payload.email:
         target_email = payload.email
     else:
-        return SendReportEmailResponse(success=False, message="Please provide an email address or select 'Send to my email'")
+        return SendReportEmailResponse(success=False, message="Vui lòng cung cấp địa chỉ email hoặc chọn 'Gửi đến email của tôi'")
 
     # Get report data
     user_name = current_user.full_name or current_user.email
@@ -366,131 +368,162 @@ async def send_report_email(
     if assessment.a_type == "BigFive" or "O" in scores or "openness" in scores:
         if "O" in scores:
             big5_scores = {
-                "openness": (float(scores.get("O", 3.0)) - 1) * 25,
-                "conscientiousness": (float(scores.get("C", 3.0)) - 1) * 25,
-                "extraversion": (float(scores.get("E", 3.0)) - 1) * 25,
-                "agreeableness": (float(scores.get("A", 3.0)) - 1) * 25,
-                "neuroticism": (float(scores.get("N", 3.0)) - 1) * 25,
+                "openness": (float(scores.get("O") or 3.0) - 1) * 25,
+                "conscientiousness": (float(scores.get("C") or 3.0) - 1) * 25,
+                "extraversion": (float(scores.get("E") or 3.0) - 1) * 25,
+                "agreeableness": (float(scores.get("A") or 3.0) - 1) * 25,
+                "neuroticism": (float(scores.get("N") or 3.0) - 1) * 25,
             }
         elif "openness" in scores:
             big5_scores = {
-                "openness": float(scores.get("openness", 50)),
-                "conscientiousness": float(scores.get("conscientiousness", 50)),
-                "extraversion": float(scores.get("extraversion", 50)),
-                "agreeableness": float(scores.get("agreeableness", 50)),
-                "neuroticism": float(scores.get("neuroticism", 50)),
+                "openness": float(scores.get("openness") or 50),
+                "conscientiousness": float(scores.get("conscientiousness") or 50),
+                "extraversion": float(scores.get("extraversion") or 50),
+                "agreeableness": float(scores.get("agreeableness") or 50),
+                "neuroticism": float(scores.get("neuroticism") or 50),
             }
 
     if assessment.a_type == "RIASEC" or "R" in scores or "realistic" in scores:
         if "R" in scores:
             riasec_scores = {
-                "realistic": (float(scores.get("R", 3.0)) - 1) * 25,
-                "investigative": (float(scores.get("I", 3.0)) - 1) * 25,
-                "artistic": (float(scores.get("A", 3.0)) - 1) * 25,
-                "social": (float(scores.get("S", 3.0)) - 1) * 25,
-                "enterprising": (float(scores.get("E", 3.0)) - 1) * 25,
-                "conventional": (float(scores.get("C", 3.0)) - 1) * 25,
+                "realistic": (float(scores.get("R") or 3.0) - 1) * 25,
+                "investigative": (float(scores.get("I") or 3.0) - 1) * 25,
+                "artistic": (float(scores.get("A") or 3.0) - 1) * 25,
+                "social": (float(scores.get("S") or 3.0) - 1) * 25,
+                "enterprising": (float(scores.get("E") or 3.0) - 1) * 25,
+                "conventional": (float(scores.get("C") or 3.0) - 1) * 25,
             }
         elif "realistic" in scores:
             riasec_scores = {
-                "realistic": float(scores.get("realistic", 50)),
-                "investigative": float(scores.get("investigative", 50)),
-                "artistic": float(scores.get("artistic", 50)),
-                "social": float(scores.get("social", 50)),
-                "enterprising": float(scores.get("enterprising", 50)),
-                "conventional": float(scores.get("conventional", 50)),
+                "realistic": float(scores.get("realistic") or 50),
+                "investigative": float(scores.get("investigative") or 50),
+                "artistic": float(scores.get("artistic") or 50),
+                "social": float(scores.get("social") or 50),
+                "enterprising": float(scores.get("enterprising") or 50),
+                "conventional": float(scores.get("conventional") or 50),
             }
 
-    # Build email content
-    subject = "CareerVerse AI - Your Personality & Career Report"
+    # Get strengths/challenges from existing report if available
+    strengths = []
+    challenges = []
+    try:
+        from .models import AssessmentReport
+        existing_report = db.query(AssessmentReport).filter(
+            AssessmentReport.assessment_id == payload.assessment_id,
+            AssessmentReport.report_type == "big5",
+        ).first()
+        if existing_report:
+            strengths = existing_report.strengths_json or []
+            challenges = existing_report.challenges_json or []
+    except Exception:
+        pass
 
-    # Build report summary
-    report_date = assessment.created_at.strftime("%B %d, %Y") if assessment.created_at else datetime.now().strftime("%B %d, %Y")
+    # Generate PDF
+    report_date = assessment.created_at.strftime("%d/%m/%Y") if assessment.created_at else datetime.now().strftime("%d/%m/%Y")
 
-    body_lines = [
-        f"Hello {user_name},",
-        "",
-        "Thank you for completing your personality assessment with CareerVerse AI!",
-        "",
-        "=" * 60,
-        "YOUR ASSESSMENT REPORT",
-        "=" * 60,
-        "",
-        f"Name: {user_name}",
-        f"Email: {current_user.email}",
-        f"Assessment Date: {report_date}",
-        f"Assessment ID: {payload.assessment_id}",
-        "",
-    ]
-
-    # Add Big Five scores if available
-    if big5_scores:
-        body_lines.extend(
-            [
-                "-" * 40,
-                "BIG FIVE PERSONALITY SCORES",
-                "-" * 40,
-                "",
-                f"  Openness:          {big5_scores['openness']:.0f}%",
-                f"  Conscientiousness: {big5_scores['conscientiousness']:.0f}%",
-                f"  Extraversion:      {big5_scores['extraversion']:.0f}%",
-                f"  Agreeableness:     {big5_scores['agreeableness']:.0f}%",
-                f"  Neuroticism:       {big5_scores['neuroticism']:.0f}%",
-                "",
-            ]
+    if not big5_scores and not riasec_scores:
+        return SendReportEmailResponse(
+            success=False,
+            message="Không có dữ liệu điểm số để tạo báo cáo. Vui lòng hoàn thành bài đánh giá trước.",
         )
 
-    # Add RIASEC scores if available
-    if riasec_scores:
-        body_lines.extend(
-            [
-                "-" * 40,
-                "RIASEC CAREER INTEREST SCORES",
-                "-" * 40,
-                "",
-                f"  Realistic:     {riasec_scores['realistic']:.0f}%",
-                f"  Investigative: {riasec_scores['investigative']:.0f}%",
-                f"  Artistic:      {riasec_scores['artistic']:.0f}%",
-                f"  Social:        {riasec_scores['social']:.0f}%",
-                f"  Enterprising:  {riasec_scores['enterprising']:.0f}%",
-                f"  Conventional:  {riasec_scores['conventional']:.0f}%",
-                "",
-            ]
+    try:
+        pdf_bytes = generate_report_pdf(
+            user_name=user_name,
+            user_email=current_user.email,
+            assessment_id=payload.assessment_id,
+            report_date=report_date,
+            big5_scores=big5_scores,
+            riasec_scores=riasec_scores,
+            strengths=strengths,
+            challenges=challenges,
         )
+    except Exception as e:
+        print(f"[reports] PDF generation failed: {repr(e)}")
+        return SendReportEmailResponse(success=False, message=f"Không thể tạo PDF: {str(e)}")
 
-    body_lines.extend(
-        [
-            "=" * 60,
-            "",
-            "To view your full interactive report with detailed analysis,",
-            "career recommendations, and personalized insights, please visit:",
-            "",
-            f"  https://CareerVerse.ai/results/{payload.assessment_id}/report",
-            "",
-            "(Or log in to your CareerVerse AI account and go to Assessment History)",
-            "",
-            "-" * 60,
-            "",
-            "This report was generated by CareerVerse AI System.",
-            "If you have any questions, please contact us at support@CareerVerse.ai",
-            "",
-            "Best regards,",
-            "The CareerVerse AI Team",
-            "",
-            "© 2025 CareerVerse AI System. All rights reserved.",
-        ]
+    # Build email HTML body
+    base_url = "https://careerverse.ai"
+    report_url = f"{base_url}/results/{payload.assessment_id}/report"
+
+    body_html = f"""
+    <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #6366f1, #a855f7); border-radius: 16px; padding: 32px; text-align: center; color: white; margin-bottom: 24px;">
+            <h1 style="margin: 0 0 8px; font-size: 24px;">CareerVerse AI</h1>
+            <p style="margin: 0; opacity: 0.9; font-size: 14px;">Báo Cáo Đánh Giá Tính Cách & Nghề Nghiệp</p>
+        </div>
+
+        <div style="background: #f8fafc; border-radius: 12px; padding: 24px; margin-bottom: 24px;">
+            <p style="margin: 0 0 12px; color: #0f172a; font-size: 16px;">
+                Xin chào <strong>{user_name}</strong>,
+            </p>
+            <p style="margin: 0 0 16px; color: #475569; font-size: 14px; line-height: 1.6;">
+                Cảm ơn bạn đã hoàn thành bài đánh giá tính cách tại CareerVerse AI!
+                Báo cáo chi tiết của bạn đã được đính kèm dưới dạng file PDF.
+            </p>
+            <p style="margin: 0; color: #475569; font-size: 14px;">
+                <strong>Ngày đánh giá:</strong> {report_date}<br>
+                <strong>Mã đánh giá:</strong> #{payload.assessment_id}
+            </p>
+        </div>
+
+        <div style="text-align: center; margin-bottom: 24px;">
+            <a href="{report_url}" style="display: inline-block; background: linear-gradient(135deg, #6366f1, #a855f7); color: white; text-decoration: none; padding: 14px 32px; border-radius: 10px; font-weight: 600; font-size: 14px;">
+                Xem Báo Cáo Trực Tuyến
+            </a>
+        </div>
+
+        <div style="border-top: 1px solid #e2e8f0; padding-top: 16px; text-align: center;">
+            <p style="margin: 0; color: #94a3b8; font-size: 12px;">
+                © {datetime.now().year} CareerVerse AI System. All rights reserved.<br>
+                Email này được gửi tự động. Vui lòng không trả lời.
+            </p>
+        </div>
+    </div>
+    """
+
+    body_text = (
+        f"Xin chào {user_name},\n\n"
+        f"Cảm ơn bạn đã hoàn thành bài đánh giá tính cách tại CareerVerse AI!\n"
+        f"Báo cáo chi tiết của bạn đã được đính kèm dưới dạng file PDF.\n\n"
+        f"Ngày đánh giá: {report_date}\n"
+        f"Mã đánh giá: #{payload.assessment_id}\n\n"
+        f"Xem báo cáo trực tuyến: {report_url}\n\n"
+        f"---\n"
+        f"© {datetime.now().year} CareerVerse AI System."
     )
 
-    body = "\n".join(body_lines)
+    # Create PDF attachment
+    pdf_filename = f"CareerVerse_Report_{payload.assessment_id}_{report_date.replace('/', '-')}.pdf"
+    attachment = EmailAttachment(
+        filename=pdf_filename,
+        content=pdf_bytes,
+        mime_type="application/pdf",
+    )
 
-    # Send email
-    sent_ok, error_msg, dev_fallback = send_email(target_email, subject, body)
+    # Send email with PDF attachment
+    sent_ok, error_msg, dev_fallback = send_email_with_attachment(
+        to_email=target_email,
+        subject=f"CareerVerse AI - Báo Cáo Đánh Giá #{payload.assessment_id}",
+        body_html=body_html,
+        body_text=body_text,
+        attachments=[attachment],
+    )
 
     if sent_ok:
-        return SendReportEmailResponse(success=True, message="Report sent successfully!", email_sent_to=target_email)
+        return SendReportEmailResponse(
+            success=True,
+            message="Báo cáo PDF đã được gửi thành công đến email của bạn!",
+            email_sent_to=target_email,
+        )
     elif dev_fallback:
         return SendReportEmailResponse(
-            success=True, message="Report logged (development mode - email not actually sent)", email_sent_to=target_email
+            success=True,
+            message="Báo cáo đã được ghi log (chế độ phát triển - email chưa thực sự gửi)",
+            email_sent_to=target_email,
         )
     else:
-        return SendReportEmailResponse(success=False, message=f"Failed to send email: {error_msg or 'Unknown error'}")
+        return SendReportEmailResponse(
+            success=False,
+            message=f"Gửi email thất bại: {error_msg or 'Lỗi không xác định'}",
+        )

@@ -1,7 +1,10 @@
 import os
 import smtplib
 from email.message import EmailMessage
-from typing import Tuple
+from email.mime.application import MIMEApplication
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from typing import List, Optional, Tuple
 
 
 def _ensure_env_loaded() -> None:
@@ -111,3 +114,84 @@ def build_verify_url(token: str) -> str:
     # Default local dev URL
     base = os.getenv("FRONTEND_BASE_URL") or "http://localhost:3000"
     return f"{base.rstrip('/')}/verify?token={token}"
+
+
+# ─── Attachment-capable email sender ───────────────────────────────────────────
+
+class EmailAttachment:
+    """Represents a file attachment for an email."""
+
+    def __init__(self, filename: str, content: bytes, mime_type: str = "application/pdf"):
+        self.filename = filename
+        self.content = content
+        self.mime_type = mime_type
+
+
+def send_email_with_attachment(
+    to_email: str,
+    subject: str,
+    body_html: str,
+    attachments: Optional[List[EmailAttachment]] = None,
+    body_text: Optional[str] = None,
+) -> Tuple[bool, Optional[str], bool]:
+    """
+    Send an email with optional file attachments (e.g. PDF report).
+    Supports HTML body with plain-text fallback.
+
+    Returns (sent_ok, error_message_if_any, dev_mode_fallback).
+    """
+    _ensure_env_loaded()
+    host = os.getenv("SMTP_HOST")
+    port = int(os.getenv("SMTP_PORT", "587"))
+    user = os.getenv("SMTP_USER")
+    password = os.getenv("SMTP_PASSWORD")
+    use_starttls = _bool_env("SMTP_STARTTLS", True)
+    use_ssl = _bool_env("SMTP_SSL", False)
+    sender = os.getenv("EMAIL_FROM") or user
+
+    is_dev_environment = os.getenv("ENVIRONMENT", "").lower() in {"development", "dev"}
+
+    if not host:
+        msg = "[email] SMTP_HOST not set; skipping actual send."
+        print(msg)
+        if is_dev_environment:
+            print(f"[email] To: {to_email}")
+            print(f"[email] Subject: {subject}")
+            att_names = [a.filename for a in (attachments or [])]
+            print(f"[email] Attachments: {att_names}")
+            return False, msg, True
+        else:
+            return False, msg, False
+
+    # Build multipart message
+    msg = MIMEMultipart("mixed")
+    msg["From"] = sender or "no-reply@example.com"
+    msg["To"] = to_email
+    msg["Subject"] = subject
+
+    # Body (prefer HTML with text fallback)
+    body_part = MIMEMultipart("alternative")
+    if body_text:
+        body_part.attach(MIMEText(body_text, "plain", "utf-8"))
+    body_part.attach(MIMEText(body_html, "html", "utf-8"))
+    msg.attach(body_part)
+
+    # Attachments
+    for att in (attachments or []):
+        part = MIMEApplication(att.content, Name=att.filename)
+        part["Content-Disposition"] = f'attachment; filename="{att.filename}"'
+        msg.attach(part)
+
+    try:
+        smtp_cls = smtplib.SMTP_SSL if use_ssl else smtplib.SMTP
+        with smtp_cls(host, port, timeout=30) as server:
+            if use_starttls and not use_ssl:
+                server.starttls()
+            if user and password:
+                server.login(user, password)
+            server.send_message(msg)
+        return True, None, False
+    except Exception as e:
+        err = f"{type(e).__name__}: {e}"
+        print("[email] Failed to send email with attachment:", err)
+        return False, err, False
