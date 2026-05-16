@@ -19,7 +19,7 @@ const PaymentReturn = () => {
 
         if (!orderId) {
           setStatus('failed');
-          setMessage('Order information not found');
+          setMessage('Không tìm thấy thông tin đơn hàng');
           return;
         }
 
@@ -141,7 +141,7 @@ const PaymentReturn = () => {
         <div className="space-y-3">
           {status === 'success' && (
             <div className="text-sm text-gray-500 dark:text-gray-400">
-              Redirecting to main page...
+              Đang chuyển hướng về trang chính...
             </div>
           )}
 
@@ -151,13 +151,13 @@ const PaymentReturn = () => {
                 onClick={() => navigate('/pricing')}
                 className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
               >
-                Try payment again
+                Thử thanh toán lại
               </button>
               <button
                 onClick={() => navigate('/')}
                 className="w-full px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium transition-colors"
               >
-                Go to homepage
+                Về trang chủ
               </button>
             </div>
           )}
@@ -167,7 +167,7 @@ const PaymentReturn = () => {
               onClick={() => navigate('/')}
               className="w-full px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium transition-colors"
             >
-              Go to homepage
+              Về trang chủ
             </button>
           )}
         </div>

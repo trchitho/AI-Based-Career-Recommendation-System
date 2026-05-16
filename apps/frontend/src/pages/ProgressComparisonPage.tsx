@@ -38,23 +38,23 @@ interface GroupedSession {
   careerRecommendations?: CareerRecommendation[];
 }
 
-// Big Five trait names in English
+// Big Five trait names
 const BIG_FIVE_LABELS: Record<string, string> = {
-  openness: 'Openness',
-  conscientiousness: 'Conscientiousness',
-  extraversion: 'Extraversion',
-  agreeableness: 'Agreeableness',
-  neuroticism: 'Neuroticism'
+  openness: 'Cởi Mở (Openness)',
+  conscientiousness: 'Tận Tâm (Conscientiousness)',
+  extraversion: 'Hướng Ngoại (Extraversion)',
+  agreeableness: 'Dễ Chịu (Agreeableness)',
+  neuroticism: 'Nhạy Cảm (Neuroticism)'
 };
 
-// RIASEC type names in English
+// RIASEC type names
 const RIASEC_LABELS: Record<string, string> = {
-  realistic: 'Realistic',
-  investigative: 'Investigative',
-  artistic: 'Artistic',
-  social: 'Social',
-  enterprising: 'Enterprising',
-  conventional: 'Conventional'
+  realistic: 'Kỹ Thuật (Realistic)',
+  investigative: 'Nghiên Cứu (Investigative)',
+  artistic: 'Nghệ Thuật (Artistic)',
+  social: 'Xã Hội (Social)',
+  enterprising: 'Kinh Doanh (Enterprising)',
+  conventional: 'Nghiệp Vụ (Conventional)'
 };
 
 // Generate dynamic summary messages based on score changes
@@ -70,21 +70,22 @@ const generateSummaryMessages = (
   if (bigFiveChanges) {
     Object.entries(bigFiveChanges).forEach(([trait, change]) => {
       const label = BIG_FIVE_LABELS[trait] || trait;
+      const traitDirection = trait === 'openness' ? 'cởi mở với trải nghiệm mới' : trait === 'conscientiousness' ? 'có tổ chức và kỷ luật' : trait === 'extraversion' ? 'hướng ngoại và năng động' : trait === 'agreeableness' ? 'hợp tác và đáng tin cậy' : 'nhạy cảm về cảm xúc';
 
       if (change > 15) {
-        improved.push(`Significant improvement in ${label} (+${change.toFixed(0)}%) - You've become much more ${trait === 'openness' ? 'open to new experiences' : trait === 'conscientiousness' ? 'organized and disciplined' : trait === 'extraversion' ? 'outgoing and energetic' : trait === 'agreeableness' ? 'cooperative and trusting' : 'emotionally sensitive'}.`);
+        improved.push(`Cải thiện đáng kể về ${label} (+${change.toFixed(0)}%) — Bạn đã trở nên ${traitDirection} hơn rất nhiều. Đây là sự phát triển tích cực, cho thấy bạn đang mở rộng khả năng và phong cách ứng xử của mình.`);
       } else if (change > 8) {
-        improved.push(`Notable increase in ${label} (+${change.toFixed(0)}%) - Good progress in this personality dimension.`);
+        improved.push(`Tăng đáng chú ý về ${label} (+${change.toFixed(0)}%) — Tiến bộ tốt ở chiều tính cách này. Hãy tiếp tục phát huy xu hướng này trong công việc và cuộc sống.`);
       } else if (change > 3) {
-        improved.push(`Slight improvement in ${label} (+${change.toFixed(0)}%).`);
+        improved.push(`Cải thiện nhẹ về ${label} (+${change.toFixed(0)}%) — Có sự thay đổi tích cực, dù chưa rõ rệt.`);
       } else if (change < -15) {
-        decreased.push(`Significant decrease in ${label} (${change.toFixed(0)}%) - This may indicate a shift in your personality expression.`);
+        decreased.push(`Giảm đáng kể về ${label} (${change.toFixed(0)}%) — Điều này có thể phản ánh sự thay đổi trong cách bạn thể hiện tính cách. Hãy chú ý xem có yếu tố môi trường nào đang ảnh hưởng đến bạn.`);
       } else if (change < -8) {
-        decreased.push(`Notable decrease in ${label} (${change.toFixed(0)}%).`);
+        decreased.push(`Giảm đáng chú ý về ${label} (${change.toFixed(0)}%) — Cần quan sát xem có lý do cụ thể nào dẫn đến sự thay đổi này.`);
       } else if (change < -3) {
-        decreased.push(`Slight decrease in ${label} (${change.toFixed(0)}%).`);
+        decreased.push(`Giảm nhẹ về ${label} (${change.toFixed(0)}%) — Mức giảm trong khoảng dao động bình thường.`);
       } else {
-        stable.push(`${label} remains stable (${change > 0 ? '+' : ''}${change.toFixed(0)}%).`);
+        stable.push(`${label} duy trì ổn định (${change > 0 ? '+' : ''}${change.toFixed(0)}%) — Tính cách cốt lõi của bạn ở chiều này vẫn nhất quán.`);
       }
     });
   }
@@ -93,21 +94,22 @@ const generateSummaryMessages = (
   if (riasecChanges) {
     Object.entries(riasecChanges).forEach(([type, change]) => {
       const label = RIASEC_LABELS[type] || type;
+      const careerDirection = type === 'realistic' ? 'công việc thực hành, kỹ thuật' : type === 'investigative' ? 'nghiên cứu và phân tích' : type === 'artistic' ? 'thể hiện sáng tạo và nghệ thuật' : type === 'social' ? 'giúp đỡ và làm việc với con người' : type === 'enterprising' ? 'lãnh đạo và kinh doanh' : 'công việc có tổ chức, chú trọng chi tiết';
 
       if (change > 20) {
-        improved.push(`Strong growth in ${label} interest (+${change.toFixed(0)}%) - Your career interests are evolving significantly toward ${type === 'realistic' ? 'hands-on, practical work' : type === 'investigative' ? 'research and analysis' : type === 'artistic' ? 'creative expression' : type === 'social' ? 'helping others' : type === 'enterprising' ? 'leadership and business' : 'organized, detail-oriented work'}.`);
+        improved.push(`Tăng mạnh sở thích ${label} (+${change.toFixed(0)}%) — Định hướng nghề nghiệp của bạn đang chuyển dịch rõ rệt sang ${careerDirection}. Đây là dấu hiệu bạn đang khám phá ra đam mê thực sự.`);
       } else if (change > 10) {
-        improved.push(`Increased interest in ${label} careers (+${change.toFixed(0)}%).`);
+        improved.push(`Tăng quan tâm đến nghề ${label} (+${change.toFixed(0)}%) — Bạn ngày càng hứng thú với lĩnh vực này.`);
       } else if (change > 3) {
-        improved.push(`Slight increase in ${label} (+${change.toFixed(0)}%).`);
+        improved.push(`Tăng nhẹ sở thích ${label} (+${change.toFixed(0)}%) — Có dấu hiệu quan tâm hơn đến lĩnh vực này.`);
       } else if (change < -20) {
-        decreased.push(`Significant shift away from ${label} interests (${change.toFixed(0)}%) - Your career preferences may be changing.`);
+        decreased.push(`Sở thích ${label} thay đổi đáng kể (${change.toFixed(0)}%) — Định hướng nghề nghiệp của bạn có thể đang chuyển hướng. Hãy dành thời gian khám phá các lĩnh vực khác.`);
       } else if (change < -10) {
-        decreased.push(`Decreased interest in ${label} careers (${change.toFixed(0)}%).`);
+        decreased.push(`Giảm quan tâm đến nghề ${label} (${change.toFixed(0)}%) — Lĩnh vực này không còn hấp dẫn bạn như trước.`);
       } else if (change < -3) {
-        decreased.push(`Slight decrease in ${label} (${change.toFixed(0)}%).`);
+        decreased.push(`Giảm nhẹ sở thích ${label} (${change.toFixed(0)}%) — Mức giảm chưa đáng kể.`);
       } else {
-        stable.push(`${label} interest remains consistent.`);
+        stable.push(`Sở thích ${label} duy trì nhất quán — Định hướng nghề nghiệp ở lĩnh vực này ổn định.`);
       }
     });
   }
@@ -126,7 +128,7 @@ const CareerTooltip: React.FC<{ career: CareerRecommendation; children: React.Re
         <div className="absolute z-50 bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-72 p-4 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 animate-fade-in">
           <div className="text-sm">
             <h4 className="font-bold text-gray-900 dark:text-white mb-2">{career.career_title}</h4>
-            <p className="text-gray-600 dark:text-gray-400 text-xs mb-3 line-clamp-3">{career.career_description || 'No description available'}</p>
+            <p className="text-gray-600 dark:text-gray-400 text-xs mb-3 line-clamp-3">{career.career_description || 'Chưa có mô tả'}</p>
             <div className="flex items-center justify-between">
               <span className="text-xs text-gray-500">Match Score</span>
               <span className="font-bold text-indigo-800">{career.score.toFixed(1)}%</span>
@@ -260,7 +262,7 @@ const ProgressComparisonPage: React.FC = () => {
       return items.map((item: any) => ({
         career_id: item.career_id,
         career_slug: item.slug || '',
-        career_title: item.title_en || item.title_vn || 'Unknown Career',
+        career_title: item.title_vi || item.title_vn || item.title || item.title_en || 'Nghề chưa xác định',
         career_description: item.description || '',
         score: item.score || 0,
         rank: item.rank || 0
@@ -326,7 +328,7 @@ const ProgressComparisonPage: React.FC = () => {
         <div className="space-y-4 relative z-10">
           <div>
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Before</span>
+              <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Trước Đây</span>
               <span className="font-black text-gray-700 dark:text-gray-300">{normalizedOld.toFixed(0)}%</span>
             </div>
             <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 overflow-hidden">
@@ -340,7 +342,7 @@ const ProgressComparisonPage: React.FC = () => {
           </div>
           <div>
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">After</span>
+              <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Hiện Tại</span>
               <span className="font-black text-gray-900 dark:text-white">{normalizedNew.toFixed(0)}%</span>
             </div>
             <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 overflow-hidden">
@@ -355,7 +357,7 @@ const ProgressComparisonPage: React.FC = () => {
         </div>
         
         <div className="flex items-center justify-between mt-5 pt-4 border-t border-gray-100 dark:border-gray-700/50 relative z-10">
-          <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Change</span>
+          <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Thay Đổi</span>
           <span className={`font-black flex items-center gap-1 ${diff.isPositive ? 'text-emerald-500' : diff.isNegative ? 'text-red-500' : 'text-gray-500'}`}>
             {diff.isPositive ? '+' : ''}{diff.value.toFixed(1)}%
           </span>
@@ -413,24 +415,24 @@ const ProgressComparisonPage: React.FC = () => {
                 className="inline-flex items-center gap-2 text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400 transition-colors mb-6 hover:bg-gray-100 dark:hover:bg-gray-800 px-3 py-2 rounded-lg"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-                Back to List
+                    Quay Lại Danh Sách
               </button>
 
               <div className="text-center mb-12">
-                <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Comparison Results</h1>
+                <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Kết Quả So Sánh</h1>
                 <p className="text-xl text-gray-600 dark:text-gray-400">
-                  Comparing changes between {comparisonData.first.timestamp.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} and {comparisonData.second.timestamp.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  So sánh thay đổi giữa {comparisonData.first.timestamp.toLocaleDateString('vi-VN', { day: 'numeric', month: 'long', year: 'numeric' })} và {comparisonData.second.timestamp.toLocaleDateString('vi-VN', { day: 'numeric', month: 'long', year: 'numeric' })}
                 </p>
                 <div className="flex justify-center gap-8 mt-6">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600">{daysDiff < 1 ? '< 1' : daysDiff} days</div>
-                    <div className="text-sm text-gray-500">Time Gap</div>
+                    <div className="text-2xl font-bold text-blue-600">{daysDiff < 1 ? '< 1' : daysDiff} ngày</div>
+                    <div className="text-sm text-gray-500">Khoảng Cách Thời Gian</div>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-indigo-800">
                       {(comparisonData.first.bigFiveScores && comparisonData.second.bigFiveScores ? 5 : 0) + (comparisonData.first.riasecScores && comparisonData.second.riasecScores ? 6 : 0)}
                     </div>
-                    <div className="text-sm text-gray-500">Metrics Compared</div>
+                    <div className="text-sm text-gray-500">Chỉ Số So Sánh</div>
                   </div>
                 </div>
               </div>
@@ -448,17 +450,17 @@ const ProgressComparisonPage: React.FC = () => {
                     <div className="w-12 h-12 bg-indigo-500/10 rounded-2xl flex items-center justify-center">
                       <BarChart2 className="w-6 h-6 text-indigo-500" />
                     </div>
-                    Big Five Comparison
+                    So Sánh Big Five
                     <span className="text-[10px] font-bold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 px-3 py-1 rounded-full uppercase tracking-widest ml-auto">
-                      5 metrics
+                      5 chỉ số
                     </span>
                   </h2>
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {renderScoreComparison('Openness', comparisonData.first.bigFiveScores.openness, comparisonData.second.bigFiveScores.openness)}
-                    {renderScoreComparison('Conscientiousness', comparisonData.first.bigFiveScores.conscientiousness, comparisonData.second.bigFiveScores.conscientiousness)}
-                    {renderScoreComparison('Extraversion', comparisonData.first.bigFiveScores.extraversion, comparisonData.second.bigFiveScores.extraversion)}
-                    {renderScoreComparison('Agreeableness', comparisonData.first.bigFiveScores.agreeableness, comparisonData.second.bigFiveScores.agreeableness)}
-                    {renderScoreComparison('Neuroticism', comparisonData.first.bigFiveScores.neuroticism, comparisonData.second.bigFiveScores.neuroticism)}
+                    {renderScoreComparison('Cởi Mở (Openness)', comparisonData.first.bigFiveScores.openness, comparisonData.second.bigFiveScores.openness)}
+                    {renderScoreComparison('Tận Tâm (Conscientiousness)', comparisonData.first.bigFiveScores.conscientiousness, comparisonData.second.bigFiveScores.conscientiousness)}
+                    {renderScoreComparison('Hướng Ngoại (Extraversion)', comparisonData.first.bigFiveScores.extraversion, comparisonData.second.bigFiveScores.extraversion)}
+                    {renderScoreComparison('Dễ Chịu (Agreeableness)', comparisonData.first.bigFiveScores.agreeableness, comparisonData.second.bigFiveScores.agreeableness)}
+                    {renderScoreComparison('Nhạy Cảm (Neuroticism)', comparisonData.first.bigFiveScores.neuroticism, comparisonData.second.bigFiveScores.neuroticism)}
                   </div>
                 </motion.div>
               )}
@@ -475,18 +477,18 @@ const ProgressComparisonPage: React.FC = () => {
                     <div className="w-12 h-12 bg-purple-500/10 rounded-2xl flex items-center justify-center">
                       <BarChart2 className="w-6 h-6 text-purple-500" />
                     </div>
-                    RIASEC Comparison
+                    So Sánh RIASEC
                     <span className="text-[10px] font-bold bg-purple-500/10 text-purple-600 dark:text-purple-400 px-3 py-1 rounded-full uppercase tracking-widest ml-auto">
-                      6 metrics
+                      6 chỉ số
                     </span>
                   </h2>
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {renderScoreComparison('Realistic', comparisonData.first.riasecScores.realistic, comparisonData.second.riasecScores.realistic)}
-                    {renderScoreComparison('Investigative', comparisonData.first.riasecScores.investigative, comparisonData.second.riasecScores.investigative)}
-                    {renderScoreComparison('Artistic', comparisonData.first.riasecScores.artistic, comparisonData.second.riasecScores.artistic)}
-                    {renderScoreComparison('Social', comparisonData.first.riasecScores.social, comparisonData.second.riasecScores.social)}
-                    {renderScoreComparison('Enterprising', comparisonData.first.riasecScores.enterprising, comparisonData.second.riasecScores.enterprising)}
-                    {renderScoreComparison('Conventional', comparisonData.first.riasecScores.conventional, comparisonData.second.riasecScores.conventional)}
+                    {renderScoreComparison('Kỹ Thuật (Realistic)', comparisonData.first.riasecScores.realistic, comparisonData.second.riasecScores.realistic)}
+                    {renderScoreComparison('Nghiên Cứu (Investigative)', comparisonData.first.riasecScores.investigative, comparisonData.second.riasecScores.investigative)}
+                    {renderScoreComparison('Nghệ Thuật (Artistic)', comparisonData.first.riasecScores.artistic, comparisonData.second.riasecScores.artistic)}
+                    {renderScoreComparison('Xã Hội (Social)', comparisonData.first.riasecScores.social, comparisonData.second.riasecScores.social)}
+                    {renderScoreComparison('Kinh Doanh (Enterprising)', comparisonData.first.riasecScores.enterprising, comparisonData.second.riasecScores.enterprising)}
+                    {renderScoreComparison('Nghiệp Vụ (Conventional)', comparisonData.first.riasecScores.conventional, comparisonData.second.riasecScores.conventional)}
                   </div>
                 </motion.div>
               )}
@@ -495,11 +497,11 @@ const ProgressComparisonPage: React.FC = () => {
               {(comparisonData.first.careerRecommendations?.length || comparisonData.second.careerRecommendations?.length) && (
                 <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-8">
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-8 flex items-center justify-center gap-3">
-                    <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
-                      <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                    <div className="w-8 h-8 bg-slate-100 dark:bg-slate-700 rounded-lg flex items-center justify-center">
+                      <svg className="w-5 h-5 text-slate-700 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                     </div>
-                    Top 5 Career Recommendations
-                    <span className="text-sm bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-3 py-1 rounded-full">Career Matches</span>
+                    Top 5 Nghề Nghiệp Đề Xuất
+                    <span className="text-sm bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 px-3 py-1 rounded-full">Nghề Phù Hợp</span>
                   </h2>
 
                   <div className="grid md:grid-cols-2 gap-10">
@@ -507,7 +509,7 @@ const ProgressComparisonPage: React.FC = () => {
                     <div className="flex flex-col">
                       <h3 className="text-base font-semibold text-gray-700 dark:text-gray-300 mb-5 flex items-center justify-center gap-2 pb-3 border-b border-gray-200 dark:border-gray-700">
                         <span className="w-2.5 h-2.5 bg-blue-500 rounded-full"></span>
-                        Before ({comparisonData.first.timestamp.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })})
+                        Trước Đây ({comparisonData.first.timestamp.toLocaleDateString('vi-VN', { day: 'numeric', month: 'short' })})
                       </h3>
                       <div className="flex flex-col gap-4 flex-1">
                         {comparisonData.first.careerRecommendations?.length ? (
@@ -517,19 +519,19 @@ const ProgressComparisonPage: React.FC = () => {
                                 to={`/careers/${career.career_slug || career.career_id}`}
                                 className="flex items-center gap-3 px-3 py-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 group border border-transparent hover:border-blue-200 dark:hover:border-blue-800"
                               >
-                                <span className="w-6 h-6 bg-blue-100 dark:bg-blue-900/30 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
+                                <span className="w-6 h-6 bg-blue-600 dark:bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 shadow-sm">
                                   {idx + 1}
                                 </span>
-                                <span className="flex-1 text-sm text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors font-medium whitespace-nowrap overflow-hidden text-ellipsis">
+                                <span className="flex-1 text-sm text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors font-medium line-clamp-2">
                                   {career.career_title}
                                 </span>
-                                <span className="text-xs font-bold text-indigo-800 bg-indigo-50 dark:bg-indigo-950/20 px-2 py-0.5 rounded-full flex-shrink-0 whitespace-nowrap">{career.score.toFixed(1)}%</span>
+                                <span className="text-xs font-bold text-white bg-blue-600 dark:bg-blue-500 px-2 py-0.5 rounded-full flex-shrink-0 whitespace-nowrap shadow-sm">{career.score.toFixed(1)}%</span>
                               </Link>
                             </CareerTooltip>
                           ))
                         ) : (
                           <div className="flex items-center justify-center h-full">
-                            <p className="text-gray-500 dark:text-gray-400 text-sm italic">No career recommendations available</p>
+                            <p className="text-gray-500 dark:text-gray-400 text-sm italic">Chưa có gợi ý nghề nghiệp</p>
                           </div>
                         )}
                       </div>
@@ -538,8 +540,8 @@ const ProgressComparisonPage: React.FC = () => {
                     {/* After */}
                     <div className="flex flex-col">
                       <h3 className="text-base font-semibold text-gray-700 dark:text-gray-300 mb-5 flex items-center justify-center gap-2 pb-3 border-b border-gray-200 dark:border-gray-700">
-                        <span className="w-2.5 h-2.5 bg-indigo-700 rounded-full"></span>
-                        After ({comparisonData.second.timestamp.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })})
+                        <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full"></span>
+                        Hiện Tại ({comparisonData.second.timestamp.toLocaleDateString('vi-VN', { day: 'numeric', month: 'short' })})
                       </h3>
                       <div className="flex flex-col gap-4 flex-1">
                         {comparisonData.second.careerRecommendations?.length ? (
@@ -552,31 +554,31 @@ const ProgressComparisonPage: React.FC = () => {
                               <CareerTooltip key={career.career_id} career={career}>
                                 <Link
                                   to={`/careers/${career.career_slug || career.career_id}`}
-                                  className="flex items-center gap-3 px-3 py-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-950/20 transition-all duration-200 group border border-transparent hover:border-indigo-200 dark:hover:border-indigo-900"
+                                  className="flex items-center gap-3 px-3 py-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-950/20 transition-all duration-200 group border border-transparent hover:border-emerald-200 dark:hover:border-emerald-900"
                                 >
-                                  <span className="w-6 h-6 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-800 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
+                                  <span className="w-6 h-6 bg-emerald-600 dark:bg-emerald-500 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 shadow-sm">
                                     {idx + 1}
                                   </span>
-                                  <span className="flex-1 text-sm text-gray-900 dark:text-white group-hover:text-indigo-800 dark:group-hover:text-indigo-400 transition-colors font-medium whitespace-nowrap overflow-hidden text-ellipsis">
+                                  <span className="flex-1 text-sm text-gray-900 dark:text-white group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors font-medium line-clamp-2">
                                     {career.career_title}
                                   </span>
                                   {!wasInPrevious && (
-                                    <span className="px-1.5 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 text-[10px] font-semibold rounded flex-shrink-0">New</span>
+                                    <span className="px-1.5 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-[10px] font-semibold rounded flex-shrink-0">Mới</span>
                                   )}
                                   {rankChange !== null && rankChange > 0 && (
-                                    <span className="text-indigo-800 text-[10px] font-bold flex-shrink-0">↑{rankChange}</span>
+                                    <span className="text-emerald-600 dark:text-emerald-400 text-[10px] font-bold flex-shrink-0">↑{rankChange}</span>
                                   )}
                                   {rankChange !== null && rankChange < 0 && (
-                                    <span className="text-red-600 text-[10px] font-bold flex-shrink-0">↓{Math.abs(rankChange)}</span>
+                                    <span className="text-red-600 dark:text-red-400 text-[10px] font-bold flex-shrink-0">↓{Math.abs(rankChange)}</span>
                                   )}
-                                  <span className="text-xs font-bold text-indigo-800 bg-indigo-50 dark:bg-indigo-950/20 px-2 py-0.5 rounded-full flex-shrink-0 whitespace-nowrap">{career.score.toFixed(1)}%</span>
+                                  <span className="text-xs font-bold text-white bg-emerald-600 dark:bg-emerald-500 px-2 py-0.5 rounded-full flex-shrink-0 whitespace-nowrap shadow-sm">{career.score.toFixed(1)}%</span>
                                 </Link>
                               </CareerTooltip>
                             );
                           })
                         ) : (
                           <div className="flex items-center justify-center h-full">
-                            <p className="text-gray-500 dark:text-gray-400 text-sm italic">No career recommendations available</p>
+                            <p className="text-gray-500 dark:text-gray-400 text-sm italic">Chưa có gợi ý nghề nghiệp</p>
                           </div>
                         )}
                       </div>
@@ -592,9 +594,11 @@ const ProgressComparisonPage: React.FC = () => {
                 transition={{ delay: 0.3 }}
                 className="bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-emerald-500/10 rounded-3xl p-8 border border-white/20 backdrop-blur-md"
               >
-                <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-4">Summary of Changes</h2>
+                <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-4">Tóm Tắt Thay Đổi</h2>
                 <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-2xl">
-                  Based on the comparison results, here's an analysis of your development and changes in personality and career interests over time.
+                  Dựa trên kết quả so sánh, đây là phân tích chi tiết về sự phát triển của bạn theo thời gian.
+                  Báo cáo này giúp bạn hiểu rõ những thay đổi trong tính cách và sở thích nghề nghiệp,
+                  từ đó định hướng tốt hơn cho con đường phát triển bản thân và sự nghiệp trong tương lai.
                 </p>
 
                 {/* Dynamic insights */}
@@ -603,7 +607,7 @@ const ProgressComparisonPage: React.FC = () => {
                     <div className="glass bg-emerald-500/5 rounded-2xl p-6 border border-emerald-500/20">
                       <h4 className="font-bold text-emerald-700 dark:text-emerald-400 mb-4 flex items-center gap-2">
                         <TrendingUp className="w-5 h-5" />
-                        Areas of Improvement ({summaryMessages.improved.length})
+                        Lĩnh Vực Cải Thiện ({summaryMessages.improved.length})
                       </h4>
                       <ul className="space-y-3">
                         {summaryMessages.improved.slice(0, 5).map((msg, idx) => (
@@ -620,7 +624,7 @@ const ProgressComparisonPage: React.FC = () => {
                     <div className="glass bg-red-500/5 rounded-2xl p-6 border border-red-500/20">
                       <h4 className="font-bold text-red-700 dark:text-red-400 mb-4 flex items-center gap-2">
                         <TrendingDown className="w-5 h-5" />
-                        Areas of Decrease ({summaryMessages.decreased.length})
+                        Lĩnh Vực Suy Giảm ({summaryMessages.decreased.length})
                       </h4>
                       <ul className="space-y-3">
                         {summaryMessages.decreased.slice(0, 5).map((msg, idx) => (
@@ -637,7 +641,7 @@ const ProgressComparisonPage: React.FC = () => {
                     <div className="glass bg-gray-500/5 rounded-2xl p-6 border border-gray-500/20">
                       <h4 className="font-bold text-gray-700 dark:text-gray-300 mb-4 flex items-center gap-2">
                         <Minus className="w-5 h-5" />
-                        Stable Areas ({summaryMessages.stable.length})
+                        Lĩnh Vực Ổn Định ({summaryMessages.stable.length})
                       </h4>
                       <ul className="space-y-3">
                         {summaryMessages.stable.slice(0, 3).map((msg, idx) => (
@@ -647,7 +651,7 @@ const ProgressComparisonPage: React.FC = () => {
                           </li>
                         ))}
                         {summaryMessages.stable.length > 3 && (
-                          <li className="text-sm text-gray-500 italic ml-4.5">...and {summaryMessages.stable.length - 3} more stable metrics</li>
+                          <li className="text-sm text-gray-500 italic ml-4.5">...và {summaryMessages.stable.length - 3} chỉ số ổn định khác</li>
                         )}
                       </ul>
                     </div>
@@ -660,10 +664,10 @@ const ProgressComparisonPage: React.FC = () => {
                     onClick={() => { setShowComparison(false); setSelectedSessions([]); setComparisonData(null); setAnimateScores(false); }}
                     className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-xl hover:-translate-y-0.5"
                   >
-                    Compare Others
+                    So Sánh Khác
                   </button>
                   <button onClick={() => window.print()} className="px-6 py-3 bg-white/50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 hover:bg-white dark:hover:bg-gray-700 font-bold text-gray-700 dark:text-gray-300 rounded-xl transition-all">
-                    Print Results
+                    In Kết Quả
                   </button>
                 </div>
               </motion.div>
@@ -691,15 +695,15 @@ const ProgressComparisonPage: React.FC = () => {
             </Link>
 
             <div className="text-center mb-12">
-              <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Progress History Comparison</h1>
-              <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">Track your changes and progress across personality assessments</p>
+              <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">So Sánh Tiến Trình</h1>
+              <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">Theo dõi sự thay đổi và tiến bộ qua các lần đánh giá tính cách</p>
             </div>
           </div>
 
           {loading ? (
             <div className="flex flex-col items-center justify-center py-32">
               <div className="w-16 h-16 border-4 border-gray-200 dark:border-gray-700 rounded-full border-t-indigo-600 animate-spin mb-6 shadow-lg"></div>
-              <p className="text-gray-500 dark:text-gray-400 font-bold tracking-wide uppercase">Loading history...</p>
+              <p className="text-gray-500 dark:text-gray-400 font-bold tracking-wide uppercase">Đang tải lịch sử...</p>
             </div>
           ) : groupedSessions.length < 2 ? (
             <motion.div 
@@ -711,7 +715,7 @@ const ProgressComparisonPage: React.FC = () => {
                 <BarChart2 className="w-10 h-10 text-indigo-500" />
               </div>
               <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-4">
-                {groupedSessions.length === 0 ? 'No assessment data yet' : 'Need more data to compare'}
+                {groupedSessions.length === 0 ? 'Chưa có dữ liệu đánh giá' : 'Cần thêm dữ liệu để so sánh'}
               </h3>
               <p className="text-gray-500 dark:text-gray-400 mb-10 max-w-lg mx-auto leading-relaxed">
                 {groupedSessions.length === 0
@@ -731,8 +735,8 @@ const ProgressComparisonPage: React.FC = () => {
               {/* Header with Compare Button */}
               <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-6">
                 <div>
-                  <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-2">Assessment History</h2>
-                  <p className="text-gray-500 dark:text-gray-400 font-medium">Select 2 sessions to compare changes over time ({groupedSessions.length} total)</p>
+                  <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-2">Lịch Sử Đánh Giá</h2>
+                  <p className="text-gray-500 dark:text-gray-400 font-medium">Chọn 2 phiên để so sánh sự thay đổi theo thời gian ({groupedSessions.length} tổng)</p>
                 </div>
                 {selectedSessions.length === 2 ? (
                   <motion.button
@@ -741,12 +745,12 @@ const ProgressComparisonPage: React.FC = () => {
                     onClick={handleCompareResults}
                     className="px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-black rounded-2xl transition-all shadow-xl hover:shadow-2xl hover:-translate-y-1 flex items-center gap-3 w-full md:w-auto justify-center"
                   >
-                    Compare Selected
+                    So Sánh Đã Chọn
                     <ArrowLeft className="w-5 h-5 rotate-180" />
                   </motion.button>
                 ) : (
                   <div className="px-6 py-3 bg-gray-100/50 dark:bg-gray-800/50 text-gray-500 dark:text-gray-400 rounded-xl font-bold border border-dashed border-gray-300 dark:border-gray-600 w-full md:w-auto text-center">
-                    Select {2 - selectedSessions.length} more session{2 - selectedSessions.length > 1 ? 's' : ''}
+                    Chọn thêm {2 - selectedSessions.length} phiên{2 - selectedSessions.length > 1 ? '' : ''}
                   </div>
                 )}
               </div>
@@ -792,11 +796,11 @@ const ProgressComparisonPage: React.FC = () => {
                         {/* Session Info */}
                         <div className="flex-1 min-w-0">
                           <h3 className="font-bold text-gray-900 dark:text-white text-lg mb-1 truncate">
-                            {session.timestamp.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                            {session.timestamp.toLocaleDateString('vi-VN', { day: 'numeric', month: 'long', year: 'numeric' })}
                           </h3>
                           <p className="text-sm text-gray-500 font-medium mb-4 flex items-center gap-1.5">
                             <Calendar className="w-3.5 h-3.5" />
-                            {session.timestamp.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                            {session.timestamp.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
                           </p>
 
                           <div className="space-y-2">

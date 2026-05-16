@@ -106,7 +106,7 @@ const QuestionCountSelector: React.FC<QuestionCountSelectorProps> = ({
                             className={`relative cursor-pointer rounded-2xl border-2 p-4 transition-all duration-200 ${
                                 isSelected
                                     ? 'border-indigo-500 bg-indigo-50/60 dark:bg-indigo-900/20 shadow-lg shadow-indigo-100 dark:shadow-indigo-900/20'
-                                    : 'border-white/40 dark:border-gray-700/50 bg-white/50 dark:bg-gray-800/40 hover:border-indigo-300 dark:hover:border-indigo-600 hover:shadow-md'
+                                    : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800/40 hover:border-indigo-300 dark:hover:border-indigo-600 hover:shadow-md'
                             }`}
                         >
                             {option.recommended && (

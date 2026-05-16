@@ -378,7 +378,7 @@ const AssessmentPage = () => {
       setStep('processing');
     } catch (err) {
       console.error('Error submitting essay:', err);
-      setError('Failed to submit essay. Redirecting to results...');
+      setError('Gửi bài viết thất bại. Đang chuyển đến kết quả...');
       // Dừng nhạc khi có lỗi
       submitSound.stop();
       setTimeout(() => {

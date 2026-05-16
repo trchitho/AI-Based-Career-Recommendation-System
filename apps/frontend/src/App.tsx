@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import MainLayout from './components/layout/MainLayout';
 import { AuthProvider } from './contexts/AuthContext';
@@ -6,6 +6,7 @@ import { SocketProvider } from './contexts/SocketContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { AppSettingsProvider } from './contexts/AppSettingsContext';
+import { AnalysisLockProvider } from './contexts/AnalysisLockContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 import { ChatbotWrapper } from './components/chatbot/ChatbotWrapper';
@@ -68,6 +69,9 @@ import DeviceTestPage from './pages/DeviceTestPage';
 import VoiceInterviewPage from './pages/VoiceInterviewPage';
 import TrendsPage from './pages/TrendsPage';
 import LearningPathPage from './pages/LearningPathPage';
+import CreatePersonalizedRoadmapPage from './pages/CreatePersonalizedRoadmapPage';
+import ViewPersonalizedRoadmapPage from './pages/ViewPersonalizedRoadmapPage';
+import PageErrorBoundary from './components/common/PageErrorBoundary';
 import NotFoundPage from './pages/NotFoundPage';
 
 // Create a client
@@ -85,12 +89,20 @@ const RootRedirect = () => {
   return <Navigate to="/home" replace />;
 };
 
+// Redirect URLs cũ /learning_path/* sang /learning-path/*
+const LearningPathUnderscoreRedirect = ({ kind }: { kind: 'create' | 'view' }) => {
+  const params = useParams();
+  const id = kind === 'create' ? params.analysisId : params.roadmapId;
+  return <Navigate to={`/learning-path/${kind}/${id}`} replace />;
+};
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <LanguageProvider>
           <AppSettingsProvider>
+            <AnalysisLockProvider>
             <Router>
               <AuthProvider>
                 <SocketProvider>
@@ -175,7 +187,13 @@ function App() {
                       </ProtectedRoute>
                     }
                   />
-                  <Route path="/learning-path" element={<ProtectedRoute><LearningPathPage /></ProtectedRoute>} />
+                  <Route path="/learning-path" element={<ProtectedRoute><PageErrorBoundary><LearningPathPage /></PageErrorBoundary></ProtectedRoute>} />
+                  <Route path="/learning-path/create/:analysisId" element={<ProtectedRoute><PageErrorBoundary><CreatePersonalizedRoadmapPage /></PageErrorBoundary></ProtectedRoute>} />
+                  <Route path="/learning-path/view/:roadmapId" element={<ProtectedRoute><PageErrorBoundary><ViewPersonalizedRoadmapPage /></PageErrorBoundary></ProtectedRoute>} />
+                  {/* Aliases (URL cũ với underscore) */}
+                  <Route path="/learning_path" element={<Navigate to="/learning-path" replace />} />
+                  <Route path="/learning_path/create/:analysisId" element={<LearningPathUnderscoreRedirect kind="create" />} />
+                  <Route path="/learning_path/view/:roadmapId" element={<LearningPathUnderscoreRedirect kind="view" />} />
                   <Route path="/404" element={<NotFoundPage />} />
                   <Route path="/careers/:param" element={<CareerRouterPage />} />
                   <Route path="/careers/:param/roadmap" element={<CareerRouterPage />} />
@@ -476,6 +494,7 @@ function App() {
               </SocketProvider>
             </AuthProvider>
           </Router>
+            </AnalysisLockProvider>
         </AppSettingsProvider>
       </LanguageProvider>
     </ThemeProvider>

@@ -5,6 +5,7 @@ import { careerGroupService, CareersByGroupResponse } from '../services/careerGr
 import { useFeatureAccess } from '../hooks/useFeatureAccess';
 import { useUsageTracking } from '../hooks/useUsageTracking';
 import { useApiCallTracker } from '../hooks/useApiCallTracker';
+import ONetAttribution from '../components/common/ONetAttribution';
 
 // ─── Career image map (Unsplash API + Wikimedia Commons) ──────────────────
 // 959/959 careers mapped to local images
@@ -1443,6 +1444,7 @@ const CareersByGroupPage = () => {
 
                 </div>
             </div>
+            <ONetAttribution />
         </MainLayout>
     );
 };

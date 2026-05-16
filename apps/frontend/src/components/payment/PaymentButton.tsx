@@ -22,7 +22,7 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
     onSuccess,
     onError,
     className = '',
-    children = 'Pay Now',
+    children = 'Thanh toán',
 }) => {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
@@ -34,8 +34,7 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
             // Get token from localStorage
             const token = getAccessToken();
             if (!token) {
-                // Redirect to login
-                alert('Please login to make payment');
+                alert('Vui lòng đăng nhập để thanh toán');
                 navigate('/login');
                 return;
             }
@@ -62,19 +61,19 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
                     onSuccess(result.order_id);
                 }
             } else {
-                throw new Error(result.message || 'Unable to create payment order');
+                throw new Error(result.message || 'Không thể tạo đơn thanh toán');
             }
         } catch (error: any) {
             console.error('Payment error:', error);
 
-            let errorMessage = 'Payment error';
+            let errorMessage = 'Lỗi thanh toán';
 
             if (error.code === 'ERR_NETWORK') {
-                errorMessage = 'Cannot connect to server. Please check your network connection.';
+                errorMessage = 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng.';
             } else if (error.response?.status === 500) {
-                errorMessage = 'Server error. Please try again later.';
+                errorMessage = 'Lỗi máy chủ. Vui lòng thử lại sau.';
             } else if (error.response?.status === 401) {
-                errorMessage = 'Session expired. Please login again.';
+                errorMessage = 'Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.';
             } else if (error.response?.data?.detail) {
                 errorMessage = error.response.data.detail;
             } else if (error.message) {
@@ -121,7 +120,7 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({
                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                         />
                     </svg>
-                    Processing...
+                    Đang xử lý...
                 </span>
             ) : (
                 children

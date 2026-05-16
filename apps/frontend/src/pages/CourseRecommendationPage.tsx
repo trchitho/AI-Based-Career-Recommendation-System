@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
+  AlertTriangle,
   Award,
   BookOpen,
   Clock,
@@ -11,6 +12,7 @@ import {
   Sparkles,
   Star,
   Wallet,
+  RefreshCw,
 } from "lucide-react";
 import courseService, {
   CourseRecommendation,
@@ -18,12 +20,13 @@ import courseService, {
 } from "../services/courseService";
 import { translateSkillName } from "../utils/skillTranslation";
 
-type PriorityGroup = "critical" | "important" | "nice_to_have";
+type PriorityGroup = "critical" | "important" | "nice_to_have" | "extra";
 
 interface SkillGroups {
   critical?: string[];
   important?: string[];
   nice_to_have?: string[];
+  extra?: string[];
 }
 
 interface Props {
@@ -32,6 +35,7 @@ interface Props {
   skillGroups?: SkillGroups;
   ownedSkills?: string[];
   careerName?: string;
+  cvCareerName?: string;
 }
 
 const GROUP_META: Record<PriorityGroup, {
@@ -62,6 +66,13 @@ const GROUP_META: Record<PriorityGroup, {
     border: "border-amber-200 dark:border-amber-900/60",
     dot: "bg-amber-500",
   },
+  extra: {
+    label: "Nên có",
+    caption: "Kỹ năng bổ sung cho nghề hiện tại trong CV.",
+    badge: "bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-900/25 dark:text-violet-200 dark:border-violet-800",
+    border: "border-violet-200 dark:border-violet-900/60",
+    dot: "bg-violet-500",
+  },
 };
 
 const PLATFORM_COLORS: Record<string, string> = {
@@ -90,6 +101,11 @@ const LEVEL_LABELS: Record<string, string> = {
 
 const normalizeSkill = (value: string) => value.trim().toLowerCase().replace(/\s+/g, " ");
 
+const isTimeoutError = (error: any) => {
+  const message = String(error?.message || "").toLowerCase();
+  return error?.code === "ECONNABORTED" || message.includes("timeout") || message.includes("timed out");
+};
+
 const unique = (items: string[] = [], owned = new Set<string>()) => {
   const seen = new Set<string>();
   return items
@@ -100,6 +116,16 @@ const unique = (items: string[] = [], owned = new Set<string>()) => {
       seen.add(key);
       return true;
     });
+};
+
+const uniqueSkillNames = (items: string[] = []) => {
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    const key = normalizeSkill(item);
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 };
 
 const inferGroup = (rec: CourseRecommendation): PriorityGroup =>
@@ -118,6 +144,7 @@ const CourseRecommendationPage = ({
   skillGroups,
   ownedSkills,
   careerName,
+  cvCareerName,
 }: Props) => {
   const ownedSet = useMemo(
     () => new Set((ownedSkills || []).map(normalizeSkill)),
@@ -125,28 +152,32 @@ const CourseRecommendationPage = ({
   );
   const initialGroups = useMemo<Required<SkillGroups>>(() => {
     if (skillGroups) {
+      const important = unique([...(skillGroups.critical || []), ...(skillGroups.important || [])], ownedSet);
       return {
-        critical: unique(skillGroups.critical, ownedSet),
-        important: unique(skillGroups.important, ownedSet),
+        critical: [],
+        important,
         nice_to_have: unique(skillGroups.nice_to_have, ownedSet),
+        extra: unique(skillGroups.extra, ownedSet),
       };
     }
     return {
       critical: [],
       important: unique(propSkills || [], ownedSet),
       nice_to_have: [],
+      extra: [],
     };
   }, [skillGroups, propSkills, ownedSet]);
 
   const [data, setData] = useState<CourseRecommendationsResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [timeoutNotice, setTimeoutNotice] = useState(false);
   const [activeGroup, setActiveGroup] = useState<PriorityGroup | "all">("all");
   const [activeSkill, setActiveSkill] = useState<string | null>(null);
   const [manualSkills, setManualSkills] = useState("");
 
   const allInitialSkills = useMemo(
-    () => [...initialGroups.critical, ...initialGroups.important, ...initialGroups.nice_to_have],
+    () => [...initialGroups.important, ...initialGroups.nice_to_have, ...initialGroups.extra],
     [initialGroups]
   );
 
@@ -162,19 +193,23 @@ const CourseRecommendationPage = ({
       critical: [],
       important: unique(manualSkills.split(","), ownedSet),
       nice_to_have: [],
+      extra: [],
     };
-    const totalSkills = targetGroups.critical.length + targetGroups.important.length + targetGroups.nice_to_have.length;
+    const totalSkills = targetGroups.important.length + targetGroups.nice_to_have.length + targetGroups.extra.length;
     if (!totalSkills) return;
 
     try {
       setLoading(true);
       setError(null);
+      setTimeoutNotice(false);
+      // Merge extra into nice_to_have for the API call (backend treats them the same)
+      const apiNiceToHave = [...targetGroups.nice_to_have, ...targetGroups.extra];
       const result = groups || skillGroups
         ? await courseService.getSkillGapRecommendations({
           analysis_id: analysisId,
-          critical: targetGroups.critical,
+          critical: [],
           important: targetGroups.important,
-          nice_to_have: targetGroups.nice_to_have,
+          nice_to_have: apiNiceToHave,
           owned_skills: ownedSkills || [],
           career_name: careerName,
           topK: 3,
@@ -184,7 +219,13 @@ const CourseRecommendationPage = ({
       setActiveGroup("all");
       setActiveSkill(null);
     } catch (e: any) {
-      setError(e?.response?.data?.detail || e?.message || "Không tải được gợi ý khóa học");
+      const timedOut = isTimeoutError(e);
+      setTimeoutNotice(timedOut);
+      setError(
+        timedOut
+          ? "AI đang tìm khóa học lâu hơn dự kiến. Bạn có thể thử tải lại sau vài giây; nếu backend vẫn đang xử lý, kết quả thường sẽ có cache ở lần gọi tiếp theo."
+          : e?.response?.data?.detail || e?.message || "Không tải được gợi ý khóa học"
+      );
     } finally {
       setLoading(false);
     }
@@ -195,23 +236,38 @@ const CourseRecommendationPage = ({
       critical: [],
       important: [],
       nice_to_have: [],
+      extra: [],
     };
+    const extraSkillSet = new Set((initialGroups.extra || []).map(normalizeSkill));
     (data?.recommendations || []).forEach((rec) => {
-      base[inferGroup(rec)].push(rec);
+      const group = inferGroup(rec);
+      // If the skill belongs to extra_skills (CV career), put it in extra group
+      if ((group === "nice_to_have" || group === "extra") && extraSkillSet.has(normalizeSkill(rec.skill_name))) {
+        base.extra.push(rec);
+      } else {
+        base[group].push(rec);
+      }
     });
     return base;
-  }, [data]);
+  }, [data, initialGroups.extra]);
 
-  const visibleGroups = (["critical", "important", "nice_to_have"] as PriorityGroup[])
+  const visibleGroups = (["important", "nice_to_have", "extra"] as PriorityGroup[])
     .filter((group) => activeGroup === "all" || activeGroup === group);
 
   const skillChips = useMemo(() => {
+    const extraSkillSet = new Set((initialGroups.extra || []).map(normalizeSkill));
     const fromData = data?.recommendations
-      ?.filter((rec) => activeGroup === "all" || inferGroup(rec) === activeGroup)
+      ?.filter((rec) => {
+        if (activeGroup === "all") return true;
+        if (activeGroup === "extra") return extraSkillSet.has(normalizeSkill(rec.skill_name));
+        const group = inferGroup(rec);
+        if (group === "nice_to_have" && extraSkillSet.has(normalizeSkill(rec.skill_name))) return false;
+        return group === activeGroup;
+      })
       .map((r) => r.skill_name);
     const fromInitial = activeGroup === "all"
       ? allInitialSkills
-      : initialGroups[activeGroup];
+      : initialGroups[activeGroup] || [];
     const source = fromData?.length ? fromData : fromInitial;
     return unique(source);
   }, [data, activeGroup, allInitialSkills, initialGroups]);
@@ -269,8 +325,34 @@ const CourseRecommendationPage = ({
         </div>
 
         <div className="mt-5 grid grid-cols-1 md:grid-cols-3 gap-3">
-          {(["critical", "important", "nice_to_have"] as PriorityGroup[]).map((group) => {
+          <div
+            className={[
+              "relative overflow-hidden text-left rounded-2xl border p-4 min-h-[104px]",
+              "border-emerald-200 dark:border-emerald-900/60",
+              "bg-emerald-50/60 dark:bg-emerald-950/20 shadow-sm",
+            ].join(" ")}
+          >
+            <span className="absolute inset-y-4 left-0 w-1 rounded-r-full bg-emerald-500" />
+            <div className="flex items-center justify-between gap-3">
+              <span className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-black border bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/25 dark:text-emerald-200 dark:border-emerald-800">
+                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                Đã có
+              </span>
+              <span className="text-lg font-black text-gray-950 dark:text-white">
+                {ownedSkills?.length || 0}
+              </span>
+            </div>
+            <p className="mt-2 text-xs font-medium text-gray-600 dark:text-gray-300">
+              Không dùng để tìm khóa học, chỉ giữ làm mốc so sánh.
+            </p>
+          </div>
+          {(["important", "nice_to_have", "extra"] as PriorityGroup[]).filter(group => initialGroups[group].length > 0).map((group) => {
             const isActive = activeGroup === group;
+            const dynamicLabel = group === "nice_to_have" && careerName
+              ? `Nên có: ${careerName}`
+              : group === "extra" && cvCareerName
+              ? `Nên có: ${cvCareerName}`
+              : GROUP_META[group].label;
             return (
               <button
                 type="button"
@@ -294,7 +376,7 @@ const CourseRecommendationPage = ({
                 <div className="flex items-center justify-between gap-3">
                   <span className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-black border ${GROUP_META[group].badge}`}>
                     <span className={`w-2 h-2 rounded-full ${GROUP_META[group].dot}`} />
-                    {GROUP_META[group].label}
+                    {dynamicLabel}
                   </span>
                   <span className="text-lg font-black text-gray-950 dark:text-white">
                     {initialGroups[group].length}
@@ -308,12 +390,6 @@ const CourseRecommendationPage = ({
 
         {skillChips.length > 0 && (
           <div className="mt-5 flex flex-wrap gap-2">
-            <button
-              onClick={() => setActiveSkill(null)}
-              className={`px-3 py-1.5 text-xs font-bold rounded-full border ${!activeSkill ? "bg-indigo-600 text-white border-indigo-600" : "bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700"}`}
-            >
-              Tất cả kỹ năng
-            </button>
             {skillChips.map((skill) => (
               <button
                 key={skill}
@@ -328,8 +404,29 @@ const CourseRecommendationPage = ({
       </div>
 
       {error && (
-        <div className="rounded-2xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 p-4 text-sm font-medium text-red-700 dark:text-red-300">
-          {error}
+        <div
+          className={[
+            "rounded-2xl border p-4 text-sm font-medium flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3",
+            timeoutNotice
+              ? "border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-200"
+              : "border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300",
+          ].join(" ")}
+        >
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 mt-0.5 shrink-0" />
+            <span>{error}</span>
+          </div>
+          {timeoutNotice && (
+            <button
+              type="button"
+              onClick={() => fetchRecommendations(initialGroups)}
+              disabled={loading}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-amber-600 text-white font-black hover:bg-amber-700 disabled:opacity-50 transition-colors"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Thử tải lại
+            </button>
+          )}
         </div>
       )}
 
@@ -338,6 +435,11 @@ const CourseRecommendationPage = ({
           <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-300">
             <Award className="w-4 h-4 text-indigo-500" />
             <span>Có <b className="text-indigo-600 dark:text-indigo-300">{data.total}</b> khóa học cho <b>{data.missing_skills.length}</b> kỹ năng còn thiếu</span>
+            {data.recommendations.length > 0 && (
+              <span className="text-xs text-gray-500 dark:text-gray-400">
+                Đã phủ <b>{uniqueSkillNames(data.recommendations.map((rec) => rec.skill_name)).length}</b> kỹ năng có khóa học
+              </span>
+            )}
             <span className="text-[10px] font-black uppercase tracking-wide px-2.5 py-1 rounded-full bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
               {SOURCE_LABELS[data.source] || data.source}
             </span>
@@ -353,6 +455,7 @@ const CourseRecommendationPage = ({
         <div className="bg-white/80 dark:bg-gray-900/60 rounded-3xl border border-gray-200/70 dark:border-white/10 p-10 text-center">
           <div className="w-10 h-10 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin mx-auto mb-4" />
           <p className="font-bold text-gray-900 dark:text-white">Đang dùng AI tìm khóa học phù hợp...</p>
+          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Nguồn học có thể mất lâu hơn khi cache chưa sẵn sàng.</p>
         </div>
       )}
 
@@ -374,19 +477,32 @@ const CourseRecommendationPage = ({
         </section>
       )}
 
+      {!loading && data && allVisibleRecommendations.length === 0 && (
+        <div className="bg-white/70 dark:bg-gray-900/60 rounded-3xl border border-dashed border-amber-300 dark:border-amber-800 p-10 text-center">
+          <GraduationCap className="w-12 h-12 mx-auto text-amber-400 mb-3" />
+          <h3 className="text-lg font-black text-gray-950 dark:text-white">Chưa có khóa học đủ khớp</h3>
+          <p className="text-gray-500 dark:text-gray-400 mt-2">Hệ thống đã nhận {data.missing_skills.length} kỹ năng cần học. Hãy thử tìm thủ công một kỹ năng cụ thể hoặc chạy lại khi cache khóa học được cập nhật.</p>
+        </div>
+      )}
+
       {!loading && data && activeGroup !== "all" && visibleGroups.map((group) => {
         const items = filteredBySkill(groupedRecommendations[group]);
         if (items.length === 0) return null;
+        const dynamicLabel = group === "nice_to_have" && careerName
+          ? `Nên có: ${careerName}`
+          : group === "extra" && cvCareerName
+          ? `Nên có: ${cvCareerName}`
+          : GROUP_META[group].label;
         return (
           <section key={group} className={`rounded-3xl border ${GROUP_META[group].border} bg-white/85 dark:bg-gray-900/70 shadow-lg overflow-hidden`}>
             <div className="p-5 sm:p-6 border-b border-gray-200 dark:border-white/10 flex items-start justify-between gap-4">
               <div>
                 <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black border ${GROUP_META[group].badge}`}>
                   <span className={`w-2 h-2 rounded-full ${GROUP_META[group].dot}`} />
-                  {GROUP_META[group].label}
+                  {dynamicLabel}
                 </span>
                 <h2 className="mt-3 text-xl font-black text-gray-950 dark:text-white">
-                  {GROUP_META[group].label === "Thiếu nghiêm trọng" ? "Học trước" : GROUP_META[group].label}
+                  {dynamicLabel}
                 </h2>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{GROUP_META[group].caption}</p>
               </div>
