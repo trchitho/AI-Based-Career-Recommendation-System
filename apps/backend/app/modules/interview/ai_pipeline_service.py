@@ -748,7 +748,7 @@ Vị trí: {job_title}
 CV của ứng viên có: {cv_skills_str} (phù hợp {match_pct:.0f}% với nghề)
 Yêu cầu: 2-3 câu, nhắc đến CV, nói sẽ hỏi sâu về kinh nghiệm thực tế. CHỈ trả về lời chào."""
         try:
-            r = self.gemini.stream_manager.generate_content_with_retry(prompt, max_output_tokens=150, temperature=0.7)
+            r = self.gemini.stream_manager.generate_content_with_retry(prompt, max_output_tokens=400, temperature=0.7)
             if r and len(r.strip()) > 30:
                 return r.strip()
         except Exception:
@@ -772,9 +772,9 @@ CV của ứng viên có: {', '.join(cv_skills[:5])}.{gap_hint}
 Kỹ năng match với nghề: {', '.join(matched[:3]) or 'chưa rõ'}.
 Tạo 1 câu hỏi warm-up XOÁ vào {top_skill} để kiểm tra tính xác thực của CV.
 Câu hỏi phải: hỏi về DỰ ÁN CỤ THỂ hoặc THÁCH THỨC thực tế liên quan đến {top_skill}.
-1-2 câu, cụ thể. CHỈ trả về câu hỏi."""
+3-5 câu đầy đủ ngữ cảnh, mô tả tình huống cụ thể và yêu cầu rõ ràng để ứng viên có thể trả lời chi tiết. CHỈ trả về câu hỏi."""
         try:
-            r = self.gemini.stream_manager.generate_content_with_retry(prompt, max_output_tokens=120, temperature=0.8)
+            r = self.gemini.stream_manager.generate_content_with_retry(prompt, max_output_tokens=400, temperature=0.8)
             if r and len(r.strip()) > 30:
                 return r.strip()
         except Exception:
@@ -807,7 +807,7 @@ Yêu cầu: 2-3 câu, tự nhiên, đề cập kỹ năng {skills_text},{jd_cont
         try:
             response = self.gemini.stream_manager.generate_content_with_retry(
                 greeting_prompt,
-                max_output_tokens=150,
+                max_output_tokens=400,
                 temperature=0.7
             )
             if response and len(response.strip()) > 40:
@@ -844,12 +844,12 @@ Yêu cầu: 2-3 câu, tự nhiên, đề cập kỹ năng {skills_text},{jd_cont
 
         first_q_prompt = f"""Bạn là HR Manager phỏng vấn {level_hint} cho vị trí {job_title}.
 
-Tạo 1 câu hỏi warm-up: hỏi về hành trình/động lực chọn lĩnh vực này, đề cập {top_skill}.{jd_hint.replace('{','(').replace('}',')')} 1-2 câu, cụ thể. CHỈ trả về câu hỏi."""
+Tạo 1 câu hỏi warm-up: hỏi về hành trình/động lực chọn lĩnh vực này, đề cập {top_skill}.{jd_hint.replace('{','(').replace('}',')')} 3-5 câu đầy đủ ngữ cảnh, mô tả tình huống cụ thể và yêu cầu rõ ràng để ứng viên có thể trả lời chi tiết. CHỈ trả về câu hỏi."""
 
         try:
             response = self.gemini.stream_manager.generate_content_with_retry(
                 first_q_prompt,
-                max_output_tokens=120,
+                max_output_tokens=400,
                 temperature=0.8
             )
             if response and len(response.strip()) > 30:
@@ -1757,7 +1757,7 @@ QUY TẮC BẮT BUỘC:
 1. Đề cập tên công ty {closing_company} trong câu hỏi
 2. Gợi ý CỤ THỂ các chủ đề từ JD: phúc lợi, văn hóa, đào tạo, quy trình làm việc, môi trường
 3. Sử dụng thông tin CHÍNH XÁC từ API response (benefits, training_program, company_culture)
-4. Thân thiện, cởi mở, 1-2 câu
+4. Thân thiện, cởi mở, 3-5 câu đầy đủ ngữ cảnh
 5. Phù hợp văn hóa Việt Nam
 
 CHỈ TRẢ VỀ CÂU HỎI DUY NHẤT, KHÔNG GIẢI THÍCH."""
@@ -1770,7 +1770,7 @@ Tạo 1 câu hỏi kết thúc tự nhiên, thân thiện mời ứng viên đ�
 QUY TẮC BẮT BUỘC:
 1. KHÔNG đề cập tên công ty cụ thể nào (vì không có thông tin JD)
 2. Hỏi chung: bạn có câu hỏi gì về vị trí, môi trường làm việc, cơ hội phát triển không?
-3. Thân thiện, cởi mở, 1-2 câu
+3. Thân thiện, cởi mở, 3-5 câu đầy đủ ngữ cảnh
 4. Phù hợp văn hóa Việt Nam
 
 CHỈ TRẢ VỀ CÂU HỎI DUY NHẤT, KHÔNG GIẢI THÍCH."""
@@ -1825,7 +1825,7 @@ Có thể liên hệ điểm yếu [{weaknesses_ctx}] nếu phù hợp.
 CÁC CÂU ĐÃ HỎI (KHÔNG lặp lại):
 {asked_context_safe}
 
-CHỈ trả về 1 câu hỏi, tiếng Việt tự nhiên, không giải thích."""
+YÊU CẦU: Câu hỏi 3-5 câu (tối thiểu 80 từ), đầy đủ ngữ cảnh và mô tả tình huống cụ thể. KHÔNG câu cụt ngắn dưới 50 từ. CHỈ trả về câu hỏi, tiếng Việt tự nhiên, không giải thích."""
                 else:
                     question_prompt = f"""Bạn là HR Manager đang phỏng vấn ứng viên vào vị trí {db_session.job_title}.
 
@@ -1846,7 +1846,7 @@ Tránh câu hỏi lý thuyết, ưu tiên STAR method (Situation, Task, Action, 
 CÁC CÂU ĐÃ HỎI (KHÔNG lặp lại):
 {asked_context_safe}
 
-CHỈ trả về 1 câu hỏi, tiếng Việt tự nhiên, không giải thích."""
+YÊU CẦU: Câu hỏi 3-5 câu (tối thiểu 80 từ), đầy đủ ngữ cảnh và mô tả tình huống cụ thể. KHÔNG câu cụt ngắn dưới 50 từ. CHỈ trả về câu hỏi, tiếng Việt tự nhiên, không giải thích."""
             else:
                 # ── STANDARD mode: O*NET skills-based questions ──
                 # Lấy thêm strengths/weaknesses cho standard mode
@@ -1876,9 +1876,13 @@ CÁC CÂU HỎI ĐÃ HỎI (KHÔNG được lặp lại hoặc tương tự):
 CÂU HỎI VỪA HỎI (bắt buộc phải hoàn toàn khác):
 {asked_list[-1] if asked_list else 'chưa có'}
 
-Yêu cầu: câu hỏi {type_label} cụ thể, khác hoàn toàn các câu trên, phù hợp với cấp bậc {effective_level}.
-Khuyến khích chia sẻ kinh nghiệm thực tế.
-CHỈ trả về câu hỏi."""
+YÊU CẦU BẮT BUỘC:
+- Câu hỏi {type_label} CỤ THỂ, độ dài 3-5 câu (tối thiểu 80 từ, đầy đủ ngữ cảnh).
+- Mô tả tình huống/bối cảnh trước khi hỏi để ứng viên dễ hiểu.
+- Khác hoàn toàn các câu trên, phù hợp với cấp bậc {effective_level}.
+- Khuyến khích ứng viên chia sẻ kinh nghiệm thực tế theo phương pháp STAR (Situation, Task, Action, Result).
+- KHÔNG dùng câu cụt ngắn dưới 50 từ.
+CHỈ trả về câu hỏi, không giải thích."""
 
         def _is_too_similar(new_q: str, existing: list[str], threshold: float = 0.50) -> bool:
             """Return True if new_q shares too many words with any existing question."""
@@ -1910,7 +1914,7 @@ CHỈ trả về câu hỏi."""
           if not next_question:
             next_question = self.gemini.stream_manager.generate_content_with_retry(
                 question_prompt,
-                max_output_tokens=150,
+                max_output_tokens=400,
                 temperature=0.8
             )
 
@@ -1926,9 +1930,10 @@ CHỈ trả về câu hỏi."""
                     + "\nHãy tạo câu hỏi HOÀN TOÀN KHÁC chủ đề và cách tiếp cận."
                 )
                 next_question = self.gemini.stream_manager.generate_content_with_retry(
-                    _retry_prompt,
-                    max_output_tokens=150,
+                    retry_prompt,
+                    max_output_tokens=400,
                     temperature=min(0.9 + _retry_no * 0.05, 1.0)
+                   
                 )
 
             # Nếu vẫn lặp sau 3 lần retry → dùng fallback cứng
@@ -1937,6 +1942,31 @@ CHỈ trả về câu hỏi."""
                 next_question = _fallback_by_type.get(question_type, _fallback_by_type["situational"])
 
             print(f"[Interview] ✓ Final question: {(next_question or '')[:80]}")
+
+            # Length check: if Gemini returned a too-short question, retry asking for elaboration
+            MIN_QUESTION_CHARS = 120
+            if next_question and len(next_question.strip()) < MIN_QUESTION_CHARS and question_type not in ("closing", "warm_up"):
+                short_text = next_question.strip()
+                print(f"[Interview] ⚠️ Question too short ({len(short_text)} chars < {MIN_QUESTION_CHARS}), expanding...")
+                expand_prompt = (
+                    f"Câu hỏi sau đây quá ngắn, thiếu ngữ cảnh:\n"
+                    f"\"{short_text}\"\n\n"
+                    f"Hãy MỞ RỘNG thành 1 câu hỏi phỏng vấn đầy đủ (3-5 câu, ≥120 ký tự) bằng cách thêm:\n"
+                    f"- Bối cảnh/tình huống cụ thể trước khi hỏi\n"
+                    f"- Chi tiết về vai trò {db_session.job_title}\n"
+                    f"- Yêu cầu ứng viên chia sẻ theo phương pháp STAR (Situation, Task, Action, Result)\n\n"
+                    f"CHỈ trả về câu hỏi mở rộng đầy đủ, KHÔNG giải thích, KHÔNG dùng dấu ngoặc kép."
+                )
+                expanded = self.gemini.stream_manager.generate_content_with_retry(
+                    expand_prompt,
+                    max_output_tokens=500,
+                    temperature=0.7
+                )
+                if expanded and len(expanded.strip()) >= MIN_QUESTION_CHARS:
+                    next_question = expanded.strip()
+                    print(f"[Interview] ✓ Expanded to {len(next_question)} chars")
+                else:
+                    print(f"[Interview] ⚠️ Expansion failed, keeping original ({len(short_text)} chars)")
 
             if next_question and next_question.strip():
                 question_msg = InterviewMessage(
@@ -2720,7 +2750,7 @@ QUY TẮC BẮT BUỘC:
 2. Hỏi về chứng chỉ JLPT hiện tại của ứng viên
 3. Hỏi về kinh nghiệm sử dụng tiếng Nhật trong công việc/học tập
 4. Đề cập {company_name} và yêu cầu cụ thể từ JD
-5. Thân thiện, 1-2 câu, phù hợp văn hóa Việt Nam
+5. Thân thiện, 3-5 câu đầy đủ ngữ cảnh và mô tả tình huống cụ thể, phù hợp văn hóa Việt Nam
 
 CHỈ TRẢ VỀ CÂU HỎI DUY NHẤT, KHÔNG GIẢI THÍCH."""
 
@@ -2756,7 +2786,7 @@ QUY TẮC BẮT BUỘC:
 2. Hỏi về chứng chỉ tiếng Anh hiện tại của ứng viên
 3. Hỏi về kinh nghiệm sử dụng tiếng Anh trong công việc/học tập
 4. Đề cập {company_name} và yêu cầu cụ thể từ JD
-5. Thân thiện, 1-2 câu, phù hợp văn hóa Việt Nam
+5. Thân thiện, 3-5 câu đầy đủ ngữ cảnh và mô tả tình huống cụ thể, phù hợp văn hóa Việt Nam
 
 CHỈ TRẢ VỀ CÂU HỎI DUY NHẤT, KHÔNG GIẢI THÍCH."""
 
@@ -2791,7 +2821,7 @@ QUY TẮC BẮT BUỘC:
 1. Hỏi CHÍNH XÁC về chuyên ngành Công nghệ thông tin, Toán tin, Khoa học máy tính, Kỹ thuật phần mềm, Điện tử viễn thông
 2. Hỏi về dự án liên quan đã làm trong quá trình học
 3. Đề cập {company_name} và yêu cầu cụ thể từ JD
-4. Thân thiện, 1-2 câu, phù hợp văn hóa Việt Nam
+4. Thân thiện, 3-5 câu đầy đủ ngữ cảnh và mô tả tình huống cụ thể, phù hợp văn hóa Việt Nam
 
 CHỈ TRẢ VỀ CÂU HỎI DUY NHẤT, KHÔNG GIẢI THÍCH."""
 
@@ -2826,14 +2856,14 @@ NHIỆM VỤ: Tạo đúng 1 câu hỏi phỏng vấn CỤ THỂ về qualificat
 QUY TẮC BẮT BUỘC:
 1. Hỏi CHÍNH XÁC về "{skill_name}"
 2. Đề cập {company_name} và yêu cầu cụ thể từ JD
-3. Thân thiện, 1-2 câu, phù hợp văn hóa Việt Nam
+3. Thân thiện, 3-5 câu đầy đủ ngữ cảnh và mô tả tình huống cụ thể, phù hợp văn hóa Việt Nam
 
 CHỈ TRẢ VỀ CÂU HỎI DUY NHẤT, KHÔNG GIẢI THÍCH."""
 
             # Call Gemini API với complete context
             generated_question = self.gemini.stream_manager.generate_content_with_retry(
                 specific_prompt,
-                max_output_tokens=250,
+                max_output_tokens=400,
                 temperature=0.7
             )
             

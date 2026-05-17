@@ -601,14 +601,28 @@ const InterviewPage: React.FC = () => {
                 // Backend failed to generate next question — retry once
                 addToast('error', 'Không thể tạo câu hỏi tiếp theo. Vui lòng thử lại.');
             } else {
+                // Interview completed.
+                // Avoid showing 2 closing messages: only append the hardcoded farewell
+                // when BE didn't already send a closing-style message in this turn,
+                // and when no closing/closing_response message is the latest in the chat.
                 setSession(prev => prev ? { ...prev, status: 'completed' } : null);
-                setMessages(prev => [...prev, {
-                    id: Date.now() + 2,
-                    role: 'interviewer',
-                    content: 'Phỏng vấn đã hoàn thành! Cảm ơn bạn đã tham gia.',
-                    timestamp: new Date().toISOString(),
-                    questionType: 'closing',
-                }]);
+                setMessages(prev => {
+                    const lastInterviewerMsg = [...prev].reverse().find(m => m.role === 'interviewer');
+                    const lastIsClosing = lastInterviewerMsg && (
+                        lastInterviewerMsg.questionType === 'closing' ||
+                        lastInterviewerMsg.questionType === 'closing_response'
+                    );
+                    if (res.hr_acknowledgment || lastIsClosing) {
+                        return prev;
+                    }
+                    return [...prev, {
+                        id: Date.now() + 2,
+                        role: 'interviewer' as const,
+                        content: 'Phỏng vấn đã hoàn thành! Cảm ơn bạn đã tham gia.',
+                        timestamp: new Date().toISOString(),
+                        questionType: 'closing',
+                    }];
+                });
                 addToast('success', 'Phỏng vấn hoàn thành!');
             }
         } catch (err: any) {
@@ -766,7 +780,7 @@ const InterviewPage: React.FC = () => {
 
     return (
         <MainLayout>
-            <div className="min-h-[calc(100vh-64px)] flex flex-col bg-gray-50/50 dark:bg-gray-900/50 text-gray-900 dark:text-white relative overflow-x-hidden font-['Plus_Jakarta_Sans'] pb-20">
+            <div className="h-screen flex flex-col bg-gray-50/50 dark:bg-gray-900/50 text-gray-900 dark:text-white relative overflow-hidden font-['Plus_Jakarta_Sans']">
 
                 <div className="absolute inset-0 bg-dot-pattern pointer-events-none z-0 opacity-60" />
                 <div className="fixed top-0 left-0 w-[500px] h-[500px] bg-indigo-400/10 rounded-full blur-[120px] pointer-events-none z-0" />
@@ -778,12 +792,24 @@ const InterviewPage: React.FC = () => {
                     {/* Top bar */}
                     <div className="flex items-center justify-between px-6 py-3 border-b border-gray-200/50 dark:border-white/10 glass">
                         <div className="flex items-center gap-3">
-                            <button onClick={() => setShowAbandonModal(true)}
+                            <button onClick={() => {
+                                pendingAbandonRef.current = () => {
+                                    const sid = sessionRef.current?.sessionId;
+                                    if (sid) {
+                                        interviewService.abandonInterview(sid)
+                                            .catch(() => { /* ignore */ })
+                                            .finally(() => navigate('/interview'));
+                                    } else {
+                                        navigate('/interview');
+                                    }
+                                };
+                                setShowAbandonModal(true);
+                            }}
                                 className="text-gray-500 hover:text-gray-900 dark:text-white/60 dark:hover:text-white transition-colors text-sm flex items-center gap-1.5 font-medium">
                                 <ArrowLeft className="h-4 w-4" /> Thoát
                             </button>
                             <span className="text-gray-300 dark:text-white/30">|</span>
-                            <span className="text-gray-900 dark:text-white font-bold text-sm truncate max-w-xs">{session?.jobTitle}</span>
+                            <span className="text-gray-900 dark:text-white font-bold text-base">{session?.jobTitle}</span>
                             {session?.questionType && (
                                 <Badge className={`text-xs ${getQBadge(session.questionType)}`}>
                                     {qTypeLabel[session.questionType] || 'Câu hỏi'}
@@ -798,66 +824,11 @@ const InterviewPage: React.FC = () => {
                             <div className="text-sm text-gray-500 dark:text-white/50">
                                 Câu <span className="text-gray-900 dark:text-white font-bold">{session?.questionNumber}</span>/{session?.questionCount}
                             </div>
-                            <button
-                                onClick={() => setShowAbandonModal(true)}
-                                className="px-3 py-1.5 rounded-lg bg-red-50 text-red-600 dark:bg-red-500/20 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-500/30 text-xs font-semibold transition-colors border border-red-200 dark:border-red-500/30 shadow-sm">
-                                Kết thúc
-                            </button>
                         </div>
                     </div>
 
                     <div className="flex flex-1 overflow-hidden">
-                        {/* ── LEFT: AI Interviewer panel ── */}
-                        <div className="hidden lg:flex flex-col items-center justify-center w-72 xl:w-80 flex-shrink-0 px-6 py-8 glass border-r border-gray-200/50 dark:border-white/10 relative">
-
-                            {/* Avatar */}
-                            <div className="relative mb-5">
-                                {/* Glow ring */}
-                                <div className="absolute inset-0 rounded-full animate-pulse"
-                                    style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.35) 0%, transparent 70%)', transform: 'scale(1.3)' }} />
-                                <div className="w-40 h-40 rounded-full overflow-hidden border-4 relative z-10"
-                                    style={{ borderColor: 'rgba(99,102,241,0.6)', boxShadow: '0 0 30px rgba(99,102,241,0.4)' }}>
-                                    {showVideo ? (
-                                        <video src={videoUrl} autoPlay loop muted playsInline className="w-full h-full object-cover" />
-                                    ) : (
-                                        <img src={avatarUrl} alt="AI Interviewer" className="w-full h-full object-cover" />
-                                    )}
-                                </div>
-                                {/* Live indicator */}
-                                <div className="absolute bottom-2 right-2 z-20 flex items-center gap-1.5 px-2 py-0.5 rounded-full"
-                                    style={{ background: 'rgba(16,185,129,0.9)', backdropFilter: 'blur(4px)' }}>
-                                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                                    <span className="text-white text-[10px] font-bold">LIVE</span>
-                                </div>
-                            </div>
-
-                            <p className="text-indigo-600 dark:text-indigo-300 text-xs font-bold tracking-widest uppercase mb-1">AI INTERVIEWER</p>
-                            <p className="text-gray-900 dark:text-white font-semibold text-sm mb-4">{interviewerGender === 'female' ? 'Nữ phỏng vấn viên' : 'Nam phỏng vấn viên'}</p>
-
-                            {/* Toggle video */}
-                            <button onClick={() => setShowVideo(v => !v)}
-                                className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium transition-colors border border-indigo-200 dark:border-indigo-500/30 bg-indigo-50/50 dark:bg-transparent rounded-full px-3 py-1">
-                                {showVideo ? 'Dùng ảnh tĩnh' : 'Xem video'}
-                            </button>
-
-                            {/* Timer bar */}
-                            {session?.status === 'active' && (
-                                <div className="mt-8 w-full glass p-4 rounded-xl border border-gray-200/50 dark:border-white/10 shadow-sm">
-                                    <div className="flex justify-between text-xs mb-2">
-                                        <span className="text-gray-500 dark:text-white/60 font-medium">Thời gian câu hỏi</span>
-                                        <span className={`font-mono font-bold ${remaining <= 15 ? 'text-red-500 dark:text-red-400 animate-pulse' : remaining <= 30 ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-700 dark:text-white/80'}`}>
-                                            {fmt(remaining)}
-                                        </span>
-                                    </div>
-                                    <div className="w-full h-2 rounded-full bg-gray-200 dark:bg-white/10 overflow-hidden">
-                                        <div className={`h-full rounded-full transition-all duration-1000 ${timerColor}`}
-                                            style={{ width: `${timerPct}%` }} />
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* ── RIGHT: Chat + Answer ── */}
+                        {/* ── Chat + Answer (full-width left) ── */}
                         <div className="flex-1 flex flex-col overflow-hidden">
                             <div className="flex-1 overflow-hidden flex flex-col">
                                 {/* old header placeholder - removed */}
@@ -899,21 +870,21 @@ const InterviewPage: React.FC = () => {
                                 </div>
 
                                 {/* ── New dark chat layout ── */}
-                                <div className="flex flex-col flex-1 overflow-hidden">
-                                    <div className="flex-1 overflow-hidden flex flex-col">
-                                        <div className="flex-1 overflow-hidden" style={{ position: 'relative' }}>
-                                            <div
-                                                ref={chatContainerRef}
-                                                className="absolute inset-0 overflow-y-auto px-5 py-4 space-y-4"
-                                                onScroll={checkScrollPosition}
-                                                style={{ scrollBehavior: 'auto' }}
-                                            >
+                                <div className="flex flex-row flex-1 overflow-hidden">
+                                    <div className="flex-1 overflow-hidden flex flex-col min-w-0 relative">
+                                        {/* Message scroll area — takes remaining height, scrolls vertically */}
+                                        <div
+                                            ref={chatContainerRef}
+                                            className="flex-1 overflow-y-auto px-5 py-4 space-y-4"
+                                            onScroll={checkScrollPosition}
+                                            style={{ scrollBehavior: 'auto' }}
+                                        >
                                                 {messages.map(msg => (
                                                     <React.Fragment key={msg.id}>
                                                         <div className={`flex ${msg.role === 'candidate' ? 'justify-end' : 'justify-start'}`}>
                                                             {msg.role === 'interviewer' ? (
                                                                 /* AI Interviewer bubble — light/dark theme */
-                                                                <div className="max-w-[88%] flex gap-3 items-end">
+                                                                <div className="max-w-[92%] flex gap-3 items-end">
                                                                     {/* Mini avatar */}
                                                                     <img src={avatarUrl} alt="AI" className="w-9 h-9 rounded-full object-cover flex-shrink-0 mb-1 border-2 border-white shadow-sm dark:border-indigo-500/50" />
                                                                     <div className="rounded-2xl rounded-bl-sm overflow-hidden glass border border-gray-200/50 dark:border-indigo-500/30 shadow-md">
@@ -963,7 +934,7 @@ const InterviewPage: React.FC = () => {
                                                                                                     </div>
                                                                                                 ) : (
                                                                                                     // Regular paragraph formatting
-                                                                                                    <p className="leading-relaxed text-[15px] font-medium text-gray-800 dark:text-gray-100">
+                                                                                                    <p className="leading-relaxed text-base font-medium text-gray-800 dark:text-gray-100">
                                                                                                         {paragraph}
                                                                                                     </p>
                                                                                                 )}
@@ -982,16 +953,16 @@ const InterviewPage: React.FC = () => {
                                                                 </div>
                                                             ) : (
                                                                 /* Candidate message — right side */
-                                                                <div className="max-w-[82%] flex gap-2 items-end justify-end">
-                                                                    <div className="rounded-2xl rounded-br-sm px-4 py-3 text-sm shadow-md"
+                                                                <div className="max-w-[88%] flex gap-2 items-end justify-end">
+                                                                    <div className="rounded-2xl rounded-br-sm px-4 py-3 text-base shadow-md"
                                                                         style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', color: '#fff' }}>
                                                                         <div className="flex items-center gap-1.5 mb-1 opacity-90">
                                                                             <User className="h-3 w-3" />
                                                                             <span className="text-xs font-bold tracking-wide uppercase">Bạn</span>
                                                                         </div>
                                                                         {msg.content
-                                                                            ? <p className="leading-relaxed font-medium text-[15px]">{msg.content}</p>
-                                                                            : <p className="leading-relaxed italic opacity-80">Bỏ qua câu hỏi này</p>
+                                                                            ? <p className="leading-relaxed font-medium text-base">{msg.content}</p>
+                                                                            : <p className="leading-relaxed italic opacity-80 text-sm">Bỏ qua câu hỏi này</p>
                                                                         }
                                                                     </div>
                                                                     <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center flex-shrink-0 mb-1 shadow-sm border border-indigo-400">
@@ -1084,7 +1055,7 @@ const InterviewPage: React.FC = () => {
 
                                             {/* Scroll to bottom button */}
                                             {showScrollButton && (
-                                                <div className="absolute bottom-20 right-6 z-10">
+                                                <div className="absolute bottom-24 right-6 z-10">
                                                     <button
                                                         onClick={scrollToBottom}
                                                         className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full shadow-lg transition-all duration-200 hover:scale-105 animate-bounce"
@@ -1095,12 +1066,12 @@ const InterviewPage: React.FC = () => {
                                                 </div>
                                             )}
 
-                                            {/* Input */}
+                                            {/* Input — sticky at bottom of chat column */}
                                             {session?.status === 'active' && (
-                                                <div className="border-t border-gray-200/50 dark:border-white/10 px-6 py-4 space-y-3 glass bg-white/50 dark:bg-gray-900/50">
+                                                <div className="flex-shrink-0 border-t border-gray-200/50 dark:border-white/10 py-4 space-y-3 glass bg-white/80 dark:bg-gray-900/70 backdrop-blur-md">
                                                     {/* Loading indicator */}
                                                     {isLoading && (
-                                                        <div className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-500/20 shadow-sm w-max">
+                                                        <div className="flex items-center gap-2 mx-5 px-4 py-2 rounded-xl text-sm font-medium bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-500/20 shadow-sm w-max">
                                                             <Loader2 className="h-4 w-4 animate-spin shrink-0" />
                                                             <span>Đang chấm điểm và chuẩn bị câu hỏi tiếp theo...</span>
                                                         </div>
@@ -1112,9 +1083,9 @@ const InterviewPage: React.FC = () => {
                                                         placeholder="Nhập câu trả lời... (Ctrl+Enter để gửi)"
                                                         disabled={isLoading}
                                                         rows={3}
-                                                        className="w-full px-5 py-3 rounded-2xl text-[15px] font-medium focus:outline-none resize-none glass bg-white/80 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-indigo-500/50 shadow-inner"
+                                                        className="block w-full box-border px-5 py-3 text-[15px] font-medium focus:outline-none resize-none bg-transparent border-0 text-gray-900 dark:text-white placeholder-gray-500 focus:ring-0"
                                                     />
-                                                    <div className="flex items-center justify-between">
+                                                    <div className="flex items-center justify-between px-5">
                                                         <div className="flex items-center gap-3">
                                                             <button className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-sm ${isRecording ? 'bg-red-50 dark:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/40' : 'glass bg-white/80 dark:bg-gray-800/80 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
                                                                 onClick={isRecording ? stopRecording : startRecording} disabled={isLoading}>
@@ -1133,24 +1104,10 @@ const InterviewPage: React.FC = () => {
                                                     </div>
                                                 </div>
                                             )}
-                                        </div>
                                     </div>
 
-                                    {/* Sidebar — progress + skills */}
-                                    <div className="w-64 xl:w-72 flex-shrink-0 flex flex-col gap-4 p-5 overflow-y-auto glass border-l border-gray-200/50 dark:border-white/10 relative">
-                                        {/* Progress */}
-                                        <div className="rounded-2xl p-5 glass bg-white/60 dark:bg-gray-800/40 border border-gray-200/50 dark:border-gray-700/50 shadow-sm">
-                                            <p className="text-gray-500 dark:text-white/50 text-xs font-bold uppercase tracking-widest mb-3">Tiến độ</p>
-                                            <div className="flex justify-between text-sm text-gray-900 dark:text-white mb-2">
-                                                <span className="text-gray-600 dark:text-white/70 font-medium">Câu hỏi</span>
-                                                <span className="font-bold">{Math.min(session?.questionNumber || 0, session?.questionCount || 5)}/{session?.questionCount || 5}</span>
-                                            </div>
-                                            <div className="w-full h-2 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
-                                                <div className="h-full rounded-full bg-indigo-600 dark:bg-indigo-500 transition-all duration-500"
-                                                    style={{ width: `${Math.min(((session?.questionNumber || 0) / (session?.questionCount || 5)) * 100, 100)}%` }} />
-                                            </div>
-                                            <p className="text-gray-500 dark:text-white/40 text-xs mt-3 font-medium">Tổng thời gian: <span className="font-mono">{fmt(elapsedTime)}</span></p>
-                                        </div>
+                                    {/* Sidebar — skills + tips */}
+                                    <div className="w-80 xl:w-96 flex-shrink-0 flex flex-col gap-4 p-5 overflow-y-auto glass border-l border-gray-200/50 dark:border-white/10 relative">
 
                                         {/* Skills Section */}
                                         {session?.skillsContext && session.skillsContext.length > 0 && (
@@ -1158,15 +1115,33 @@ const InterviewPage: React.FC = () => {
                                                 <p className="text-gray-500 dark:text-white/50 text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-1.5">
                                                     <Brain className="h-4 w-4 text-indigo-600 dark:text-indigo-400" /> Kỹ năng đánh giá
                                                 </p>
-                                                <div className="space-y-2">
+                                                <div className="space-y-2.5">
                                                     {(session.skillsContext as any[]).slice(0, 8).map((skill: any, index: number) => (
-                                                        <div key={index} className="flex items-center justify-between text-sm">
-                                                            <span className="text-gray-700 dark:text-white/80 truncate flex-1 mr-2 font-medium">{skill.skill_name}</span>
-                                                            <span className={`font-bold shrink-0 ${skill.is_hard_skill ? 'text-orange-600 dark:text-orange-400' : 'text-indigo-600 dark:text-indigo-400'}`}>
+                                                        <div key={index} className="flex items-start justify-between gap-3 text-sm">
+                                                            <span className="text-gray-700 dark:text-white/80 flex-1 font-medium leading-snug break-words" title={skill.skill_name}>
+                                                                {skill.skill_name}
+                                                            </span>
+                                                            <span className={`font-bold shrink-0 whitespace-nowrap ${skill.is_hard_skill ? 'text-orange-600 dark:text-orange-400' : 'text-indigo-600 dark:text-indigo-400'}`}>
                                                                 {(skill.importance || 0).toFixed(1)}/5
                                                             </span>
                                                         </div>
                                                     ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Per-question timer */}
+                                        {session?.status === 'active' && (
+                                            <div className="rounded-2xl p-5 glass bg-white/60 dark:bg-gray-800/40 border border-gray-200/50 dark:border-gray-700/50 shadow-sm">
+                                                <div className="flex justify-between text-xs mb-2">
+                                                    <span className="text-gray-500 dark:text-white/60 font-bold uppercase tracking-widest">Thời gian câu hỏi</span>
+                                                    <span className={`font-mono font-bold ${remaining <= 15 ? 'text-red-500 dark:text-red-400 animate-pulse' : remaining <= 30 ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-700 dark:text-white/80'}`}>
+                                                        {fmt(remaining)}
+                                                    </span>
+                                                </div>
+                                                <div className="w-full h-2 rounded-full bg-gray-200 dark:bg-white/10 overflow-hidden">
+                                                    <div className={`h-full rounded-full transition-all duration-1000 ${timerColor}`}
+                                                        style={{ width: `${timerPct}%` }} />
                                                 </div>
                                             </div>
                                         )}

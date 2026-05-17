@@ -834,7 +834,8 @@ const InterviewSelectionPage: React.FC = () => {
                                     </button>
                                 </div>
 
-                                {/* Gender selector */}
+                                {/* Gender selector — only shown for VOICE interview (text mode doesn't display avatar) */}
+                                {interviewMode === 'voice' && (
                                 <div className="mt-5">
                                     <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">Chọn hình ảnh người phỏng vấn</h4>
                                     <div className="grid grid-cols-2 gap-3">
@@ -857,6 +858,7 @@ const InterviewSelectionPage: React.FC = () => {
                                         ))}
                                     </div>
                                 </div>
+                                )}
                             </div>
 
                             {/* Start Button */}

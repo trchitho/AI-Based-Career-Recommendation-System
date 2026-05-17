@@ -686,35 +686,33 @@ const InterviewListPage: React.FC = () => {
                             <div className="glass rounded-[24px] border border-indigo-200/50 dark:border-indigo-700/50 shadow-xl overflow-hidden bg-gradient-to-br from-indigo-50/80 to-purple-50/80 dark:from-indigo-900/20 dark:to-purple-900/20">
                                 <div className="p-6">
                                     <h3 className="flex items-center gap-3 text-lg font-bold text-indigo-900 dark:text-indigo-300 mb-6">
-                                        <div className="p-2 bg-white/60 dark:bg-indigo-900/50 rounded-xl shadow-sm">
-                                            <Sparkles className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
-                                        </div>
+                                        <span className="text-2xl drop-shadow-sm">💡</span>
                                         Bí quyết phỏng vấn thành công
                                     </h3>
                                     <div className="space-y-4">
                                         <div className="flex items-start gap-4">
-                                            <span className="text-2xl mt-0.5 drop-shadow-sm">📚</span>
+                                            <span className="text-2xl mt-0.5 drop-shadow-sm">📖</span>
                                             <div>
                                                 <p className="font-bold text-gray-900 dark:text-white text-sm">Chuẩn bị kỹ lưỡng</p>
                                                 <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Tìm hiểu về công ty và vị trí ứng tuyển</p>
                                             </div>
                                         </div>
                                         <div className="flex items-start gap-4">
-                                            <span className="text-2xl mt-0.5 drop-shadow-sm">⭐</span>
+                                            <span className="text-2xl mt-0.5 drop-shadow-sm">🎯</span>
                                             <div>
                                                 <p className="font-bold text-gray-900 dark:text-white text-sm">Phương pháp STAR</p>
                                                 <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Situation → Task → Action → Result</p>
                                             </div>
                                         </div>
                                         <div className="flex items-start gap-4">
-                                            <span className="text-2xl mt-0.5 drop-shadow-sm">💬</span>
+                                            <span className="text-2xl mt-0.5 drop-shadow-sm">🗣️</span>
                                             <div>
                                                 <p className="font-bold text-gray-900 dark:text-white text-sm">Giao tiếp tự tin</p>
                                                 <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Nói chậm, rõ ràng và duy trì ánh mắt</p>
                                             </div>
                                         </div>
                                         <div className="flex items-start gap-4">
-                                            <span className="text-2xl mt-0.5 drop-shadow-sm">😊</span>
+                                            <span className="text-2xl mt-0.5 drop-shadow-sm">🤝</span>
                                             <div>
                                                 <p className="font-bold text-gray-900 dark:text-white text-sm">Thái độ tích cực</p>
                                                 <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Thể hiện sự nhiệt tình và học hỏi</p>
