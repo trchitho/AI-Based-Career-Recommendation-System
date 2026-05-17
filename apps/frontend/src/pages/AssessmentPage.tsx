@@ -281,11 +281,16 @@ const AssessmentPage = () => {
       setLoading(true);
       setError(null);
 
-      // Submit assessment in background
+      // Submit assessment in background — map quizMode → correct test_mode
+      const _modeMap: Record<string, string> = {
+        standard: 'game_puzzle',
+        game: 'game_garden',
+        legacy: 'traditional',
+      };
       const result = await assessmentService.submitAssessment({
         testTypes: ['RIASEC', 'BIG_FIVE'],
         responses,
-        test_mode: 'traditional',
+        test_mode: _modeMap[quizMode] ?? 'traditional',
       }) as { assessmentId: string; usage_info?: any };
 
       setAssessmentId(result.assessmentId);

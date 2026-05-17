@@ -172,9 +172,9 @@ const CareerRecommendationsDisplay = ({
               typeof career.display_match === "number" &&
               !Number.isNaN(career.display_match);
 
-            const raw = Math.round(career.match_score * 100);
+            const raw = parseFloat((career.match_score * 100).toFixed(1));
             const percent = hasDisplayMatch
-              ? Math.round(career.display_match as number)
+              ? parseFloat((career.display_match as number).toFixed(1))
               : Math.max(60, raw);
 
             // Ưu tiên VN, thiếu thì fallback EN

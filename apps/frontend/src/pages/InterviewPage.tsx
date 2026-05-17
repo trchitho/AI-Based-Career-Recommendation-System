@@ -97,6 +97,33 @@ const Badge: React.FC<{ children: React.ReactNode; className?: string }> = ({ ch
     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${className}`}>{children}</span>
 );
 
+// ─── Loading Step Sub-component ───────────────────────────────────────────────
+const _LoadingStep: React.FC<{ index: number; label: string; icon: string }> = ({ index, label, icon }) => {
+    const [state, setState] = React.useState<'waiting' | 'running' | 'done'>('waiting');
+    React.useEffect(() => {
+        const t1 = setTimeout(() => setState('running'), index * 1800);
+        const t2 = setTimeout(() => setState('done'), index * 1800 + 1500);
+        return () => { clearTimeout(t1); clearTimeout(t2); };
+    }, [index]);
+    return (
+        <div className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-500 ${
+            state === 'running' ? 'bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-700' :
+            state === 'done'    ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800' :
+            'bg-gray-50 dark:bg-gray-700/30 border border-transparent opacity-50'
+        }`}>
+            <span className="text-lg w-6 text-center">{state === 'done' ? '✅' : icon}</span>
+            <span className={`text-sm font-medium flex-1 ${
+                state === 'running' ? 'text-indigo-700 dark:text-indigo-300' :
+                state === 'done'    ? 'text-green-700 dark:text-green-300' :
+                'text-gray-400 dark:text-gray-500'
+            }`}>{label}</span>
+            {state === 'running' && (
+                <div className="w-4 h-4 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin flex-shrink-0" />
+            )}
+        </div>
+    );
+};
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 const BASE_R2 = 'https://pub-8df5715d271b42d6bf03e5ecd279f612.r2.dev';
 
@@ -725,8 +752,28 @@ const InterviewPage: React.FC = () => {
 
     if (isLoading && !session) return (
         <MainLayout>
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center"><Loader2 className="h-8 w-8 animate-spin mx-auto mb-3 text-blue-600" /><p className="text-gray-600">Đang chuẩn bị phỏng vấn...</p></div>
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-900 dark:to-gray-800">
+                <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-10 max-w-md w-full mx-4 border border-indigo-100 dark:border-white/10">
+                    {/* Icon */}
+                    <div className="flex justify-center mb-6">
+                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg">
+                            <Loader2 className="h-8 w-8 text-white animate-spin" />
+                        </div>
+                    </div>
+                    <h2 className="text-xl font-bold text-center text-gray-900 dark:text-white mb-2">Đang chuẩn bị phỏng vấn</h2>
+                    <p className="text-sm text-center text-gray-500 dark:text-gray-400 mb-8">AI đang tạo và kiểm tra bộ câu hỏi phù hợp với bạn</p>
+                    {/* Steps */}
+                    <div className="space-y-3">
+                        {[
+                            { label: 'Tải thông tin nghề nghiệp', icon: '📋' },
+                            { label: 'Tạo bộ câu hỏi phỏng vấn', icon: '✏️' },
+                            { label: 'Kiểm tra trùng lặp với AI', icon: '🔍' },
+                            { label: 'Tối ưu câu hỏi phù hợp cấp độ', icon: '✨' },
+                        ].map((step, i) => (
+                            <_LoadingStep key={i} index={i} label={step.label} icon={step.icon} />
+                        ))}
+                    </div>
+                </div>
             </div>
         </MainLayout>
     );

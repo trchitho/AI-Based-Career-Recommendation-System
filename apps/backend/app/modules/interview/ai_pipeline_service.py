@@ -181,6 +181,18 @@ class AIPipelineService:
             has_jd = career_context.get("has_jd", False)
             db_session = self._create_db_session(user_id, job_id, career_context, total_questions, has_jd, jd_questions_count, jd_qualification_count, jd_data, level_context)
             
+            # ── Pre-generate toàn bộ câu hỏi trước & validate với Gemini ──────
+            print(f"[Interview] Pre-generating {total_questions} questions upfront...")
+            question_plan = await self._pre_generate_and_validate_questions(
+                career_context, db_session, total_questions, effective_level
+            )
+            if question_plan:
+                # Lưu vào session để dùng khi generate từng câu tiếp theo
+                meta = db_session.conversation_metadata or {}
+                meta["question_plan"] = question_plan
+                db_session.conversation_metadata = meta
+                print(f"[Interview] ✓ Question plan saved: {len(question_plan)} questions validated")
+
             # Tạo greeting và first question
             # CV-based: greeting nhắc đến CV, first question xoáy vào kỹ năng trong CV
             if career_context.get("cv_based") and cv_context:
@@ -635,6 +647,96 @@ class AIPipelineService:
         
         return db_session
 
+    async def _pre_generate_and_validate_questions(
+        self,
+        career_context: Dict,
+        db_session,
+        total_questions: int,
+        effective_level: str,
+    ) -> list:
+        """
+        Pre-generate toàn bộ câu hỏi cho phiên phỏng vấn, sau đó dùng Gemini
+        để kiểm tra và thay thế các câu trùng lặp hoặc quá giống nhau.
+
+        Returns: list[{"type": str, "question": str}] hoặc [] nếu lỗi
+        """
+        try:
+            import json, re as _re
+            job_title = career_context.get('title', '')
+            dist = db_session.question_distribution or {}
+            skills = career_context.get('skills', [])
+            skills_str = ', '.join(s.get('skill_name', '') for s in skills[:5]) or 'chuyên môn liên quan'
+
+            # Bước 1: Generate nháp toàn bộ câu hỏi theo distribution
+            type_order = ['warm_up','jd_specific','technical','behavioral','situational','jd_qualification','closing']
+            draft_questions = []
+            for qtype in type_order:
+                count = dist.get(qtype, 0)
+                if count == 0:
+                    continue
+                fb = self._get_level_aware_fallback_questions(effective_level, qtype, job_title, '')
+                for idx in range(count):
+                    q = fb.get(qtype) or fb.get('technical', f'Câu hỏi {qtype} {idx+1}')
+                    draft_questions.append({"type": qtype, "question": q})
+
+            if not draft_questions:
+                return []
+
+            # Bước 2: Gemini review — kiểm tra trùng lặp, tạo phiên bản mới hơn
+            draft_json = json.dumps([
+                {"no": i+1, "type": q["type"], "q": q["question"]}
+                for i, q in enumerate(draft_questions)
+            ], ensure_ascii=False)
+
+            validate_prompt = f"""Bạn là chuyên gia tuyển dụng. Dưới đây là kế hoạch {len(draft_questions)} câu hỏi phỏng vấn cho vị trí "{job_title}" (cấp {effective_level}):
+
+{draft_json}
+
+NHIỆM VỤ:
+1. Kiểm tra xem có câu nào TRÙNG LẶP hoặc QUÁ GIỐNG nhau về chủ đề/cách hỏi không
+2. Với câu bị trùng → tạo câu hỏi MỚI HOÀN TOÀN khác chủ đề (giữ nguyên "type")
+3. Đảm bảo mỗi câu hỏi UNIQUE, tự nhiên, phù hợp cấp {effective_level}
+4. Kỹ năng: {skills_str}
+
+Trả về JSON (giữ nguyên format, chỉ sửa trường "q" nếu cần):
+[{{"no":1,"type":"warm_up","q":"..."}},...]
+
+QUAN TRỌNG: Trả về đúng {len(draft_questions)} phần tử, chỉ JSON, không giải thích."""
+
+            response = self.gemini.stream_manager.generate_content_with_retry(
+                validate_prompt,
+                max_output_tokens=3000,
+                temperature=0.7,
+            )
+
+            if not response:
+                print("[Interview] Pre-generate: No Gemini response, using drafts as-is")
+                return draft_questions
+
+            # Parse Gemini response
+            m = _re.search(r'\[.*\]', response, _re.DOTALL)
+            if not m:
+                return draft_questions
+
+            validated = json.loads(m.group())
+            result = []
+            for item in validated:
+                qtype = item.get('type', 'technical')
+                question = (item.get('q') or item.get('question', '')).strip()
+                if question:
+                    result.append({"type": qtype, "question": question})
+
+            print(f"[Interview] Pre-generate ✓: {len(result)} questions validated by Gemini")
+            # Log any changes
+            for i, (orig, valid) in enumerate(zip(draft_questions, result)):
+                if orig["question"].strip() != valid["question"].strip():
+                    print(f"  Q{i+1} replaced: {orig['question'][:60]}... → {valid['question'][:60]}...")
+            return result
+
+        except Exception as e:
+            print(f"[Interview] Pre-generate failed (non-critical): {e}")
+            return []
+
     def _generate_cv_based_greeting(self, career_context: Dict, cv_context: Dict) -> str:
         """Lời chào cho CV-based interview — nhắc đến CV và kỹ năng đã có."""
         job_title = career_context.get('title', 'vị trí này')
@@ -723,7 +825,8 @@ Yêu cầu: 2-3 câu, tự nhiên, đề cập kỹ năng {skills_text},{jd_cont
         """Tạo câu hỏi warm-up sâu sắc, phù hợp level"""
         job_title = career_context['title']
         skills = career_context.get('skills', [])
-        top_skill = skills[0].get('skill_name', 'chuyên môn') if skills else 'chuyên môn'
+        _raw_skill = skills[0].get('skill_name', 'chuyên môn') if skills else 'chuyên môn'
+        top_skill = (_raw_skill[:25] + "...") if len(_raw_skill) > 25 else _raw_skill
 
         level_context = {
             'fresher': 'ứng viên mới ra trường, tập trung vào học hỏi và tiềm năng',
@@ -755,17 +858,19 @@ Tạo 1 câu hỏi warm-up: hỏi về hành trình/động lực chọn lĩnh v
             print(f"⚠️ First question generation failed: {e}")
 
         import random
+        # Truncate top_skill nếu quá dài (O*NET descriptions có thể rất dài)
+        short_skill = (top_skill[:30] + "...") if top_skill and len(top_skill) > 30 else (top_skill or "chuyên môn liên quan")
         fallback_questions = {
             'fresher': [
-                f"Điều gì khiến bạn chọn theo đuổi lĩnh vực {job_title}? Trong quá trình học, bạn đã có trải nghiệm nào liên quan đến {top_skill} mà bạn tự hào nhất?",
-                f"Hãy kể về hành trình bạn khám phá đam mê với {job_title} và những gì bạn đã chuẩn bị cho vị trí này.",
+                f"Điều gì khiến bạn chọn theo đuổi lĩnh vực {job_title}? Hãy kể về hành trình bạn khám phá đam mê và những gì bạn đã chuẩn bị cho vị trí này.",
+                f"Hãy giới thiệu về bản thân và lý do bạn muốn bắt đầu sự nghiệp trong lĩnh vực {job_title}.",
             ],
             'middle': [
-                f"Nhìn lại hành trình nghề nghiệp, điều gì thúc đẩy bạn ứng tuyển vị trí {job_title} lần này? Hãy chia sẻ về kinh nghiệm với {top_skill} của bạn.",
-                f"Hãy kể về dự án hoặc thành tựu bạn tự hào nhất liên quan đến {job_title} — bạn đã làm gì và kết quả ra sao?",
+                f"Nhìn lại hành trình nghề nghiệp, điều gì thúc đẩy bạn ứng tuyển vị trí {job_title} lần này? Hãy kể về thành tựu bạn tự hào nhất.",
+                f"Hãy giới thiệu về bản thân và chia sẻ kinh nghiệm nổi bật nhất của bạn trong lĩnh vực {job_title}.",
             ],
             'senior': [
-                f"Với kinh nghiệm trong lĩnh vực {job_title}, hãy kể về thách thức lớn nhất bạn từng đối mặt với {top_skill} và cách bạn vượt qua.",
+                f"Với kinh nghiệm trong lĩnh vực {job_title}, hãy kể về thách thức lớn nhất bạn từng đối mặt và cách bạn vượt qua.",
             ]
         }
 
@@ -1352,6 +1457,21 @@ CHỈ trả về câu trả lời, không giải thích."""
         asked_list = [q.content[:400] for q in asked_questions]
         asked_context = "\n".join(f"- {q}" for q in asked_list) if asked_list else "Chưa có câu hỏi nào"
 
+        # ── Kiểm tra question_plan đã pre-generate ───────────────────────────
+        _plan_question = None
+        _conv_meta = db_session.conversation_metadata or {}
+        _q_plan: list = _conv_meta.get("question_plan", [])
+        if _q_plan:
+            # Q1 (warm_up) đã được generate riêng → plan index = next_question_number - 2
+            _plan_idx = next_question_number - 2  # 0-based index cho Q2+
+            if 0 <= _plan_idx < len(_q_plan):
+                _plan_item = _q_plan[_plan_idx]
+                _candidate = (_plan_item.get("question") or "").strip()
+                # Dùng câu từ plan nếu không trùng với đã hỏi
+                if _candidate and _candidate not in asked_list:
+                    _plan_question = _candidate
+                    print(f"[Interview] ✓ Using pre-planned Q{next_question_number}: {_candidate[:70]}")
+
         # CRITICAL FIX: Lấy JD context từ persisted data thay vì skills_context
         jd_context_str = ""
         if question_type == 'jd_specific' and jd_data:
@@ -1764,11 +1884,11 @@ YÊU CẦU BẮT BUỘC:
 - KHÔNG dùng câu cụt ngắn dưới 50 từ.
 CHỈ trả về câu hỏi, không giải thích."""
 
-        def _is_too_similar(new_q: str, existing: list[str], threshold: float = 0.6) -> bool:
+        def _is_too_similar(new_q: str, existing: list[str], threshold: float = 0.50) -> bool:
             """Return True if new_q shares too many words with any existing question."""
-            new_words = set(new_q.lower().split())
+            new_words = set(w for w in new_q.lower().split() if len(w) > 2)  # ignore stop words
             for eq in existing:
-                eq_words = set(eq.lower().split())
+                eq_words = set(w for w in eq.lower().split() if len(w) > 2)
                 if not eq_words:
                     continue
                 overlap = len(new_words & eq_words) / max(len(new_words), len(eq_words))
@@ -1776,23 +1896,52 @@ CHỈ trả về câu hỏi, không giải thích."""
                     return True
             return False
 
+        # Các câu hỏi fallback khác loại để dùng khi Gemini cứ lặp
+        _fallback_by_type = {
+            "behavioral":  f"Hãy kể về một lần bạn phải thích nghi với sự thay đổi lớn trong công việc tại vị trí {db_session.job_title}. Bạn đã xử lý như thế nào?",
+            "technical":   f"Bạn sử dụng công cụ hoặc phương pháp nào để đảm bảo chất lượng công việc trong lĩnh vực {db_session.job_title}? Hãy cho ví dụ cụ thể.",
+            "situational": f"Nếu bạn nhận thấy một sai sót nghiêm trọng nhưng deadline đang đến gần, bạn sẽ xử lý tình huống đó như thế nào?",
+            "warm_up":     f"Điều gì bạn thấy thú vị nhất và thách thức nhất trong công việc {db_session.job_title}?",
+        }
+
+        # Nếu có câu từ pre-planned question, dùng luôn, bỏ qua Gemini generate
+        if _plan_question:
+            next_question = _plan_question
+        else:
+            next_question = None
+
         try:
+          if not next_question:
             next_question = self.gemini.stream_manager.generate_content_with_retry(
                 question_prompt,
                 max_output_tokens=400,
                 temperature=0.8
             )
 
-            # Retry once with higher temperature if too similar to existing questions
-            if next_question and _is_too_similar(next_question.strip(), asked_list):
-                print(f"[Interview] ⚠️ Generated question too similar to existing, retrying...")
-                retry_prompt = question_prompt + "\n\nQUAN TRỌNG: Câu vừa tạo quá giống câu đã hỏi. Hãy tạo câu hoàn toàn khác về chủ đề và cách diễn đạt."
+            # Retry tối đa 3 lần với temperature tăng dần
+            for _retry_no in range(3):
+                if not next_question or not _is_too_similar(next_question.strip(), asked_list):
+                    break
+                print(f"[Interview] ⚠️ Similar question detected (retry {_retry_no+1}/3), retrying...")
+                _forbidden = "\n".join(f"- {q}" for q in asked_list[-3:])
+                _retry_prompt = (
+                    question_prompt
+                    + f"\n\nCẤM TUYỆT ĐỐI các câu sau (đã hỏi rồi, không được lặp lại dù khác từ ngữ):\n{_forbidden}"
+                    + "\nHãy tạo câu hỏi HOÀN TOÀN KHÁC chủ đề và cách tiếp cận."
+                )
                 next_question = self.gemini.stream_manager.generate_content_with_retry(
                     retry_prompt,
                     max_output_tokens=400,
-                    temperature=1.0
+                    temperature=min(0.9 + _retry_no * 0.05, 1.0)
+                   
                 )
-                print(f"[Interview] ✓ Retry generated: {(next_question or '')[:80]}")
+
+            # Nếu vẫn lặp sau 3 lần retry → dùng fallback cứng
+            if next_question and _is_too_similar(next_question.strip(), asked_list):
+                print(f"[Interview] ⚠️ Still similar after 3 retries, using hardcoded fallback")
+                next_question = _fallback_by_type.get(question_type, _fallback_by_type["situational"])
+
+            print(f"[Interview] ✓ Final question: {(next_question or '')[:80]}")
 
             # Length check: if Gemini returned a too-short question, retry asking for elaboration
             MIN_QUESTION_CHARS = 120
@@ -1848,9 +1997,27 @@ CHỈ trả về câu hỏi, không giải thích."""
         except Exception as e:
             print(f"⚠️ Enhanced question generation failed: {e}")
 
-        # Fallback with level-aware questions
+        # Fallback with level-aware questions — pick one NOT already asked
         fallback_q = self._get_level_aware_fallback_questions(effective_level, question_type, db_session.job_title, jd_context_str)
-        fallback_content = fallback_q.get(question_type, fallback_q['technical'])
+        # asked_list đã được tạo ở trên trong hàm này
+        _fallback_options_raw = fallback_q.get(question_type, None) or fallback_q.get('technical', 'Hãy chia sẻ về kinh nghiệm của bạn trong lĩnh vực này.')
+        # _get_level_aware_fallback_questions đã random.choice rồi → _fallback_options_raw là str
+        # Nếu vẫn trùng → thử lại tối đa 3 lần
+        fallback_content = _fallback_options_raw
+        import random as _random
+        _level_data = {
+            'fresher':  ['technical', 'behavioral', 'situational'],
+            'junior':   ['technical', 'behavioral', 'situational'],
+            'middle':   ['technical', 'behavioral', 'situational'],
+            'senior':   ['technical', 'behavioral', 'situational'],
+            'lead':     ['technical', 'behavioral', 'situational'],
+        }
+        for _ in range(5):
+            if fallback_content.strip() not in asked_list:
+                break
+            # Re-generate a different fallback
+            fallback_q = self._get_level_aware_fallback_questions(effective_level, question_type, db_session.job_title, jd_context_str)
+            fallback_content = fallback_q.get(question_type, fallback_q.get('behavioral', fallback_content))
 
         # Lấy skills TRƯỚC khi commit để index đúng
         skills_for_msg = self._select_skills_for_question_type(db_session.skills_context, question_type, next_question_number, db_session.id)
@@ -2087,51 +2254,115 @@ CHỈ trả về câu hỏi, không giải thích."""
         }
 
     def _get_level_aware_fallback_questions(self, effective_level: str, question_type: str, job_title: str, jd_context_str: str) -> Dict[str, str]:
-        """Generate level-aware fallback questions based on effective level"""
-        level_modifiers = {
+        """Generate level-aware fallback questions — each type has MULTIPLE options to avoid repetition."""
+        import random
+        level_modifiers: Dict[str, Dict[str, list]] = {
             'fresher': {
-                'warm_up': f"Điều gì khiến bạn chọn theo đuổi lĩnh vực {job_title}? Trong quá trình học, bạn đã có trải nghiệm nào liên quan mà bạn tự hào nhất?",
-                'technical': f"Hãy kể về một dự án học tập hoặc thực tập liên quan đến {job_title} mà bạn đã thực hiện. Bạn đã học được gì từ dự án đó?",
-                'behavioral': f"Kể về một lần bạn phải học một kỹ năng mới trong thời gian ngắn. Bạn đã tiếp cận việc học như thế nào?",
-                'situational': f"Nếu bạn được giao một nhiệm vụ mà bạn chưa từng làm trước đây, bạn sẽ bắt đầu như thế nào?",
-                'jd_specific': f"Về các yêu cầu trong JD{jd_context_str.strip() or ''}, bạn đã có cơ hội tiếp xúc hoặc học về chúng ở đâu? Hãy chia sẻ cụ thể.",
-                'closing': f"Bạn có câu hỏi nào về cơ hội phát triển trong vị trí {job_title} không?"
+                'warm_up': [
+                    f"Điều gì khiến bạn chọn theo đuổi lĩnh vực {job_title}? Hãy chia sẻ hành trình và trải nghiệm bạn tự hào nhất.",
+                    f"Hãy giới thiệu bản thân và lý do bạn muốn bắt đầu sự nghiệp trong lĩnh vực {job_title}.",
+                ],
+                'technical': [
+                    f"Hãy kể về một dự án học tập hoặc thực tập liên quan đến {job_title}. Bạn đã học được gì?",
+                    f"Bạn đã tự học hoặc thực hành kỹ năng nào để chuẩn bị cho vị trí {job_title}? Kết quả ra sao?",
+                    f"Trong quá trình học, bạn gặp khó khăn kỹ thuật nào và đã vượt qua như thế nào?",
+                ],
+                'behavioral': [
+                    f"Kể về một lần bạn phải học một kỹ năng mới trong thời gian ngắn. Bạn đã tiếp cận như thế nào?",
+                    f"Hãy kể về một lần bạn làm việc nhóm trong dự án học tập. Vai trò và đóng góp của bạn là gì?",
+                ],
+                'situational': [
+                    f"Nếu được giao nhiệm vụ chưa từng làm, bạn sẽ tiếp cận như thế nào?",
+                    f"Khi gặp khó khăn không tự giải quyết được, bạn thường làm gì?",
+                ],
+                'closing': [f"Bạn có câu hỏi nào về vị trí {job_title} hoặc môi trường làm việc không?"],
             },
             'junior': {
-                'warm_up': f"Với kinh nghiệm hiện tại, điều gì thúc đẩy bạn ứng tuyển vị trí {job_title} lần này? Hãy chia sẻ về hành trình nghề nghiệp của bạn.",
-                'technical': f"Hãy mô tả một thách thức kỹ thuật bạn đã gặp trong công việc và cách bạn giải quyết nó.",
-                'behavioral': f"Kể về một lần bạn phải hợp tác với đồng nghiệp để hoàn thành một dự án. Vai trò của bạn là gì?",
-                'situational': f"Khi gặp một vấn đề kỹ thuật mà bạn không biết cách giải quyết, bạn thường làm gì?",
-                'jd_specific': f"Trong JD có đề cập đến{jd_context_str.strip() or ' các kỹ năng cụ thể'}. Bạn đã áp dụng chúng trong dự án nào? Kết quả như thế nào?",
-                'closing': f"Bạn mong muốn phát triển kỹ năng gì trong vị trí {job_title} này?"
+                'warm_up': [
+                    f"Điều gì thúc đẩy bạn ứng tuyển vị trí {job_title} lần này? Hãy chia sẻ hành trình nghề nghiệp của bạn.",
+                    f"Hãy giới thiệu bản thân và những kinh nghiệm nổi bật nhất trong lĩnh vực {job_title}.",
+                ],
+                'technical': [
+                    f"Hãy mô tả một thách thức kỹ thuật bạn đã gặp và cách bạn vượt qua. Bạn học được gì từ đó?",
+                    f"Bạn đã áp dụng kiến thức kỹ thuật vào thực tế công việc như thế nào? Cho một ví dụ cụ thể.",
+                    f"Kể về một dự án bạn cảm thấy tự hào nhất. Bạn đã đóng góp gì và kết quả ra sao?",
+                    f"Công cụ hoặc phương pháp nào bạn thấy hiệu quả nhất trong công việc {job_title}? Tại sao?",
+                ],
+                'behavioral': [
+                    f"Kể về một lần hợp tác với đồng nghiệp để hoàn thành dự án. Vai trò của bạn là gì?",
+                    f"Bạn đã xử lý mâu thuẫn hoặc bất đồng trong nhóm như thế nào? Kết quả là gì?",
+                ],
+                'situational': [
+                    f"Khi gặp vấn đề kỹ thuật không biết cách giải quyết, bạn thường làm gì?",
+                    f"Nếu deadline đang đến gần nhưng công việc chưa xong, bạn sẽ xử lý thế nào?",
+                ],
+                'closing': [f"Bạn mong muốn phát triển kỹ năng gì trong vị trí {job_title} này?"],
             },
             'middle': {
-                'warm_up': f"Nhìn lại hành trình nghề nghiệp, hãy chia sẻ về thành tựu bạn tự hào nhất trong lĩnh vực {job_title}.",
-                'technical': f"Hãy mô tả một dự án phức tạp bạn đã dẫn dắt hoặc đóng góp quan trọng. Bạn đã xử lý những thách thức nào?",
-                'behavioral': f"Kể về một lần bạn phải đưa ra quyết định quan trọng trong dự án. Bạn đã cân nhắc những yếu tố nào?",
-                'situational': f"Nếu bạn phát hiện một thành viên trong team gặp khó khăn với công việc, bạn sẽ hỗ trợ như thế nào?",
-                'jd_specific': f"Về yêu cầu{jd_context_str.strip() or ' trong JD'}, bạn đã có kinh nghiệm thực tế nào? Hãy chia sẻ một ví dụ cụ thể về impact bạn tạo ra.",
-                'closing': f"Bạn có kế hoạch gì để đóng góp vào sự phát triển của team trong vị trí {job_title}?"
+                'warm_up': [
+                    f"Hãy chia sẻ về thành tựu bạn tự hào nhất trong lĩnh vực {job_title}.",
+                    f"Điều gì định hình phong cách làm việc của bạn trong {job_title}? Hãy cho ví dụ.",
+                ],
+                'technical': [
+                    f"Mô tả một dự án phức tạp bạn đã dẫn dắt. Bạn xử lý những thách thức nào?",
+                    f"Bạn đã cải tiến quy trình hoặc giải pháp kỹ thuật trong công việc như thế nào? Kết quả ra sao?",
+                    f"Kể về một quyết định kỹ thuật quan trọng bạn đã thực hiện. Cơ sở và kết quả của quyết định đó?",
+                    f"Bạn đảm bảo chất lượng kỹ thuật như thế nào trong dự án của mình? Cho ví dụ cụ thể.",
+                ],
+                'behavioral': [
+                    f"Kể về một lần bạn phải đưa ra quyết định khó trong dự án. Bạn cân nhắc những yếu tố nào?",
+                    f"Bạn đã từng đối mặt với áp lực lớn và xử lý như thế nào?",
+                ],
+                'situational': [
+                    f"Nếu phát hiện thành viên trong team gặp khó khăn, bạn sẽ hỗ trợ như thế nào?",
+                    f"Khi phải cân bằng giữa nhiều ưu tiên công việc, bạn tiếp cận thế nào?",
+                ],
+                'closing': [f"Bạn có kế hoạch gì để đóng góp vào sự phát triển của team trong vị trí {job_title}?"],
             },
             'senior': {
-                'warm_up': f"Với kinh nghiệm senior trong {job_title}, hãy chia sẻ về tầm nhìn và định hướng nghề nghiệp của bạn.",
-                'technical': f"Hãy mô tả một kiến trúc hoặc giải pháp kỹ thuật phức tạp bạn đã thiết kế. Tại sao bạn chọn approach đó?",
-                'behavioral': f"Kể về một lần bạn phải mentor hoặc dẫn dắt junior developer. Bạn đã tiếp cận việc này như thế nào?",
-                'situational': f"Khi phải đưa ra quyết định kỹ thuật quan trọng ảnh hưởng đến toàn bộ hệ thống, bạn sẽ cân nhắc những yếu tố nào?",
-                'jd_specific': f"Với yêu cầu{jd_context_str.strip() or ' leadership trong JD'}, bạn đã có kinh nghiệm dẫn dắt team hoặc dự án nào? Kết quả và bài học là gì?",
-                'closing': f"Bạn có tầm nhìn gì về việc phát triển team và công nghệ trong vị trí {job_title} này?"
+                'warm_up': [
+                    f"Hãy chia sẻ về tầm nhìn và định hướng nghề nghiệp của bạn trong lĩnh vực {job_title}.",
+                    f"Thành tựu lớn nhất trong sự nghiệp {job_title} của bạn là gì và nó ảnh hưởng đến tổ chức ra sao?",
+                ],
+                'technical': [
+                    f"Mô tả một kiến trúc hoặc giải pháp kỹ thuật phức tạp bạn đã thiết kế. Tại sao bạn chọn approach đó?",
+                    f"Bạn đã giải quyết vấn đề scale hoặc performance như thế nào trong hệ thống thực tế?",
+                    f"Kể về một quyết định kỹ thuật bạn đã thực hiện ảnh hưởng đến toàn bộ sản phẩm. Bài học rút ra là gì?",
+                ],
+                'behavioral': [
+                    f"Kể về một lần bạn phải mentor hoặc dẫn dắt junior. Cách tiếp cận và kết quả ra sao?",
+                    f"Bạn đã xây dựng văn hóa kỹ thuật trong team như thế nào?",
+                ],
+                'situational': [
+                    f"Khi phải đưa ra quyết định kỹ thuật ảnh hưởng đến toàn hệ thống, bạn cân nhắc những gì?",
+                    f"Làm thế nào bạn cân bằng innovation và stability trong công việc?",
+                ],
+                'closing': [f"Bạn có tầm nhìn gì về phát triển team và công nghệ trong vị trí {job_title}?"],
             },
             'lead': {
-                'warm_up': f"Với vai trò leadership trong {job_title}, hãy chia sẻ về triết lý quản lý và phát triển team của bạn.",
-                'technical': f"Hãy mô tả một quyết định kiến trúc hoặc công nghệ quan trọng bạn đã đưa ra ở cấp độ tổ chức. Impact của nó như thế nào?",
-                'behavioral': f"Kể về một lần bạn phải xử lý conflict trong team hoặc giữa các team. Bạn đã giải quyết như thế nào?",
-                'situational': f"Khi phải balance giữa technical debt và delivery pressure, bạn sẽ đưa ra quyết định như thế nào?",
-                'jd_specific': f"Về yêu cầu strategic{jd_context_str.strip() or ' trong JD'}, bạn đã có kinh nghiệm xây dựng chiến lược kỹ thuật hoặc phát triển team nào? Hãy chia sẻ cụ thể.",
-                'closing': f"Bạn có vision gì về việc xây dựng culture và phát triển tổ chức trong vai trò {job_title}?"
+                'warm_up': [
+                    f"Hãy chia sẻ về triết lý lãnh đạo và phát triển team của bạn trong lĩnh vực {job_title}.",
+                    f"Điều gì bạn học được từ việc lãnh đạo team mà ảnh hưởng lớn nhất đến phong cách của bạn?",
+                ],
+                'technical': [
+                    f"Mô tả một quyết định kiến trúc quan trọng ở cấp độ tổ chức bạn đã đưa ra. Impact của nó?",
+                    f"Bạn đã xây dựng roadmap kỹ thuật và thuyết phục stakeholders như thế nào?",
+                ],
+                'behavioral': [
+                    f"Kể về một lần xử lý conflict trong team hoặc giữa các team. Cách giải quyết và bài học?",
+                    f"Bạn đã phát triển và giữ chân nhân tài trong team như thế nào?",
+                ],
+                'situational': [
+                    f"Khi phải balance technical debt và delivery pressure, bạn ra quyết định thế nào?",
+                    f"Làm thế nào bạn đảm bảo alignment giữa technical team và business?",
+                ],
+                'closing': [f"Bạn có vision gì về việc xây dựng culture và phát triển tổ chức trong vai trò {job_title}?"],
             }
         }
-        
-        return level_modifiers.get(effective_level, level_modifiers['junior'])
+
+        level_data = level_modifiers.get(effective_level, level_modifiers['junior'])
+        # Trả về dict với từng type → 1 câu ngẫu nhiên từ list options
+        return {qtype: random.choice(opts) for qtype, opts in level_data.items()}
 
     def _extract_skills_from_context(self, career_context: Dict) -> List[str]:
         """Trích xuất tên skills từ context"""
