@@ -172,43 +172,46 @@ Return ONLY JSON, no explanations.
         job_skill_names = [s['name'] for s in job_skills]
         
         prompt = f"""
-You are an expert career analyst. Analyze the skill match between a CV and job requirements.
+You are an expert bilingual career analyst (Vietnamese-English). Match CV skills to job requirements.
 
 Career: {career_name}
 
-Job Required Skills:
+Job Required Skills (English, from O*NET):
 {', '.join(job_skill_names)}
 
-CV Skills:
+CV Skills (may be in Vietnamese or English):
 {', '.join(cv_skill_names)}
 
-Task: Match CV skills to job requirements using semantic understanding.
+CRITICAL RULES:
+1. CV skills may be in Vietnamese — translate them first.
+2. ONE cv_skill can match MULTIPLE job skills (many-to-many). Generate one entry per (cv_skill, job_skill) pair.
+3. Be generous with implied skills: "manages a team" implies Speaking, Active Listening, Coordination, Monitoring, Instructing.
+4. A person with 5+ years experience in sales supervision IMPLICITLY has: Writing, Critical Thinking, Active Listening, Speaking, Social Perceptiveness, Judgment and Decision Making, Persuasion.
+5. Confidence >= 0.65 is acceptable for cross-language or implied matches.
+6. Do NOT match IT tools (Docker, React, etc.) to generic skills for non-IT occupations.
 
-For example:
-- "AutoCAD" matches "Computer-aided design software" or "CAD software"
-- "GPS" matches "GPS Technology" or "Geographic positioning"
-- "Python" matches "Programming" or "Software development"
+Vietnamese→English mapping examples (with MULTIPLE matches per skill):
+- "Quản lý và huấn luyện đội ngũ bán hàng" → matches ALL of: "Management of Personnel Resources"(0.95), "Instructing"(0.90), "Monitoring"(0.88), "Coordination"(0.85), "Active Listening"(0.80)
+- "Lập kế hoạch và phân tích thị trường" → matches ALL of: "Critical Thinking"(0.90), "Systems Analysis"(0.85), "Judgment and Decision Making"(0.80), "Operations Analysis"(0.80)
+- "Đàm phán và thương lượng hợp đồng" → matches ALL of: "Negotiation"(0.95), "Persuasion"(0.90), "Speaking"(0.85)
+- "Kỹ năng giao tiếp" → matches ALL of: "Speaking"(0.95), "Active Listening"(0.90), "Social Perceptiveness"(0.80)
+- "Kỹ năng báo cáo và phân tích số liệu" → matches ALL of: "Writing"(0.90), "Mathematics"(0.85), "Systems Evaluation"(0.80)
+- "Lãnh đạo nhóm" → matches ALL of: "Management of Personnel Resources"(0.90), "Coordination"(0.85), "Monitoring"(0.80)
+- "Xây dựng chiến lược bán hàng" → matches ALL of: "Critical Thinking"(0.85), "Operations Analysis"(0.80), "Learning Strategies"(0.75)
 
-Rules:
-- Match from the JOB REQUIREMENT perspective, not from the CV perspective.
-- Do not match a CV skill to a broad generic requirement unless it is genuinely used in this occupation.
-- For non-software/industrial occupations, do NOT treat IT tools/frameworks (Node.js, React, Docker, JWT, Redis, PostgreSQL, Machine Learning, PyTorch, web development) as satisfying generic ONET skills such as "Programming", "Science", or "Systems Analysis".
-- Prefer "unmatched_cv_skills" for skills that are valuable but unrelated to the target occupation.
-- A match must have direct occupational evidence. If the relationship is only abstract, leave it unmatched.
-- Confidence below 0.75 should not be returned as a matched pair.
-
-Return JSON with:
+Return JSON:
 {{
   "matched_pairs": [
-    {{"cv_skill": "AutoCAD", "job_skill": "CAD software", "confidence": 0.95, "reason": "AutoCAD is a CAD software"}},
+    {{"cv_skill": "Kỹ năng giao tiếp", "job_skill": "Speaking", "confidence": 0.95, "reason": "Communication = Speaking"}},
+    {{"cv_skill": "Kỹ năng giao tiếp", "job_skill": "Active Listening", "confidence": 0.90, "reason": "Communication requires active listening"}},
     ...
   ],
-  "unmatched_cv_skills": ["skill1", "skill2"],
-  "unmatched_job_skills": ["skill1", "skill2"],
-  "overall_match_percentage": 75.5
+  "unmatched_cv_skills": ["Spain"],
+  "unmatched_job_skills": ["skill1"],
+  "overall_match_percentage": 80.0
 }}
 
-CRITICAL: Return ONLY valid JSON, no markdown, no explanations.
+CRITICAL: Return ONLY valid JSON, no markdown.
 """
         
         print(f"  🤖 AI analyzing semantic skill matching for {career_name}...")

@@ -84,7 +84,7 @@ const RIASECCareerDetailPage = ({ career, rank, sectionTitle }: RIASECCareerDeta
                     )}
                 </div>
                 <span className="text-xs bg-indigo-700 text-white px-3 py-1 rounded-full font-semibold shadow-sm print:text-[10px]">
-                    {Math.round(career.match_score)}% Phù Hợp
+                    {parseFloat(career.match_score.toFixed(1))}% Phù Hợp
                 </span>
             </div>
 

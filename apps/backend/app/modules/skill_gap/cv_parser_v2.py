@@ -11,91 +11,6 @@ import pypdf as PyPDF2
 from app.core.gemini_manager import multi_stream_manager
 
 
-# ─── Helper: Translate raw AI reasons to user-friendly Vietnamese ────────────
-def _translate_cv_reject_reason(reason: str, doc_kind: str = "file") -> str:
-    """Convert raw AI reason (often English) to clean Vietnamese error message."""
-    reason_lower = (str(reason) if reason else "").lower()
-    # Phân loại theo từ khóa
-    if any(kw in reason_lower for kw in ["invoice", "billing", "receipt", "bill", "hoá đơn", "hóa đơn"]):
-        return "Tệp tải lên có vẻ là hóa đơn hoặc biên lai, không phải CV."
-    if any(kw in reason_lower for kw in ["menu", "restaurant", "thực đơn"]):
-        return "Tệp tải lên có vẻ là menu/thực đơn, không phải CV."
-    if any(kw in reason_lower for kw in ["contract", "agreement", "legal", "hợp đồng"]):
-        return "Tệp tải lên có vẻ là hợp đồng hoặc tài liệu pháp lý, không phải CV."
-    if any(kw in reason_lower for kw in ["news", "article", "báo", "tin tức"]):
-        return "Tệp tải lên có vẻ là bài báo hoặc tin tức, không phải CV."
-    if any(kw in reason_lower for kw in ["book", "textbook", "sách", "giáo trình"]):
-        return "Tệp tải lên có vẻ là sách hoặc tài liệu học tập, không phải CV."
-    if any(kw in reason_lower for kw in ["screenshot", "social", "facebook", "instagram", "ảnh chụp"]):
-        return "Tệp tải lên có vẻ là ảnh chụp màn hình hoặc bài đăng mạng xã hội, không phải CV."
-    if any(kw in reason_lower for kw in ["meme"]):
-        return "Tệp tải lên có vẻ là ảnh meme/giải trí, không phải CV."
-    if any(kw in reason_lower for kw in ["blank", "empty", "no content", "rỗng", "trống"]):
-        return "Tệp tải lên trống hoặc không có nội dung văn bản đọc được."
-    if any(kw in reason_lower for kw in ["selfie", "portrait", "chân dung"]):
-        return "Tệp tải lên là ảnh chân dung/selfie, không phải tài liệu CV."
-    if any(kw in reason_lower for kw in ["diagram", "chart", "biểu đồ", "sơ đồ", "flowchart", "architecture", "system design", "kiến trúc"]):
-        return "Tệp tải lên có vẻ là sơ đồ kiến trúc/biểu đồ kỹ thuật, không phải CV."
-    if any(kw in reason_lower for kw in ["scrum", "sprint", "backlog", "kanban", "agile", "user story", "epic"]):
-        return "Tệp tải lên có vẻ là tài liệu Scrum/Sprint Backlog của dự án, không phải CV."
-    if any(kw in reason_lower for kw in ["meeting", "minute", "biên bản", "cuộc họp"]):
-        return "Tệp tải lên có vẻ là biên bản cuộc họp, không phải CV."
-    if any(kw in reason_lower for kw in ["report", "báo cáo", "thesis", "luận văn", "luận án"]):
-        return "Tệp tải lên có vẻ là báo cáo hoặc luận văn, không phải CV."
-    if any(kw in reason_lower for kw in ["proposal", "đề xuất", "đề án"]):
-        return "Tệp tải lên có vẻ là đề xuất/đề án dự án, không phải CV."
-    if any(kw in reason_lower for kw in ["specification", "requirement", "tài liệu kỹ thuật", "đặc tả", "srs", "brd"]):
-        return "Tệp tải lên có vẻ là tài liệu kỹ thuật/đặc tả, không phải CV."
-    if any(kw in reason_lower for kw in ["certificate", "diploma", "bằng cấp", "chứng chỉ"]):
-        return "Tệp tải lên có vẻ là chứng chỉ/bằng cấp, không phải CV đầy đủ."
-    if any(kw in reason_lower for kw in ["letter", "thư"]):
-        return "Tệp tải lên có vẻ là thư/email, không phải CV."
-    if any(kw in reason_lower for kw in ["form", "biểu mẫu", "đơn đăng ký"]):
-        return "Tệp tải lên có vẻ là biểu mẫu/đơn từ, không phải CV."
-    if any(kw in reason_lower for kw in ["presentation", "slide", "thuyết trình", "powerpoint", "pptx"]):
-        return "Tệp tải lên có vẻ là slide thuyết trình, không phải CV."
-    if any(kw in reason_lower for kw in ["timetable", "schedule", "thời khóa biểu", "lịch học"]):
-        return "Tệp tải lên có vẻ là thời khóa biểu/lịch trình, không phải CV."
-    if any(kw in reason_lower for kw in ["transcript", "bảng điểm", "kết quả học"]):
-        return "Tệp tải lên có vẻ là bảng điểm, không phải CV đầy đủ."
-    if any(kw in reason_lower for kw in ["short", "too short", "ngắn"]):
-        return "Tệp tải lên có quá ít nội dung để là một CV đầy đủ."
-    if any(kw in reason_lower for kw in ["not a cv", "not a resume", "is not", "no professional"]):
-        return "Tệp tải lên không phải là CV/Resume."
-    # Fallback chung
-    if doc_kind == "PDF":
-        return "Tệp PDF không chứa các thông tin của một CV (không có kinh nghiệm làm việc, học vấn hoặc kỹ năng)."
-    if doc_kind == "image":
-        return "Tệp ảnh không chứa các thông tin của một CV (không có kinh nghiệm làm việc, học vấn hoặc kỹ năng)."
-    return "Tệp không chứa các thông tin của một CV (không có kinh nghiệm làm việc, học vấn hoặc kỹ năng)."
-
-
-def _translate_label_to_vn(label: str) -> str:
-    """Translate detection label ('not a cv', etc.) to user-friendly Vietnamese."""
-    label_lower = (label or "").lower()
-    # Reuse translation logic
-    return _translate_cv_reject_reason(label_lower)
-
-
-def _translate_doc_type_to_vn(doc_type: str, reason: str) -> str:
-    """Combine doc_type + reason into a clean Vietnamese message."""
-    type_map = {
-        "CV": "CV",
-        "Báo chí": "bài báo/tin tức",
-        "Sách": "sách",
-        "Menu": "menu/thực đơn",
-        "Hóa đơn": "hóa đơn",
-        "Khác": "tài liệu khác",
-    }
-    # Try to translate by reason first (more accurate)
-    by_reason = _translate_cv_reject_reason(reason or "")
-    if by_reason and "không chứa các thông tin" not in by_reason and "không phải là CV/Resume" not in by_reason:
-        return by_reason
-    # Fall back to doc_type
-    vn_type = type_map.get(doc_type or "", str(doc_type) if doc_type else "tài liệu khác")
-    return f"Tệp tải lên có vẻ là {vn_type}, không phải CV/Resume."
-
-
 class CVParserV2:
     """Parser cải tiến - dùng AI đọc toàn bộ CV"""
 
@@ -216,7 +131,7 @@ Use clear formatting with line breaks between sections.
             print("  [CV Validation] Checking if PDF content is a valid CV...")
             is_cv, reason = self._is_cv_content(text)
             if not is_cv:
-                raise ValueError(_translate_cv_reject_reason(reason, doc_kind="PDF"))
+                raise ValueError(f"Tài liệu PDF không phải là CV. {reason}")
             print("  [CV Validation] ✓ PDF content validated as CV")
             return text
         
@@ -227,7 +142,7 @@ Use clear formatting with line breaks between sections.
             print("  [CV Validation] Checking if PDF content is a valid CV...")
             is_cv, reason = self._is_cv_content(text)
             if not is_cv:
-                raise ValueError(_translate_cv_reject_reason(reason, doc_kind="PDF"))
+                raise ValueError(f"Tài liệu PDF không phải là CV. {reason}")
             print("  [CV Validation] ✓ PDF content validated as CV")
             return text
         
@@ -238,7 +153,7 @@ Use clear formatting with line breaks between sections.
             print("  [CV Validation] Checking if PDF content is a valid CV...")
             is_cv, reason = self._is_cv_content(text)
             if not is_cv:
-                raise ValueError(_translate_cv_reject_reason(reason, doc_kind="PDF"))
+                raise ValueError(f"Tài liệu PDF không phải là CV. {reason}")
             print("  [CV Validation] ✓ PDF content validated as CV")
             return text
         
@@ -251,7 +166,7 @@ Use clear formatting with line breaks between sections.
             print("  [CV Validation] Checking if PDF content is a valid CV...")
             is_cv, reason = self._is_cv_content(text)
             if not is_cv:
-                raise ValueError(_translate_cv_reject_reason(reason, doc_kind="PDF"))
+                raise ValueError(f"Tài liệu PDF không phải là CV. {reason}")
             print("  [CV Validation] ✓ PDF content validated as CV")
         
         return text
@@ -460,7 +375,7 @@ KHÔNG PHẢI CV nếu:
             
             # Chỉ reject nếu confidence cao (> 0.7) và không phải CV
             if not is_cv and confidence > 0.7:
-                return False, _translate_doc_type_to_vn(doc_type, reason)
+                return False, f"Tài liệu này là '{doc_type}', không phải CV/Resume. {reason}"
             
             return True, ""
             
@@ -627,13 +542,7 @@ KHÔNG PHẢI CV nếu:
         if not text or not text.strip():
             raise ValueError("Không tìm thấy nội dung văn bản trong ảnh")
 
-        # TC-NON-02: Validate that extracted text is actually CV content using AI
-        print("  [CV Validation] Checking if content is a valid CV...")
-        is_cv, reason = self._is_cv_content(text)
-        if not is_cv:
-            raise ValueError(_translate_cv_reject_reason(reason, doc_kind="image"))
-
-        print("  [CV Validation] ✓ Content validated as CV")
+        # Skip redundant CV validation here — parse_cv_complete does it once after extraction
         return text
 
     # ── TC-IMG-12: Multi-image merge ──────────────────────────────────────
@@ -1098,7 +1007,7 @@ CRITICAL RULES:
         
         for pattern, label in non_cv_patterns:
             if pattern in lower:
-                return False, _translate_label_to_vn(label)
+                return False, f"Nội dung có vẻ là '{label}', không phải CV/Resume."
 
         # ── 1b. Từ chối nếu Gemini mô tả đây là ảnh (không phải tài liệu) ─
         image_description_signals = [
@@ -1168,8 +1077,6 @@ CRITICAL RULES:
         """
         Gộp validate + extract thành 1 Gemini call duy nhất để giảm latency 50%.
         Trả về dict với key 'is_cv' (bool) và toàn bộ extracted data.
-        Có thêm structural validation: CV thật phải có ÍT NHẤT 2 trong 4 sections
-        (personal_info, education, work_experience, projects) - không chỉ skills.
         """
         import os
         cv_text = text[:20000]
@@ -1181,23 +1088,17 @@ DOCUMENT:
 {cv_text}
 
 STEP 1 — Determine if this is a CV/Resume or Professional Profile.
-A REAL CV/Resume MUST contain AT LEAST 2 of these 4 elements:
-  1. Personal contact info (real name + email or phone)
-  2. Education history (school name, degree, dates)
-  3. Work experience or internships (company, role, dates)
-  4. Projects with descriptions (not just project names)
-
-REJECT as NOT a CV if the document only contains:
-  - Architecture/system diagrams (e.g., flowcharts, ER diagrams, UML)
-  - Lists of technologies WITHOUT a person's profile
-  - Technical documentation (API docs, schemas, specs)
-  - Code snippets, config files, logs
-  - Slides/presentations with no resume content
-  - Project requirements, user stories, backlogs
-  - Receipts, invoices, menus, contracts
-  - Screenshots of social media, charts, or random pictures
+Be lenient: as long as the document contains some professional information (experience, education, or skills), consider it a CV. It does NOT need to have all sections to be valid.
 
 STEP 2 — If it is a professional document, extract all information.
+
+Extract skills from ALL sections: Skills section, Experience bullets, About Me.
+Also infer IMPLIED skills from experience context:
+- Managing people → "Active Listening", "Social Perceptiveness", "Coordination", "Monitoring", "Time Management"
+- Writing reports → "Writing", "Reading Comprehension"
+- Growing sales/revenue → "Judgment and Decision Making", "Active Learning", "Service Orientation"
+- Planning/strategy → "Critical Thinking", "Systems Analysis", "Learning Strategies"
+- Customer-facing roles → "Service Orientation", "Social Perceptiveness", "Persuasion"
 
 Return ONLY valid JSON:
 {{
@@ -1207,39 +1108,34 @@ Return ONLY valid JSON:
     "email": "email@example.com",
     "phone": "0900000000"
   }},
-  "education": [
-    {{"school": "University Name", "degree": "Bachelor of CS", "year": "2020-2024"}}
-  ],
-  "work_experience": [
-    {{"company": "Company Name", "role": "Software Engineer", "duration": "2022-2024", "description": "..."}}
-  ],
-  "projects": [
-    {{"name": "Project Name", "description": "What it does", "tech": ["React", "Node"]}}
-  ],
   "skills": [
-    {{"name": "Python", "category": "Programming"}}
+    {{"name": "Python", "category": "Programming"}},
+    {{"name": "Active Listening", "category": "Soft Skill", "source": "implied"}}
   ]
 }}
 
-If NOT a CV (lacks personal info AND lacks both education and work experience), return:
-{{"is_cv": false, "reason": "brief reason describing what the document actually is, e.g. 'system architecture diagram', 'invoice', 'sprint backlog'"}}
+If clearly NOT a professional document (e.g., a recipe, a movie script, an invoice), return:
+{{"is_cv": false, "reason": "brief reason"}}
 
 RULES:
 - Return ONLY valid JSON, no markdown
-- Extract ALL skills (technical + soft)
-- name = person's real name (2-4 words, NOT a job title). If not found, leave empty string.
-- For diagram/screenshot/architecture images: is_cv must be FALSE
+- Extract ALL skills (technical + soft + implied from experience)
+- Include both explicitly listed skills AND skills implied by experience/achievements
+- name = person's real name (2-4 words, NOT a job title). If not found, use "".
 """
         try:
             cv_stream = multi_stream_manager.get_cv_stream()
             if not cv_stream.is_available():
-                return {"is_cv": False, "reason": "AI stream not available"}
+                # Stream unavailable → allow by default, return minimal valid structure
+                print("  [WARN] CV stream unavailable, allowing document by default")
+                return {"is_cv": True, "reason": "stream unavailable", "personal_info": {}, "skills": []}
 
-            print(f"  📤 [COMBINED] Sending {len(cv_text)} chars — validate + extract in 1 call")
+            print(f"  [COMBINED] Sending {len(cv_text)} chars — validate + extract in 1 call")
             response_text = cv_stream.generate_content_with_retry(prompt)
 
             if not response_text:
-                return {"is_cv": False, "reason": "No AI response"}
+                print("  [WARN] No AI response, allowing document by default")
+                return {"is_cv": True, "reason": "no response", "personal_info": {}, "skills": []}
 
             # Strip markdown fences
             if '```json' in response_text:
@@ -1248,98 +1144,7 @@ RULES:
                 response_text = response_text.split('```')[1].split('```')[0].strip()
 
             data = json.loads(response_text)
-
-            # ─── STRUCTURAL VALIDATION (defense in depth) ──────────────────
-            # AI có thể nhầm lẫn diagram chứa keyword tech là CV.
-            # Đếm số sections CV thực sự có nội dung. CV thật phải có >=2.
-            if data.get('is_cv'):
-                section_count = 0
-                reasons_missing = []
-
-                # Section 1: Personal info phải có name HOẶC (email + phone)
-                pi = data.get('personal_info') or {}
-                name = (pi.get('name') or '').strip()
-                email = (pi.get('email') or '').strip()
-                phone = (pi.get('phone') or '').strip()
-                # Tên thật: 2+ từ, không phải job title
-                has_real_name = bool(name) and len(name.split()) >= 2 and not any(
-                    bad in name.lower() for bad in [
-                        'engineer', 'developer', 'designer', 'analyst', 'manager',
-                        'specialist', 'consultant', 'lead', 'senior', 'junior',
-                        'fullstack', 'backend', 'frontend', 'unknown', 'n/a',
-                    ]
-                )
-                if has_real_name or (email and phone):
-                    section_count += 1
-                else:
-                    reasons_missing.append('personal_info')
-
-                # Section 2: Education
-                edu = data.get('education') or []
-                has_education = isinstance(edu, list) and len(edu) > 0 and any(
-                    isinstance(e, dict) and (e.get('school') or e.get('degree'))
-                    for e in edu
-                )
-                if has_education:
-                    section_count += 1
-                else:
-                    reasons_missing.append('education')
-
-                # Section 3: Work experience
-                we = data.get('work_experience') or []
-                has_work = isinstance(we, list) and len(we) > 0 and any(
-                    isinstance(w, dict) and (w.get('company') or w.get('role'))
-                    for w in we
-                )
-                if has_work:
-                    section_count += 1
-                else:
-                    reasons_missing.append('work_experience')
-
-                # Section 4: Projects (must have description, not just names)
-                projs = data.get('projects') or []
-                has_projects = isinstance(projs, list) and len(projs) > 0 and any(
-                    isinstance(p, dict) and (
-                        p.get('description') or p.get('tech') or p.get('role')
-                    ) for p in projs
-                )
-                if has_projects:
-                    section_count += 1
-                else:
-                    reasons_missing.append('projects')
-
-                # CV thật phải có ÍT NHẤT 2 sections
-                if section_count < 2:
-                    print(
-                        f"  [WARN] AI said is_cv=True but structural check failed: "
-                        f"only {section_count}/4 sections present. Missing: {reasons_missing}"
-                    )
-                    # Detect specific document type from text content
-                    text_lower = cv_text.lower()
-                    detected_type = "tài liệu kỹ thuật"
-                    if any(kw in text_lower for kw in ['rectangle', 'diagram', 'flowchart', 'arrow', '«rectangle»', 'storage layer', 'data layer', 'feature processing', 'embedding']):
-                        detected_type = "system architecture diagram"
-                    elif any(kw in text_lower for kw in ['sprint', 'backlog', 'user story', 'scrum', 'kanban', 'epic']):
-                        detected_type = "sprint backlog"
-                    elif any(kw in text_lower for kw in ['invoice', 'receipt', 'billing', 'amount due']):
-                        detected_type = "invoice"
-                    elif any(kw in text_lower for kw in ['menu', 'restaurant', 'price list']):
-                        detected_type = "menu"
-                    elif any(kw in text_lower for kw in ['api', 'endpoint', 'specification', 'schema']):
-                        detected_type = "technical specification"
-
-                    return {
-                        "is_cv": False,
-                        "reason": (
-                            f"Document appears to be a {detected_type}, not a CV. "
-                            f"It lacks personal info, work experience, and education sections."
-                        ),
-                    }
-
-            print(
-                f"  [OK] [COMBINED] is_cv={data.get('is_cv')}, "
-                f"skills={len(data.get('skills', []))}"
-            )
+            print(f"  [OK] [COMBINED] is_cv={data.get('is_cv')}, skills={len(data.get('skills', []))}")
             return data
         except Exception as e:
             print(f"  [ERR] [COMBINED] Error: {e}")
@@ -1404,15 +1209,15 @@ Return ONLY valid JSON, no markdown, no explanations.
             cv_stream = multi_stream_manager.get_cv_stream()
             
             if not cv_stream.is_available():
-                print("  [WARN] CV analysis stream not available, assuming NOT a CV (safe default)")
-                return False
-            
-            print(f"  📤 Sending {len(text_preview)} chars to Gemini for CV validation...")
+                print("  [WARN] CV analysis stream not available, allowing by default")
+                return True
+
+            print(f"  Sending {len(text_preview)} chars to Gemini for CV validation...")
             response_text = cv_stream.generate_content_with_retry(prompt)
-            
+
             if not response_text:
-                print("  [WARN] No response from Gemini, assuming NOT a CV (safe default)")
-                return False
+                print("  [WARN] No response from Gemini, allowing by default")
+                return True
             
             # Parse JSON response
             if '```json' in response_text:
@@ -1534,11 +1339,12 @@ Return ONLY valid JSON, no markdown, no explanations.
             print("\n[ERROR] Could not extract text from file")
             raise ValueError("Không thể đọc nội dung từ file.")
 
-        # CRITICAL: Validate content BEFORE calling Gemini (saves tokens!)
+        # Quick heuristic check — only reject obvious non-CVs (financial docs, lorem ipsum)
+        # Detailed AI validation happens in _validate_and_extract below
         is_cv, reason = self._is_cv_content(text)
-        if not is_cv:
-            print(f"\n[ERR] ERROR: File does not appear to be a CV — {reason}")
-            raise ValueError(_translate_cv_reject_reason(reason, doc_kind="file"))
+        if not is_cv and any(kw in reason.lower() for kw in ["hóa đơn", "invoice", "lorem", "biên lai"]):
+            print(f"\n[ERR] File is clearly not a CV — {reason}")
+            raise ValueError(f"File tải lên không phải là CV. {reason}")
 
         print("\n[OK] TEXT EXTRACTION SUCCESSFUL")
         print(f"   Extracted: {len(text)} characters")
@@ -1560,25 +1366,9 @@ Return ONLY valid JSON, no markdown, no explanations.
         print("="*80)
         result = self._validate_and_extract(text, target_career)
         if not result.get('is_cv', False):
-            reason_raw = result.get('reason', '') or ''
-            print(f"[ERR] AI confirmed: NOT a CV — {reason_raw}")
-            # Phân loại lý do để có message tiếng Việt thân thiện
-            reason_lower = reason_raw.lower()
-            if any(kw in reason_lower for kw in ['invoice', 'billing', 'receipt', 'bill', 'hóa đơn']):
-                vn_reason = "Tệp này có vẻ là hóa đơn hoặc biên lai, không phải CV."
-            elif any(kw in reason_lower for kw in ['menu', 'restaurant', 'food']):
-                vn_reason = "Tệp này có vẻ là menu/thực đơn, không phải CV."
-            elif any(kw in reason_lower for kw in ['contract', 'agreement', 'legal']):
-                vn_reason = "Tệp này có vẻ là hợp đồng hoặc tài liệu pháp lý, không phải CV."
-            elif any(kw in reason_lower for kw in ['news', 'article', 'báo']):
-                vn_reason = "Tệp này có vẻ là bài báo hoặc tin tức, không phải CV."
-            elif any(kw in reason_lower for kw in ['blank', 'empty', 'no content', 'rỗng']):
-                vn_reason = "Tệp dường như trống hoặc không có nội dung văn bản đọc được."
-            elif any(kw in reason_lower for kw in ['image', 'photo', 'picture']):
-                vn_reason = "Tệp ảnh không có nội dung dạng CV (không có tên, kinh nghiệm, kỹ năng)."
-            else:
-                vn_reason = "Tệp không chứa các thông tin của một CV (không có kinh nghiệm làm việc, học vấn hoặc kỹ năng)."
-            raise ValueError(vn_reason)
+            reason = result.get('reason', '')
+            print(f"[ERR] AI confirmed: NOT a CV — {reason}")
+            raise ValueError(f"File tải lên không phải là CV/Resume. {reason}")
         
         result['text'] = text[:500]  # Preview
         

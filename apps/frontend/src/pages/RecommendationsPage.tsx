@@ -21,7 +21,7 @@ import "./RecommendationsPage-hero.css";
 /* ── helpers ── */
 type MatchLevel = "excellent" | "great" | "good";
 const getMatchLevel = (score: number): { level: MatchLevel; label: string } => {
-  const pct = Math.round(score * 100);
+  const pct = score * 100;
   if (pct >= 90) return { level: "excellent", label: "Xuất sắc" };
   if (pct >= 75) return { level: "great", label: "Rất phù hợp" };
   return { level: "good", label: "Phù hợp" };
@@ -277,7 +277,7 @@ const RecommendationsPage = () => {
             >
               {recItems.map((it, index) => {
                 const { level, label } = getMatchLevel(it.match_score);
-                const pct = Math.round(it.match_score * 100);
+                const pct = parseFloat(((it.display_match ?? it.match_score * 100)).toFixed(1));
                 const title = it.title_vn || it.title_en || it.career_id || "Unknown";
                 const offset = CIRC - (CIRC * pct) / 100;
                 const fb = feedback[it.career_id];

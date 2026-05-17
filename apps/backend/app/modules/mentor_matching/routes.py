@@ -146,6 +146,57 @@ def get_my_requests(
     return svc.get_mentee_requests(current_user.id)
 
 
+@router.post("/mentee/cancel-request/{request_id}", summary="Mentee hủy yêu cầu đang pending")
+def cancel_my_request(
+    request_id: int,
+    current_user: User = Depends(get_current_user_from_token),
+    db: Session = Depends(get_db),
+):
+    """Mentee hủy yêu cầu mentorship đang ở trạng thái pending."""
+    from .models import MenteeProfile, MentorshipRequest
+    mentee = db.query(MenteeProfile).filter(MenteeProfile.user_id == current_user.id).first()
+    if not mentee:
+        raise HTTPException(status_code=404, detail="Mentee profile not found")
+    req = db.query(MentorshipRequest).filter(
+        MentorshipRequest.id == request_id,
+        MentorshipRequest.mentee_id == mentee.id,
+    ).first()
+    if not req:
+        raise HTTPException(status_code=404, detail="Request not found")
+    if req.status != "pending":
+        raise HTTPException(status_code=400, detail="Chỉ có thể hủy yêu cầu đang pending")
+    req.status = "cancelled"
+    db.commit()
+    return {"message": "Đã hủy yêu cầu thành công"}
+
+
+@router.post("/mentor/end-mentorship/{request_id}", summary="Mentor kết thúc kết nối với mentee")
+def end_mentorship(
+    request_id: int,
+    current_user: User = Depends(get_current_user_from_token),
+    db: Session = Depends(get_db),
+):
+    """Mentor kết thúc mentorship đang active."""
+    from .models import MentorProfile, MentorshipRequest
+    mentor = db.query(MentorProfile).filter(MentorProfile.user_id == current_user.id).first()
+    if not mentor:
+        raise HTTPException(status_code=404, detail="Mentor profile not found")
+    req = db.query(MentorshipRequest).filter(
+        MentorshipRequest.id == request_id,
+        MentorshipRequest.mentor_id == mentor.id,
+    ).first()
+    if not req:
+        raise HTTPException(status_code=404, detail="Request not found")
+    if req.status != "accepted":
+        raise HTTPException(status_code=400, detail="Chỉ có thể kết thúc kết nối đã được chấp nhận")
+    req.status = "cancelled"
+    # Giảm số mentee đang có
+    if mentor.current_mentees_count and mentor.current_mentees_count > 0:
+        mentor.current_mentees_count -= 1
+    db.commit()
+    return {"message": "Đã kết thúc kết nối thành công"}
+
+
 # ── Auto-populate from existing profile ─────────────────────────
 
 @router.post("/mentor/create-from-profile", summary="Tự động tạo Mentor Profile từ dữ liệu CV + assessment")

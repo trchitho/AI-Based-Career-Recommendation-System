@@ -231,10 +231,18 @@ const SkillGapResult: React.FC<SkillGapResultProps> = ({ analysis, onStartInterv
     }
   };
 
-  // Deduplicate matched_skills by name (keep first occurrence = highest importance)
-  const uniqueMatchedSkills = analysis.matched_skills.filter(
-    (skill, index, self) => index === self.findIndex(s => s.name.toLowerCase() === skill.name.toLowerCase())
-  );
+  // Deduplicate matched_skills by TRANSLATED name (avoid showing same skill in Viet + Eng)
+  const seenMatchedNames = new Map<string, typeof analysis.matched_skills[0]>();
+  (analysis.matched_skills || []).forEach(skill => {
+    const translated = catalogSkillName(skill.name);
+    const key = translated.toLowerCase().trim();
+    const existing = seenMatchedNames.get(key);
+    // Keep the one with higher importance
+    if (!existing || (skill as any).importance > (existing as any).importance) {
+      seenMatchedNames.set(key, skill);
+    }
+  });
+  const uniqueMatchedSkills = Array.from(seenMatchedNames.values());
   const criticalGaps = analysis.skill_gaps?.critical || [];
   const importantGaps = analysis.skill_gaps?.important || [];
   const niceToHaveGaps = analysis.skill_gaps?.nice_to_have || [];
@@ -339,8 +347,8 @@ const SkillGapResult: React.FC<SkillGapResultProps> = ({ analysis, onStartInterv
           <div className="skills-grid">
             {uniqueMatchedSkills.map((skill, index) => (
               <div key={index} className="skill-badge matched">
-                <span className="skill-name">{skill.name}</span>
-                <span className="skill-category">{skill.category}</span>
+                <span className="skill-name">{catalogSkillName(skill.name)}</span>
+                <span className="skill-category">{translateSkillCategory(skill.category)}</span>
               </div>
             ))}
           </div>
