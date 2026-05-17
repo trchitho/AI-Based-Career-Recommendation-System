@@ -16,6 +16,20 @@ const NO_SIDEBAR_PATHS = ['/', '/home', '/login', '/register', '/forgot-password
 // Pages that show sidebar but auto-collapse it
 const AUTO_COLLAPSE_PATHS = ['/careers', '/pricing', '/blog'];
 
+// Fullscreen pages — hide BOTH sidebar AND header for distraction-free experience.
+// Active interview screens (text/voice chat) need full canvas.
+const FULLSCREEN_PATHS = ['/interview/'];
+
+const isFullscreenPath = (pathname: string): boolean => {
+  // Match active interview rooms but NOT /interview (selection list) or /interview/history
+  if (pathname === '/interview' || pathname === '/interview/') return false;
+  if (pathname.startsWith('/interview/history')) return false;
+  if (pathname.startsWith('/interview/results')) return false;
+  if (pathname.startsWith('/interview/selection')) return false;
+  if (pathname.startsWith('/interview/device-test')) return false;
+  return FULLSCREEN_PATHS.some(p => pathname.startsWith(p));
+};
+
 const sidebarItems = [
   {
     label: 'Phân tích kỹ năng',
@@ -57,7 +71,8 @@ const MainLayout = ({ children }: MainLayoutProps) => {
 
   const location = useLocation();
   const { isLocked: analysisLocked } = useAnalysisLock();
-  const showSidebar = !!user && !analysisLocked && !NO_SIDEBAR_PATHS.some(p =>
+  const fullscreen = isFullscreenPath(location.pathname);
+  const showSidebar = !!user && !analysisLocked && !fullscreen && !NO_SIDEBAR_PATHS.some(p =>
     p === '/' ? location.pathname === '/' : location.pathname.startsWith(p)
   );
 
@@ -152,7 +167,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   const { scrollY, isScrolled, isScrollingUp, isScrollingDown } = useScrollBehavior(20);
 
   return (
-    <div className="min-h-screen w-full overflow-x-hidden flex font-['Inter'] text-gray-900 dark:text-white transition-colors duration-300" style={{ background: 'var(--neu-bg, #f0f2f5)' }}>
+    <div className={`w-full flex font-['Inter'] text-gray-900 dark:text-white transition-colors duration-300 ${fullscreen ? 'h-screen overflow-hidden' : 'min-h-screen overflow-x-hidden'}`} style={{ background: 'var(--neu-bg, #f0f2f5)' }}>
 
       {/* Scroll Progress Indicator */}
       <ScrollIndicator />
@@ -268,11 +283,11 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       )}
 
       {/* MAIN CONTENT AREA */}
-      <div className={`flex-1 min-w-0 flex flex-col ${showSidebar && !sidebarCollapsed ? 'md:ml-52' : showSidebar && sidebarCollapsed ? 'md:ml-16' : 'ml-0'
+      <div className={`flex-1 min-w-0 flex flex-col ${fullscreen ? 'h-screen overflow-hidden' : ''} ${showSidebar && !sidebarCollapsed ? 'md:ml-52' : showSidebar && sidebarCollapsed ? 'md:ml-16' : 'ml-0'
         }`}>
 
         {/* HEADER */}
-        {!analysisLocked && (
+        {!analysisLocked && !fullscreen && (
         <header className={`fixed top-0 left-0 right-0 z-50 transition-[background-color,box-shadow] duration-300 ease-in-out bg-[#ffffff] dark:bg-[rgba(15,23,42,0.9)] border-b border-[rgba(15,23,42,0.06)] dark:border-[rgba(255,255,255,0.08)] shadow-[0_8px_28px_rgba(15,23,42,0.04)] h-[72px] flex items-center`}>
           <div className="w-full px-6 md:px-10 lg:px-14">
             <div className="flex items-center justify-between h-full relative">
@@ -439,15 +454,15 @@ const MainLayout = ({ children }: MainLayoutProps) => {
         )}
 
         {/* Spacer for fixed header */}
-        {!analysisLocked && <div className="h-20"></div>}
+        {!analysisLocked && !fullscreen && <div className="h-20"></div>}
 
         {/* PAGE CONTENT */}
-        <main className="flex-1">
+        <main className={`flex-1 ${fullscreen ? 'overflow-hidden min-h-0' : ''}`}>
           {children}
         </main>
 
         {/* FOOTER */}
-        {!analysisLocked && <AppFooter />}
+        {!analysisLocked && !fullscreen && <AppFooter />}
       </div>
     </div>
   );

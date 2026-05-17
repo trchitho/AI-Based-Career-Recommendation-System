@@ -101,6 +101,28 @@ const RecordingTimer: React.FC<{ isRecording: boolean }> = ({ isRecording }) => 
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
+// SessionTimer — đếm tổng thời gian buổi phỏng vấn
+// ─────────────────────────────────────────────────────────────────────────────
+
+const SessionTimer: React.FC = () => {
+    const [seconds, setSeconds] = useState(0);
+    useEffect(() => {
+        const id = setInterval(() => setSeconds(s => s + 1), 1000);
+        return () => clearInterval(id);
+    }, []);
+    const fmt = (s: number) =>
+        `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
+    return (
+        <div className="flex items-center gap-2 glass bg-white/60 dark:bg-white/10 rounded-full px-4 py-2 border border-gray-200/50 dark:border-white/20 shadow-sm">
+            <span className="text-gray-500 dark:text-white/50 text-xs font-semibold uppercase tracking-wider">Thời gian:</span>
+            <span className="font-mono font-bold text-sm text-gray-900 dark:text-white" data-testid="session-timer">
+                {fmt(seconds)}
+            </span>
+        </div>
+    );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 // QuestionBubble — Tiêu chí 4.5 (typing animation) + 4.6 (word highlight)
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -1177,27 +1199,7 @@ const VoiceInterviewPage: React.FC = () => {
                             {currentQuestion?.type || '...'}
                         </span>
                     </div>
-                    <div className="flex items-center gap-1.5 glass bg-white/60 dark:bg-white/10 rounded-full px-3 py-2 border border-gray-200/50 dark:border-white/20 shadow-sm">
-                        <span className="text-gray-500 dark:text-white/50 text-xs font-semibold uppercase tracking-wider">Giọng:</span>
-                        <button
-                            onClick={() => handleVoicePreferenceChange('female')}
-                            type="button"
-                            className={`px-3 py-0.5 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer ${voicePreference === 'female'
-                                ? 'bg-pink-500 text-white shadow-md shadow-pink-500/30'
-                                : 'text-gray-600 dark:text-white/60 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-white/10'
-                                }`}
-                            data-testid="voice-female-btn"
-                        >Nữ</button>
-                        <button
-                            onClick={() => handleVoicePreferenceChange('male')}
-                            type="button"
-                            className={`px-3 py-0.5 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer ${voicePreference === 'male'
-                                ? 'bg-blue-500 text-white shadow-md shadow-blue-500/30'
-                                : 'text-gray-600 dark:text-white/60 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-white/10'
-                                }`}
-                            data-testid="voice-male-btn"
-                        >Nam</button>
-                    </div>
+                    <SessionTimer />
                 </div>
             </div>
 

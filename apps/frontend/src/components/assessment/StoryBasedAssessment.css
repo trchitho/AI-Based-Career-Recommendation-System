@@ -901,7 +901,8 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 150px;
+  /* Đủ rộng cho cả nút "Nộp Bài & Xem Kết Quả" (~250px) không bị clip */
+  width: 280px;
   z-index: 10;
   position: relative;
 }
@@ -922,6 +923,8 @@
   transition: all 0.3s ease;
   font-family: 'Poppins', sans-serif;
   white-space: nowrap;
+  /* Đảm bảo nút không bị clip nếu text dài hơn dự kiến */
+  max-width: 100%;
 }
 
 /* Dark mode for nav-btn */
@@ -1226,6 +1229,9 @@ html.dark .submit-nav-btn:hover {
   -ms-user-select: text !important;
   touch-action: auto !important;
   -webkit-touch-callout: default !important;
+  /* Ép text căn trái — parent .question-page có text-align:center sẽ inherit
+     vào textarea làm chữ user gõ bị căn giữa, mất tự nhiên. */
+  text-align: left !important;
 }
 
 .essay-textarea:focus {
@@ -1259,7 +1265,7 @@ html.dark .submit-nav-btn:hover {
   }
 
   .navigation {
-    width: 110px;
+    width: 220px;
   }
 
   .nav-btn {

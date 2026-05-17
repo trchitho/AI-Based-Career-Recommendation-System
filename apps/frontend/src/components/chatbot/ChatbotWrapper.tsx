@@ -21,6 +21,12 @@ export const ChatbotWrapper: React.FC = () => {
     return null;
   }
 
+  // Ẩn chatbot khi đang phỏng vấn AI (text/voice/CV-based) để tránh phân tâm
+  const isInInterview = location.pathname.includes('/interview');
+  if (isInInterview) {
+    return null;
+  }
+
   // Ẩn chatbot khi đang phân tích CV để tránh người dùng tương tác
   if (isLocked) {
     return null;

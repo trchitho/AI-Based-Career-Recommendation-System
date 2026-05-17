@@ -300,10 +300,10 @@ const HomePage = () => {
                                 <div className="hidden md:block absolute -bottom-4 right-4 bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-xl border border-gray-100 dark:border-gray-700">
                                     <div className="flex items-center gap-1.5 mb-1">
                                         <svg className="w-3.5 h-3.5 text-indigo-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
-                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Market Pulse</span>
+                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Xu hướng thị trường</span>
                                     </div>
                                     <div className="text-xl font-extrabold text-gray-900 dark:text-white">+12.4%</div>
-                                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">AI Ethics roles demand</div>
+                                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Nhu cầu vị trí AI Ethics</div>
                                 </div>
                             </div>
                         </div>

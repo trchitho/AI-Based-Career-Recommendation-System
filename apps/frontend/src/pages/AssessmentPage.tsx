@@ -276,8 +276,8 @@ const AssessmentPage = () => {
 
   const handleTestComplete = async (responses: QuestionResponse[]) => {
     try {
-      // Show processing immediately for better UX
-      setStep('processing');
+      // Don't show processing here — go directly to essay after submit.
+      // Processing screen should only appear AFTER the essay step.
       setLoading(true);
       setError(null);
 
@@ -304,7 +304,7 @@ const AssessmentPage = () => {
       localStorage.removeItem(SAVED_SESSION_KEY);
       localStorage.removeItem(`assessment_seed_${quizMode}`);
 
-      // Move to essay step after processing
+      // Move directly to essay step — skip the intermediate processing screen.
       setStep('essay');
     } catch (err: any) {
       console.error('Error submitting assessment:', err);

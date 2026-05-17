@@ -193,6 +193,8 @@ class SkillGraphAnalyzer:
                 {"name": "OAuth2", "category": "Security", "description_vn": "OAuth2 là chuẩn ủy quyền phổ biến để đăng nhập và cấp quyền an toàn qua các nhà cung cấp như Google, GitHub hoặc hệ thống SSO."},
                 {"name": "System Design", "category": "Architecture", "description_vn": "System Design là năng lực thiết kế kiến trúc hệ thống có khả năng mở rộng, chịu tải, chia module rõ ràng và kiểm soát rủi ro vận hành."},
                 {"name": "Observability", "category": "DevOps", "description_vn": "Observability gồm logging, metrics và tracing để theo dõi sức khỏe hệ thống, phát hiện lỗi và điều tra nguyên nhân khi production gặp sự cố."},
+                {"name": "API Documentation", "category": "Backend", "description_vn": "API Documentation mô tả endpoint, request, response và lỗi có thể xảy ra, giúp frontend/backend và bên thứ ba tích hợp chính xác hơn."},
+                {"name": "Accessibility", "category": "Frontend", "description_vn": "Accessibility giúp giao diện web dễ dùng với nhiều nhóm người dùng hơn thông qua semantic HTML, keyboard navigation, contrast và ARIA hợp lý."},
             ]
 
         # AI / Data careers

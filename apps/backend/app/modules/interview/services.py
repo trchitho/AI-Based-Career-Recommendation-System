@@ -409,7 +409,7 @@ Chỉ trả về câu hỏi, không cần giải thích thêm."""
         try:
             response_text = self.stream_manager.generate_content_with_retry(
                 prompt, 
-                max_output_tokens=150,  # Tăng lên để có câu hỏi dài hơn và chi tiết hơn
+                max_output_tokens=400,  # Tăng để câu hỏi đầy đủ, không bị cắt giữa chừng
                 temperature=0.5  # Tăng creativity
             )
             if response_text:
@@ -473,7 +473,7 @@ Chỉ trả về câu hỏi, không giải thích."""
         try:
             response_text = self.stream_manager.generate_content_with_retry(
                 prompt, 
-                max_output_tokens=150,
+                max_output_tokens=400,  # Tăng để câu hỏi JD đầy đủ, không bị cắt
                 temperature=0.4
             )
             if response_text:
