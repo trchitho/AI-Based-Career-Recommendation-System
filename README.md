@@ -1,62 +1,88 @@
-# AI-Based Career Recommendation System
+# CareerVerse - Career Development Ecosystem Powered by AI Agents
 
 Hệ thống gợi ý nghề nghiệp cá nhân hóa sử dụng trí tuệ nhân tạo, được xây dựng theo kiến trúc monorepo với Frontend (React/Vite), Backend (FastAPI) và AI-Core (PhoBERT, vi-SBERT, NeuMF).
+
+---
+
+## Thông tin nhóm
+
+| Mục | Thông tin |
+|---|---|
+| **Mã nhóm** | C2SE.17 |
+| **Tên đề tài** | CareerVerse - Career Development Ecosystem Powered by AI Agents |
+| **Mentor** | Nguyễn Hải Minh |
+
+**Thành viên:**
+
+| STT | Họ và tên |
+|---|---|
+| 1 | Phạm Tùng Dương |
+| 2 | Lê Thanh Thiện |
+| 3 | Nguyễn Công Thịnh |
+| 4 | Trần Chí Thọ |
+| 5 | Phạm Hoàng Thương |
 
 ---
 
 ## Mục lục
 
 1. [Giới thiệu](#giới-thiệu)
-2. [Các gói dịch vụ](#các-gói-dịch-vụ)
+2. [Tính năng chính](#tính-năng-chính)
 3. [Kiến trúc hệ thống](#kiến-trúc-hệ-thống)
-4. [Cấu trúc thư mục](#cấu-trúc-thư-mục)
-5. [Hướng dẫn cài đặt](#hướng-dẫn-cài-đặt)
-6. [Cấu hình môi trường](#cấu-hình-môi-trường)
-7. [Hướng dẫn test thanh toán](#hướng-dẫn-test-thanh-toán)
-8. [Công nghệ sử dụng](#công-nghệ-sử-dụng)
+4. [Công nghệ sử dụng](#công-nghệ-sử-dụng)
+5. [Cấu trúc thư mục](#cấu-trúc-thư-mục)
+6. [Các gói dịch vụ](#các-gói-dịch-vụ)
+7. [Hướng dẫn cài đặt](#hướng-dẫn-cài-đặt)
+8. [Cấu hình môi trường](#cấu-hình-môi-trường)
+9. [Hướng dẫn test thanh toán](#hướng-dẫn-test-thanh-toán)
 
 ---
 
 ## Giới thiệu
 
-Hệ thống phân tích đặc điểm tính cách người dùng thông qua các bài kiểm tra RIASEC, Big Five và phân tích văn bản (essay) để đưa ra gợi ý nghề nghiệp phù hợp. Các thuật toán AI được sử dụng bao gồm:
+CareerVerse phân tích đặc điểm tính cách người dùng thông qua các bài kiểm tra **RIASEC** và **Big Five**, kết hợp phân tích văn bản (essay) để đưa ra gợi ý nghề nghiệp phù hợp. Hệ thống sử dụng nhiều thuật toán AI kết hợp:
 
-- Phân tích văn bản với PhoBERT và vi-SBERT
-- Vector search với pgvector (768 chiều)
-- Xếp hạng nghề nghiệp với NeuMF/MLP
-- Tối ưu hóa gợi ý theo thời gian thực với Thompson Sampling
+- Phân tích văn bản với **PhoBERT** và **vi-SBERT** (768 chiều)
+- Vector similarity search với **pgvector**
+- Xếp hạng nghề nghiệp với **NeuMF/MLP** (Neural Matrix Factorization)
+- Tối ưu hóa gợi ý theo thời gian thực với **Thompson Sampling**
+- Trợ lý AI và phỏng vấn thử với **Gemini API**
 
 ---
 
-## Các gói dịch vụ
+## Tính năng chính
 
-Hệ thống cung cấp 4 gói dịch vụ với các tính năng khác nhau:
+### Gợi ý nghề nghiệp AI
+- Kết hợp 4 tín hiệu: Embedding similarity (20%) + RIASEC (45%) + Big Five (10%) + NeuMF (25%)
+- Thompson Sampling tự động học từ phản hồi người dùng
+- Cơ sở dữ liệu 900+ nghề nghiệp theo chuẩn O*NET
 
-**Free (Miễn phí)**
-- Giới hạn 5 bài kiểm tra mỗi tháng
-- Xem được 1 nghề nghiệp gợi ý
-- Lộ trình học tập cấp độ 1
-- Chatbot hỗ trợ cơ bản
+### Phỏng vấn thử (Mock Interview)
+- **Text Mode**: Câu hỏi phỏng vấn do Gemini AI tạo ra, phân tích câu trả lời đa chiều
+- **Voice Mode**: STT/TTS thời gian thực (Faster-Whisper + Edge TTS)
+- Chấm điểm: kỹ thuật, giao tiếp, logic, kinh nghiệm, thái độ
+- Phân tích chi tiết điểm mạnh, điểm yếu, gợi ý cải thiện
 
-**Basic (99.000đ)**
-- Giới hạn 20 bài kiểm tra mỗi tháng
-- Xem được 5 nghề nghiệp mỗi tháng
-- Lộ trình học tập cấp độ 1-2
-- Phân tích chi tiết RIASEC và Big Five
+### Phân tích Skill Gap
+- Upload CV (PDF, DOCX, JPG, PNG) và tự động trích xuất kỹ năng
+- So sánh với yêu cầu của nghề nghiệp mục tiêu
+- Phân loại khoảng cách kỹ năng: critical / important / nice-to-have
+- Gợi ý khóa học từ Coursera, Udemy, edX
 
-**Premium (199.000đ)**
-- Không giới hạn bài kiểm tra
-- Xem toàn bộ danh mục nghề nghiệp
-- Lộ trình học tập đầy đủ tất cả cấp độ
-- Báo cáo phân tích AI chi tiết
+### Lộ trình học tập cá nhân hóa
+- Tạo roadmap học tập dựa trên khoảng cách kỹ năng
+- Theo dõi tiến độ và nhắc nhở qua email
+- Tích hợp với catalog 1000+ khóa học
 
-**Pro (299.000đ)**
-- Bao gồm tất cả tính năng Premium
-- Trợ lý AI hỗ trợ 24/7 (tích hợp Gemini API)
-- Xuất báo cáo PDF chuyên sâu
-- So sánh lịch sử phát triển cá nhân
-- Nhập liệu bằng giọng nói và đọc văn bản
-- Tạo bài viết blog từ cuộc trò chuyện
+### Kết nối Mentor
+- Ghép cặp mentor-mentee dựa trên similarity ngữ nghĩa
+- Tương thích RIASEC giữa mentor và mentee
+- Chat thời gian thực (WebSocket)
+
+### Dữ liệu thị trường lao động
+- Crawl tự động từ VietnamWorks, ITViec, TopCV mỗi 6 giờ
+- Xu hướng nhu cầu tuyển dụng theo ngành nghề
+- Thống kê mức lương theo kinh nghiệm
 
 ---
 
@@ -64,20 +90,65 @@ Hệ thống cung cấp 4 gói dịch vụ với các tính năng khác nhau:
 
 ```
 Frontend (React + Vite)
-        |
-        | HTTP Request qua /bff/*
-        v
-Backend (FastAPI BFF + Modules)
-        |
-        | Internal API Call
-        v
-AI-Core Service (PhoBERT, vi-SBERT, NeuMF)
-        |
-        v
-PostgreSQL + pgvector
+        │
+        │ HTTP / WebSocket
+        ▼
+Backend (FastAPI - port 8000)
+        │
+        ├── PostgreSQL + pgvector   ← lưu trữ chính + vector search
+        ├── Neo4j                   ← đồ thị kỹ năng - nghề nghiệp
+        ├── Redis                   ← caching session
+        │
+        │ Internal HTTP Call
+        ▼
+AI-Core Service (FastAPI - port 9000)
+        │
+        ├── PhoBERT / vi-SBERT     ← NLP & embeddings
+        ├── NeuMF MLP              ← collaborative filtering
+        └── Thompson Sampling      ← bandit optimization
 ```
 
-Frontend giao tiếp với Backend thông qua các endpoint BFF (Backend For Frontend). Backend điều phối các request đến AI-Core service và database.
+---
+
+## Công nghệ sử dụng
+
+### Frontend
+- **React 18** + **TypeScript** — UI framework
+- **Vite** — build tool
+- **Tailwind CSS** — styling
+- **React Router** — routing
+- **React Query** — data fetching & caching
+- **Axios** — HTTP client
+
+### Backend
+- **FastAPI** — web framework
+- **SQLAlchemy** + **psycopg** — ORM & PostgreSQL driver
+- **Pydantic** — data validation
+- **APScheduler** — background job scheduling
+- **Redis** — caching
+- **JWT** — authentication
+
+### Database
+- **PostgreSQL 14+** với extension **pgvector** — lưu trữ vector 768 chiều
+- **Neo4j 5** — đồ thị quan hệ nghề nghiệp - kỹ năng
+- **Redis** — cache session & phiên làm việc
+
+### AI / Machine Learning
+- **PyTorch** — deep learning (NeuMF)
+- **HuggingFace Transformers** — PhoBERT, vi-SBERT
+- **FAISS** — vector similarity search
+- **scikit-learn** — classical ML algorithms
+- **Faster-Whisper** — Speech-to-Text thời gian thực
+- **Edge TTS** — Text-to-Speech tự nhiên
+
+### External APIs
+- **Google Gemini API** — AI chatbot, tạo câu hỏi phỏng vấn, phân tích câu trả lời
+- **Cloudflare R2** — lưu trữ file CV
+- **ZaloPay / VNPay** — cổng thanh toán
+
+### Infrastructure
+- **Docker** + **Docker Compose** — containerization
+- **Uvicorn** — ASGI server
 
 ---
 
@@ -86,60 +157,78 @@ Frontend giao tiếp với Backend thông qua các endpoint BFF (Backend For Fro
 ```
 AI-Based-Career-Recommendation-System/
 ├── apps/
-│   ├── backend/                    # FastAPI server
+│   ├── backend/                    # FastAPI server (port 8000)
 │   │   ├── app/
-│   │   │   ├── main.py            # Entry point
-│   │   │   ├── bff/               # Backend For Frontend endpoints
-│   │   │   ├── core/              # Config, database, authentication
-│   │   │   ├── modules/           # Các module nghiệp vụ
-│   │   │   │   ├── auth/          # Authentication & authorization
-│   │   │   │   ├── users/         # User management
-│   │   │   │   ├── assessments/   # Bài test tâm lý (RIASEC, Big Five)
-│   │   │   │   ├── payment/       # VNPay, ZaloPay integration
-│   │   │   │   ├── recommendation/# AI recommendation engine
-│   │   │   │   ├── chatbot/       # Gemini AI chatbot
-│   │   │   │   ├── careers/       # Career catalog management
-│   │   │   │   ├── content/       # Skills, roadmap content
-│   │   │   │   └── reports/       # PDF reports generation
-│   │   │   ├── services/          # External API clients
-│   │   │   └── tests/             # Unit tests
-│   │   ├── requirements.txt       # Python dependencies
-│   │   └── .env.example          # Environment variables template
+│   │   │   ├── main.py             # Entry point
+│   │   │   ├── bff/                # Backend For Frontend layer
+│   │   │   ├── core/               # Config, database, auth, cache
+│   │   │   ├── modules/            # Các module nghiệp vụ
+│   │   │   │   ├── auth/           # Đăng nhập, Google OAuth, JWT
+│   │   │   │   ├── users/          # Quản lý người dùng
+│   │   │   │   ├── assessments/    # Bài test RIASEC, Big Five
+│   │   │   │   ├── careers/        # Danh mục nghề nghiệp
+│   │   │   │   ├── recommendation/ # Engine gợi ý AI
+│   │   │   │   ├── skill_gap/      # Phân tích CV, khoảng cách kỹ năng
+│   │   │   │   ├── interview/      # Phỏng vấn thử AI
+│   │   │   │   ├── learning_path/  # Lộ trình học tập
+│   │   │   │   ├── mentor_matching/# Kết nối mentor
+│   │   │   │   ├── chatbot/        # Gemini AI chatbot
+│   │   │   │   ├── chat/           # Chat thời gian thực
+│   │   │   │   ├── courses/        # Catalog khóa học
+│   │   │   │   ├── jobs/           # Dữ liệu việc làm (crawl)
+│   │   │   │   ├── payment/        # ZaloPay, VNPay
+│   │   │   │   ├── subscription/   # Gói dịch vụ
+│   │   │   │   ├── reports/        # Báo cáo PDF
+│   │   │   │   ├── analytics/      # Tracking hành vi
+│   │   │   │   ├── content/        # Blog, bài viết
+│   │   │   │   └── trends/         # Xu hướng thị trường
+│   │   │   ├── api/                # Các router bổ sung
+│   │   │   ├── models/             # Database models
+│   │   │   └── services/           # External API clients
+│   │   └── requirements.txt
 │   │
-│   └── frontend/                  # React + Vite application
+│   └── frontend/                   # React + Vite (port 5173)
 │       ├── src/
-│       │   ├── components/        # Reusable UI components
-│       │   ├── pages/            # Route pages
-│       │   ├── services/         # API clients
-│       │   ├── contexts/         # React contexts
-│       │   ├── hooks/            # Custom React hooks
-│       │   └── utils/            # Utility functions
-│       ├── package.json          # Node.js dependencies
-│       └── .env.example         # Frontend environment variables
+│       │   ├── pages/              # 50+ trang của ứng dụng
+│       │   ├── components/         # Reusable UI components
+│       │   ├── services/           # API client functions
+│       │   ├── contexts/           # React context providers
+│       │   ├── hooks/              # Custom React hooks
+│       │   ├── types/              # TypeScript type definitions
+│       │   └── utils/              # Utility functions
+│       ├── public/                 # Static assets
+│       └── package.json
 │
 ├── packages/
-│   └── ai-core/                   # AI service (port 9000)
+│   └── ai-core/                    # AI/ML service (port 9000)
 │       ├── src/
 │       │   ├── ai_core/
-│       │   │   ├── nlp/          # PhoBERT, vi-SBERT processing
-│       │   │   ├── retrieval/    # pgvector similarity search
-│       │   │   └── recsys/       # NeuMF recommendation system
-│       │   └── api/              # FastAPI endpoints
-│       ├── models/               # Pre-trained AI models
-│       ├── data/                 # Training datasets & embeddings
-│       ├── tests/                # AI model tests
-│       └── requirements.txt      # AI dependencies
+│       │   │   ├── nlp/            # PhoBERT, vi-SBERT, essay analysis
+│       │   │   ├── retrieval/      # pgvector similarity search
+│       │   │   └── recsys/         # NeuMF, Thompson Sampling
+│       │   ├── api/                # FastAPI endpoints
+│       │   └── interview/          # STT, TTS, interview AI pipeline
+│       ├── models/                 # Pre-trained model weights
+│       └── requirements.txt
 │
-├── db/
-│   ├── init/                     # Database initialization scripts
-│   └── backup/                   # Database backup files
-│       └── dev_snapshot_utf8.sql # Full database dump
-│
-├── docker-compose.yml            # PostgreSQL + pgvector container
-├── README.md                     # Project documentation
-├── QUICK_START.md               # Quick setup guide
-└── CONTRIBUTING.md              # Development guidelines
+├── db/                             # Database init scripts
+├── docker-compose.yml              # PostgreSQL + Neo4j + Redis
+└── README.md
 ```
+
+---
+
+## Các gói dịch vụ
+
+| Tính năng | Free | Basic (99k) | Premium (199k) | Pro (299k) |
+|---|:---:|:---:|:---:|:---:|
+| Bài kiểm tra/tháng | 5 | 20 | Không giới hạn | Không giới hạn |
+| Nghề nghiệp gợi ý | 1 | 5/tháng | Toàn bộ | Toàn bộ |
+| Lộ trình học tập | Cấp 1 | Cấp 1-2 | Đầy đủ | Đầy đủ |
+| Chatbot AI (Gemini) | — | — | — | 24/7 |
+| Phỏng vấn bằng giọng nói | — | — | — | ✓ |
+| Xuất báo cáo PDF | — | — | — | ✓ |
+| Phân tích RIASEC + Big Five | — | ✓ | ✓ | ✓ |
 
 ---
 
@@ -147,159 +236,130 @@ AI-Based-Career-Recommendation-System/
 
 ### Yêu cầu hệ thống
 
-Trước khi chạy dự án, đảm bảo máy tính đã cài đặt các phần mềm sau:
+| Phần mềm | Phiên bản | Kiểm tra |
+|---|---|---|
+| **Docker Desktop** | Mới nhất | `docker --version` |
+| **Python** | 3.11+ | `python --version` |
+| **Node.js** | 18+ | `node --version` |
 
-#### **Docker Desktop** (Bắt buộc)
-- **Windows:** [Download Docker Desktop for Windows](https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe)
-- **macOS:** [Download Docker Desktop for Mac](https://desktop.docker.com/mac/main/amd64/Docker.dmg)
-- **Linux:** [Install Docker Engine](https://docs.docker.com/engine/install/)
-- **Kiểm tra:** `docker --version` và `docker compose --version`
-
-#### **Python 3.11+** (Bắt buộc)
-- **Windows:** [Download Python](https://www.python.org/downloads/windows/)
-- **macOS:** `brew install python@3.11` hoặc [Download Python](https://www.python.org/downloads/macos/)
-- **Linux:** `sudo apt install python3.11 python3.11-venv python3-pip`
-- **Kiểm tra:** `python --version` (phải ≥ 3.11)
-
-#### **Node.js 18+** (Bắt buộc)
-- **Tất cả OS:** [Download Node.js LTS](https://nodejs.org/en/download/)
-- **Hoặc dùng nvm:** `nvm install 18 && nvm use 18`
-- **Kiểm tra:** `node --version` và `npm --version`
-
-#### **Git** (Khuyến nghị)
-- **Windows:** [Download Git for Windows](https://git-scm.com/download/win)
-- **macOS:** `brew install git` hoặc Xcode Command Line Tools
-- **Linux:** `sudo apt install git`
-- **Kiểm tra:** `git --version`
-
-#### **Dung lượng ổ cứng**
-- **Tối thiểu:** 5GB trống
-- **Khuyến nghị:** 10GB+ (bao gồm Docker images, AI models, dependencies)
-
-#### **RAM**
-- **Tối thiểu:** 8GB RAM
-- **Khuyến nghị:** 16GB+ (AI models cần nhiều memory)
-
-#### **Kiểm tra nhanh**
-```bash
-# Chạy lệnh này để kiểm tra tất cả requirements
-docker --version
-python --version
-node --version
-git --version
-```
+- RAM tối thiểu: **8GB** (khuyến nghị 16GB+)
+- Dung lượng trống: **10GB+**
 
 ---
 
-### B1: Khởi tạo Database
-
-**Terminal : Database**
+### Bước 1 — Khởi động Database
 
 ```bash
 cd AI-Based-Career-Recommendation-System
 
-# Dừng và xóa các containers cũ, nhưng GIỮ nguyên volumes để không mất dữ liệu
-docker compose down
-
-# CẢNH BÁO: Lệnh dưới đây sẽ xóa toàn bộ Docker volumes và làm mất dữ liệu
-# PostgreSQL / Redis / Neo4j. Chỉ chạy khi bạn muốn reset dữ liệu từ đầu.
-# docker compose down -v
-
-# Khởi động lại tất cả 3 services: PostgreSQL, Redis, Neo4j
+# Khởi động PostgreSQL, Neo4j, Redis
 docker compose --env-file apps/backend/.env up -d
 
-# Kiểm tra trạng thái các containers
+# Kiểm tra trạng thái (chờ ~30 giây)
 docker compose ps
-
-# Đợi các services khởi động hoàn tất (khoảng 10-15 giây)
-echo "Waiting for services to be ready..."
-sleep 15
 ```
 
-**Import Database:**
+**Import dữ liệu vào PostgreSQL:**
 
 ```bash
-# 1) Đá hết connection đang giữ DB
+# Xóa DB cũ và tạo mới
 docker compose exec -T postgres psql -U postgres -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='career_ai';"
-
-# 2) Xoá DB cũ và tạo mới
 docker compose exec -T postgres psql -U postgres -d postgres -c "DROP DATABASE IF EXISTS career_ai;"
 docker compose exec -T postgres psql -U postgres -d postgres -c "CREATE DATABASE career_ai;"
 
-# 3) Copy file dump vào container
+# Copy file dump vào container và import
 docker compose cp db/backup/dev_snapshot_utf8.sql postgres:/tmp/dev_snapshot_utf8.sql
-
-# 4) Import vào DB
 docker compose exec -T postgres psql -U postgres -d career_ai -v ON_ERROR_STOP=1 -f /tmp/dev_snapshot_utf8.sql
 
-# 5) Kiểm tra kết nối Redis
+# Kiểm tra kết nối
 docker compose exec redis redis-cli ping
-
-# 6) Kiểm tra kết nối Neo4j
 curl http://localhost:7474
 ```
 
-### B2: Cài đặt thư viện và chạy dự án
+---
 
-Cần mở 3 terminal để chạy đồng thời 3 service.
+### Bước 2 — Chạy AI-Core Service (port 9000)
 
-**Terminal 1: AI-Core Service (port 9000)**
+Mở **Terminal 1**:
 
 ```bash
 cd packages/ai-core
-pip install sqlalchemy
-pip install -r requirements.txt
+
 python -m venv .venv
-. .venv/Scripts/activate
-pip install uvicorn
+.venv\Scripts\activate          # Windows
+# source .venv/bin/activate     # Linux/Mac
+
+pip install -r requirements.txt
 pip install -e .
+
 uvicorn src.api.main:app --reload --port 9000
 ```
 
-**Terminal 2: Backend (port 8000)**
+---
+
+### Bước 3 — Chạy Backend (port 8000)
+
+Mở **Terminal 2**:
 
 ```bash
 cd apps/backend
-python -m venv .venv ; .\.venv\Scripts\activate
+
+python -m venv .venv
+.venv\Scripts\activate          # Windows
+# source .venv/bin/activate     # Linux/Mac
+
 pip install -r requirements.txt
 pip install -e ../../packages/ai-core
-uvicorn app.main:app --reload --port 8000
 pip install sentence-transformers>=2.7.0 neo4j>=5.0.0
 pip install beautifulsoup4 lxml fake-useragent
+pip install PyPDF2==3.0.1 edge-tts
+
+uvicorn app.main:app --reload --port 8000
 ```
-pip install PyPDF2==3.0.1
-**Terminal 3: Frontend (port 3000)**
+
+---
+
+### Bước 4 — Chạy Frontend (port 5173)
+
+Mở **Terminal 3**:
 
 ```bash
 cd apps/frontend
+
 npm install
 npm run dev
-npm install page-flip
-npm install react-pageflip
-cd "d:\test_capston\Capstone\AI-Based-Career-Recommendation-System\apps\backend" && pip install edge-tts 2>&1 | tail -5
-pip install edge-tts 
 ```
 
-Sau khi chạy xong, truy cập http://localhost:3000 để sử dụng ứng dụng.
+---
+
+### Truy cập hệ thống
+
+| Dịch vụ | URL |
+|---|---|
+| Ứng dụng chính | http://localhost:5173 |
+| Backend API docs | http://localhost:8000/docs |
+| AI-Core API docs | http://localhost:9000/docs |
+| Neo4j Browser | http://localhost:7474 |
+| PostgreSQL | localhost:5433 |
 
 ---
 
 ## Cấu hình môi trường
 
-Tạo file .env trong thư mục apps/backend với nội dung sau:
+Tạo file `.env` trong thư mục `apps/backend/`:
 
-```
+```env
 DATABASE_URL=postgresql://postgres:123456@localhost:5433/career_ai
 AI_CORE_BASE=http://localhost:9000
-ALLOWED_ORIGINS=http://localhost:3000
+ALLOWED_ORIGINS=http://localhost:5173
 SECRET_KEY=your_secret_key
 
-VNPAY_TMN_CODE=CGXZLS0Z
-VNPAY_HASH_SECRET=XNBCJFAKAZQSGTARRLGCHVZWCIOIGSHN
+VNPAY_TMN_CODE=your_vnpay_tmn_code
+VNPAY_HASH_SECRET=your_vnpay_hash_secret
 
-ZALOPAY_APP_ID=2553
-ZALOPAY_KEY1=PcY4iZIKFCIdgZvA6ueMcMHHUbRLYjPL
-ZALOPAY_KEY2=kLtgPl8HHhfvMuDHPwKfgfsY4Ydm9eIz
+ZALOPAY_APP_ID=your_zalopay_app_id
+ZALOPAY_KEY1=your_zalopay_key1
+ZALOPAY_KEY2=your_zalopay_key2
 
 GEMINI_API_KEY=your_gemini_api_key
 ```
@@ -308,58 +368,29 @@ GEMINI_API_KEY=your_gemini_api_key
 
 ## Hướng dẫn test thanh toán
 
-Hệ thống tích hợp 2 cổng thanh toán VNPay và ZaloPay ở chế độ sandbox để test.
+Hệ thống tích hợp VNPay và ZaloPay ở chế độ **sandbox** để test.
 
-**VNPay Sandbox**
+### VNPay Sandbox (thẻ ATM nội địa NCB)
 
-VNPay sandbox chỉ hỗ trợ thẻ ATM nội địa ngân hàng NCB:
-- Ngân hàng: NCB
-- Số thẻ: 9704198526191432198
-- Tên chủ thẻ: NGUYEN VAN A
-- Ngày phát hành: 07/15
-- Mã OTP: 123456
+| Thông tin | Giá trị |
+|---|---|
+| Ngân hàng | NCB |
+| Số thẻ | 9704198526191432198 |
+| Tên chủ thẻ | NGUYEN VAN A |
+| Ngày phát hành | 07/15 |
+| Mã OTP | 123456 |
 
-Lưu ý: Thẻ quốc tế (Visa/Mastercard) và các ngân hàng khác không hoạt động trên môi trường sandbox. Khi triển khai production sẽ hỗ trợ đầy đủ tất cả phương thức thanh toán.
+### ZaloPay Sandbox (thẻ Visa quốc tế)
 
-**ZaloPay Sandbox**
-
-ZaloPay sandbox hỗ trợ thanh toán qua QR code bằng app ZaloPay hoặc thẻ quốc tế:
-- Loại thẻ: Visa
-- Số thẻ: 4111111111111111
-- Tên chủ thẻ: NGUYEN VAN A
-- Ngày hết hạn: 06/26
-- Mã CVV: 123
-
----
-
-## Công nghệ sử dụng
-
-**Frontend**
-- React 18
-- Vite
-- Tailwind CSS
-- React Router
-- Axios
-
-**Backend**
-- FastAPI
-- SQLAlchemy
-- PostgreSQL
-- pgvector
-- JWT Authentication
-
-**AI-Core**
-- PhoBERT
-- vi-SBERT
-- NeuMF
-- FAISS
-
-**Thanh toán**
-- VNPay
-- ZaloPay
+| Thông tin | Giá trị |
+|---|---|
+| Số thẻ | 4111111111111111 |
+| Tên chủ thẻ | NGUYEN VAN A |
+| Ngày hết hạn | 06/26 |
+| Mã CVV | 123 |
 
 ---
 
 ## Liên hệ
 
-Mọi thắc mắc về dự án vui lòng liên hệ qua email: tranchitho160704@gmail.com.
+Mọi thắc mắc vui lòng liên hệ qua email: tranchitho160704@gmail.com
