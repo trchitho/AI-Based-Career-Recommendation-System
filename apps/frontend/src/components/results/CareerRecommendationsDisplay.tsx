@@ -9,7 +9,6 @@ import { useFeatureAccess } from "../../hooks/useFeatureAccess";
 import { useUsageTracking } from "../../hooks/useUsageTracking";
 import { trackCareerEvent, getDwellMs, clearDwellStart } from "../../services/trackService";
 import { useAuth } from "../../contexts/AuthContext";
-import { goalsService } from "../../services/goalsService";
 
 interface CareerRecommendationsDisplayProps {
   items: CareerRecommendationDTO[];
@@ -28,49 +27,6 @@ const CareerRecommendationsDisplay = ({
   const { hasFeature, getPlanInfo, currentPlan } = useFeatureAccess();
   useUsageTracking();
   const { user } = useAuth();
-  const [savingGoal, setSavingGoal] = useState<string | null>(null);
-  const [savedGoals, setSavedGoals] = useState<Set<string>>(new Set());
-  const [showAIPrompt, setShowAIPrompt] = useState<{ goalId: number; careerName: string } | null>(null);
-
-  // Check if user has Pro plan for goal setting
-  const canSetGoals = currentPlan === 'pro';
-
-  const handleSaveAsGoal = async (careerId: string, careerName: string) => {
-    if (!canSetGoals) {
-      navigate('/pricing', {
-        state: {
-          feature: 'career_goals',
-          message: 'Upgrade to Pro Plan to use Career Goal Management feature.',
-          requiredPlan: 'pro'
-        }
-      });
-      return;
-    }
-
-    try {
-      setSavingGoal(careerId);
-      const result = await goalsService.saveCareerAsGoal(careerId, careerName);
-      setSavedGoals(prev => new Set(prev).add(careerId));
-      // Show AI prompt modal
-      setShowAIPrompt({ goalId: result.goal_id, careerName });
-    } catch (err) {
-      console.error('Failed to save career as goal:', err);
-    } finally {
-      setSavingGoal(null);
-    }
-  };
-
-  const handleAIGenerate = () => {
-    if (showAIPrompt) {
-      navigate('/career-goals', {
-        state: {
-          openAIModal: true,
-          goalId: showAIPrompt.goalId
-        }
-      });
-    }
-    setShowAIPrompt(null);
-  };
 
   // Backend đã đảm bảo số lượng & thứ tự, không slice ở FE nữa
   const displayedItems = items;
@@ -185,18 +141,6 @@ const CareerRecommendationsDisplay = ({
         <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
           Nghề Nghiệp Phù Hợp Nhất Của Bạn
         </h3>
-        {/* Xem Mục Tiêu Nghề Nghiệp button - Pro feature */}
-        {canSetGoals && (
-          <button
-            onClick={() => navigate('/career-goals')}
-            className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium rounded-lg transition-colors flex items-center gap-2 text-sm"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-            </svg>
-            Xem Mục Tiêu Nghề Nghiệp
-          </button>
-        )}
       </div>
       <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
         Dựa trên kết quả đánh giá của bạn, đây là các nghề nghiệp phù hợp với
@@ -228,14 +172,16 @@ const CareerRecommendationsDisplay = ({
               typeof career.display_match === "number" &&
               !Number.isNaN(career.display_match);
 
-            const raw = Math.round(career.match_score * 100);
+            const raw = parseFloat((career.match_score * 100).toFixed(1));
             const percent = hasDisplayMatch
-              ? Math.round(career.display_match as number)
+              ? parseFloat((career.display_match as number).toFixed(1))
               : Math.max(60, raw);
 
             // Ưu tiên VN, thiếu thì fallback EN
             const title =
               career.title_vi ||
+              career.title_vn ||
+              (career as any).title ||
               career.title_en ||
               career.career_id ||
               "Nghề nghiệp chưa xác định";
@@ -368,107 +314,10 @@ const CareerRecommendationsDisplay = ({
                       }
                     })() : 'Xem Chi Tiết Nghề Nghiệp'}
                   </button>
-
-                  {/* Save as Goal button - Pro feature */}
-                  {!isLocked && (
-                    <button
-                      onClick={() => handleSaveAsGoal(career.slug || career.career_id, title)}
-                      disabled={savingGoal === career.career_id || savedGoals.has(career.career_id)}
-                      className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${savedGoals.has(career.career_id)
-                        ? 'bg-indigo-50 text-indigo-900 dark:bg-indigo-950/30 dark:text-indigo-400'
-                        : canSetGoals
-                          ? 'bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:hover:bg-purple-900/50'
-                          : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
-                        }`}
-                      title={canSetGoals ? 'Lưu làm mục tiêu nghề nghiệp' : 'Tính năng Pro - Nâng cấp để sử dụng'}
-                    >
-                      {savingGoal === career.career_id ? (
-                        <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                      ) : savedGoals.has(career.career_id) ? (
-                        <>
-                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                          Đã Lưu
-                        </>
-                      ) : (
-                        <>
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                          </svg>
-                          {canSetGoals ? 'Lưu' : ' Pro'}
-                        </>
-                      )}
-                    </button>
-                  )}
                 </div>
-
-                {/* Link to Career Goals page for saved goals */}
-                {savedGoals.has(career.career_id) && (
-                  <button
-                    onClick={() => navigate('/career-goals')}
-                    className="w-full mt-2 px-4 py-2 text-sm text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-colors"
-                  >
-                    → Quản Lý Mục Tiêu Nghề Nghiệp
-                  </button>
-                )}
               </div>
             );
           })}
-        </div>
-      )}
-
-      {/* AI Generate Prompt Modal */}
-      {showAIPrompt && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md p-6 animate-fade-in">
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                Đã lưu mục tiêu thành công!
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                Bạn có muốn AI tạo lộ trình cho "{showAIPrompt.careerName}"?
-              </p>
-            </div>
-
-            <div className="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-4 mb-6">
-              <p className="text-sm text-purple-700 dark:text-purple-300">
-                <span className="font-semibold"> AI sẽ:</span>
-                <br />• Phân tích dữ liệu nghề nghiệp và lộ trình
-                <br />• Tạo các bước hành động chi tiết
-                <br />• Ước tính thời gian cho từng bước
-              </p>
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                onClick={() => {
-                  setShowAIPrompt(null);
-                  navigate('/career-goals');
-                }}
-                className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700"
-              >
-                Để Sau
-              </button>
-              <button
-                onClick={handleAIGenerate}
-                className="flex-1 px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold rounded-xl flex items-center justify-center gap-2"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-                Tạo Lộ Trình AI
-              </button>
-            </div>
-          </div>
         </div>
       )}
     </div>

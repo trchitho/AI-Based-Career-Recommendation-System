@@ -101,6 +101,28 @@ const RecordingTimer: React.FC<{ isRecording: boolean }> = ({ isRecording }) => 
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
+// SessionTimer — đếm tổng thời gian buổi phỏng vấn
+// ─────────────────────────────────────────────────────────────────────────────
+
+const SessionTimer: React.FC = () => {
+    const [seconds, setSeconds] = useState(0);
+    useEffect(() => {
+        const id = setInterval(() => setSeconds(s => s + 1), 1000);
+        return () => clearInterval(id);
+    }, []);
+    const fmt = (s: number) =>
+        `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
+    return (
+        <div className="flex items-center gap-2 glass bg-white/60 dark:bg-white/10 rounded-full px-4 py-2 border border-gray-200/50 dark:border-white/20 shadow-sm">
+            <span className="text-gray-500 dark:text-white/50 text-xs font-semibold uppercase tracking-wider">Thời gian:</span>
+            <span className="font-mono font-bold text-sm text-gray-900 dark:text-white" data-testid="session-timer">
+                {fmt(seconds)}
+            </span>
+        </div>
+    );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 // QuestionBubble — Tiêu chí 4.5 (typing animation) + 4.6 (word highlight)
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -683,11 +705,15 @@ const VoiceInterviewPage: React.FC = () => {
                     console.log(`[DG-WS] ${isFinal ? 'FINAL' : 'INTERIM'} transcript:`, text.slice(0, 50));
                     
                     if (isFinal) {
-                        // Final: update confirmed text, clear interim
-                        setLiveTranscript(accumulated);
-                        liveTranscriptRef.current = accumulated;
+                        // Accumulate on client side (not server accumulated)
+                        // so user's manual clear is respected
+                        const newAccum = liveTranscriptRef.current
+                            ? (liveTranscriptRef.current + ' ' + text).trim()
+                            : text.trim();
+                        setLiveTranscript(newAccum);
+                        liveTranscriptRef.current = newAccum;
                         setInterimTranscript('');
-                        console.log('[DG-WS] ✓ Final transcript saved:', accumulated.slice(0, 80));
+                        console.log('[DG-WS] ✓ Final transcript saved:', newAccum.slice(0, 80));
                     } else {
                         // Interim: only update preview
                         setInterimTranscript(text);
@@ -705,31 +731,22 @@ const VoiceInterviewPage: React.FC = () => {
 
         dgWs.onerror = (err) => {
             console.error('[DG-WS] WebSocket error:', err);
-            setErrorMessage('Lỗi kết nối Deepgram. Đang chuyển sang phương thức dự phòng...');
-            if (!dgReady) { 
-                console.warn('[DG-WS] fail → HTTP fallback'); 
-                startHttpSTT(stream); 
+            if (!dgReady) {
+                console.warn('[DG-WS] fail → HTTP fallback');
+                startHttpSTT(stream);
             }
         };
-        
-        dgWs.onclose = (ev) => { 
-            dgReady = false; 
+
+        dgWs.onclose = (ev) => {
+            dgReady = false;
             console.log('[DG-WS] Connection closed:', ev.code, ev.reason);
-            
-            // Only show error if NOT user-initiated close or timeout
-            // 1000 = normal, 1001 = going away, 1005 = no status, 1011 = Deepgram timeout
+
             if (ev.code !== 1000 && ev.code !== 1001 && ev.code !== 1005 && ev.code !== 1011) {
-                // Abnormal closure (1006 = connection lost)
                 if (ev.code === 1006) {
-                    console.error('[DG-WS] Connection lost (1006) - Deepgram may have timed out');
-                    setErrorMessage('Kết nối Deepgram bị mất. Đang chuyển sang phương thức dự phòng...');
-                    // Auto fallback to HTTP STT
+                    console.error('[DG-WS] Connection lost (1006) - switching to HTTP fallback');
                     if (isRecordingRef.current) {
-                        console.log('[DG-WS] Auto-switching to HTTP STT fallback');
                         startHttpSTT(stream);
                     }
-                } else {
-                    setErrorMessage(`Kết nối Deepgram bị đóng (code ${ev.code}). Vui lòng thử lại.`);
                 }
             } else if (ev.code === 1011) {
                 // Deepgram timeout - normal when user stops speaking
@@ -766,6 +783,8 @@ const VoiceInterviewPage: React.FC = () => {
                 const data = await res.json();
                 const text = (data.text || '').trim();
                 if (text && isRecordingRef.current) {
+                    // Sync with liveTranscriptRef so manual clear is respected
+                    sttAccumText = liveTranscriptRef.current;
                     // Deduplicate: skip if new text is substring of last chunk
                     const lastChunk = sttAccumText.split(' ').slice(-8).join(' ').toLowerCase();
                     if (!lastChunk || !text.toLowerCase().startsWith(lastChunk)) {
@@ -971,6 +990,11 @@ const VoiceInterviewPage: React.FC = () => {
                 setSttRetryCount(0);
                 setShowTextFallback(false);
 
+                // Clear transcript for next question
+                setLiveTranscript('');
+                setInterimTranscript('');
+                liveTranscriptRef.current = '';
+
                 // Always use fetchAndPlayTTS for consistent voice and fresh audio
                 await fetchAndPlayTTS(nextQ);
             } else if (result.ai_response?.status === 'completed') {
@@ -1031,6 +1055,7 @@ const VoiceInterviewPage: React.FC = () => {
 
                 // Clear transcript trước khi AI đọc câu hỏi mới
                 setLiveTranscript('');
+                setInterimTranscript('');
                 liveTranscriptRef.current = '';
 
                 // Always use fetchAndPlayTTS for consistent voice and fresh audio
@@ -1174,27 +1199,7 @@ const VoiceInterviewPage: React.FC = () => {
                             {currentQuestion?.type || '...'}
                         </span>
                     </div>
-                    <div className="flex items-center gap-1.5 glass bg-white/60 dark:bg-white/10 rounded-full px-3 py-2 border border-gray-200/50 dark:border-white/20 shadow-sm">
-                        <span className="text-gray-500 dark:text-white/50 text-xs font-semibold uppercase tracking-wider">Giọng:</span>
-                        <button
-                            onClick={() => handleVoicePreferenceChange('female')}
-                            type="button"
-                            className={`px-3 py-0.5 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer ${voicePreference === 'female'
-                                ? 'bg-pink-500 text-white shadow-md shadow-pink-500/30'
-                                : 'text-gray-600 dark:text-white/60 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-white/10'
-                                }`}
-                            data-testid="voice-female-btn"
-                        >Nữ</button>
-                        <button
-                            onClick={() => handleVoicePreferenceChange('male')}
-                            type="button"
-                            className={`px-3 py-0.5 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer ${voicePreference === 'male'
-                                ? 'bg-blue-500 text-white shadow-md shadow-blue-500/30'
-                                : 'text-gray-600 dark:text-white/60 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-white/10'
-                                }`}
-                            data-testid="voice-male-btn"
-                        >Nam</button>
-                    </div>
+                    <SessionTimer />
                 </div>
             </div>
 

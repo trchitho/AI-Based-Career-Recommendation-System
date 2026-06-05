@@ -94,6 +94,19 @@ def _default_item_feats_path() -> Path:
     return _project_root() / "data" / "processed" / "item_feats.json"
 
 
+def _get_ranker_singleton():
+    """Return the shared Ranker instance from service module, or None if not initialized.
+
+    Used by scheduler to invalidate cached features after rebuild.
+    Avoids circular imports by importing lazily.
+    """
+    try:
+        from ai_core.recsys.service import _rk
+        return _rk
+    except Exception:
+        return None
+
+
 # ================== Core Ranker API ==================
 
 

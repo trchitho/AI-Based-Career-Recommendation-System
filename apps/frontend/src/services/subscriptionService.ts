@@ -54,7 +54,9 @@ export const getMyPlan = async (): Promise<MyPlanResponse> => {
  */
 export const checkAssessmentLimit = async (): Promise<CheckResponse> => {
     const token = getAccessToken();
-    const response = await axios.get(`${API_BASE}/api/subscription/check/assessment`, {
+    const response = await axios.post(`${API_BASE}/api/subscription/check-access`, {
+        feature_type: 'assessment',
+    }, {
         headers: { Authorization: `Bearer ${token}` },
     });
     return response.data;

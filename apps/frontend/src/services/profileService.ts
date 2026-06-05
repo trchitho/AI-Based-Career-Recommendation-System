@@ -18,6 +18,7 @@ export const profileService = {
         email: backendProfile.email || '',
         first_name: backendProfile.full_name?.split(' ')[0] || '',
         last_name: backendProfile.full_name?.split(' ').slice(1).join(' ') || '',
+        date_of_birth: backendProfile.date_of_birth || undefined,
         created_at: backendProfile.created_at || new Date().toISOString(),
         updated_at: backendProfile.created_at || new Date().toISOString(),
       };

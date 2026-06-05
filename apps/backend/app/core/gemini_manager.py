@@ -4,13 +4,22 @@ Centralized Gemini API Manager with 3 separate streams
 import logging
 import os
 import time
+import warnings
 from collections import deque
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
+# ── Suppress google-generativeai deprecation warning ──────────────
+# The package raises FutureWarning at import time. We suppress it here
+# because this module is the first to import google.generativeai.
+warnings.simplefilter("ignore", FutureWarning)
+
 import google.generativeai as genai
 from google.api_core.exceptions import DeadlineExceeded, ResourceExhausted
+
+# Restore default warning behavior after import
+warnings.simplefilter("default", FutureWarning)
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +71,7 @@ class GeminiStream(Enum):
     ASSESSMENT = "assessment" 
     CV_ANALYSIS = "cv_analysis"
     INTERVIEW = "interview"
+    LEARNING_PATH = "learning_path"
 
 
 class GeminiStreamManager:
@@ -69,7 +79,9 @@ class GeminiStreamManager:
     
     def __init__(self, stream_type: GeminiStream):
         self.stream_type = stream_type
-        self.api_key = self._get_api_key()
+        self.api_keys = self._collect_api_keys()
+        self.api_key = self.api_keys[0] if self.api_keys else ''
+        self._active_key_index = 0
         self.model_name = self._get_model_name()
         self.max_retries = int(os.getenv('GEMINI_MAX_RETRIES', '1'))
         self.retry_delay = int(os.getenv('GEMINI_RETRY_DELAY', '5'))
@@ -101,8 +113,46 @@ class GeminiStreamManager:
         self.active_model_name = None
         self._initialized = False
         
-        print(f"[pkg] {self.stream_type.value.title()} stream configured (lazy init)")
+        key_count = len(self.api_keys)
+        print(f"[pkg] {self.stream_type.value.title()} stream configured (lazy init, {key_count} key(s))")
     
+    def _collect_api_keys(self) -> List[str]:
+        """Collect all candidate API keys for this stream, in priority order.
+
+        Supports a key pool via GEMINI_API_KEYS (comma-separated) plus per-stream + global keys.
+        Duplicates removed; empty values dropped.
+        """
+        per_stream_key_var = {
+            GeminiStream.CHATBOT: 'GEMINI_CHATBOT_API_KEY',
+            GeminiStream.ASSESSMENT: 'GEMINI_ASSESSMENT_API_KEY',
+            GeminiStream.CV_ANALYSIS: 'GEMINI_CV_API_KEY',
+            GeminiStream.INTERVIEW: 'GEMINI_INTERVIEW_API_KEY',
+            GeminiStream.LEARNING_PATH: 'GEMINI_LEARNING_PATH_API_KEY',
+        }.get(self.stream_type, 'GEMINI_API_KEY')
+
+        ordered = []
+        seen = set()
+
+        def _add(value: Optional[str]):
+            if not value:
+                return
+            for raw in str(value).split(','):
+                k = raw.strip()
+                if k and k not in seen:
+                    seen.add(k)
+                    ordered.append(k)
+
+        # Priority 1: per-stream key (single value or comma-separated list)
+        _add(os.getenv(per_stream_key_var))
+        # Priority 2: shared key pool — useful for rotating across all streams
+        _add(os.getenv('GEMINI_API_KEYS'))
+        # Priority 3: legacy fallbacks
+        _add(os.getenv('GEMINI_API_KEY'))
+        _add(os.getenv('GOOGLE_API_KEY'))
+        _add(os.getenv('GEMINI_COURSE_API_KEY'))
+
+        return ordered
+
     def _ensure_initialized(self):
         """Ensure model is initialized (lazy initialization)"""
         if self._initialized:
@@ -131,7 +181,7 @@ class GeminiStreamManager:
                     generation_config=genai.types.GenerationConfig(
                         max_output_tokens=5,
                         temperature=0.1,
-                    )
+                    ),
                 )
                 
                 # If successful, use this model
@@ -181,6 +231,8 @@ class GeminiStreamManager:
             return os.getenv('GEMINI_CV_API_KEY', os.getenv('GEMINI_API_KEY', ''))
         elif self.stream_type == GeminiStream.INTERVIEW:
             return os.getenv('GEMINI_INTERVIEW_API_KEY', os.getenv('GEMINI_API_KEY', ''))
+        elif self.stream_type == GeminiStream.LEARNING_PATH:
+            return os.getenv('GEMINI_LEARNING_PATH_API_KEY', os.getenv('GEMINI_API_KEY', ''))
         return os.getenv('GEMINI_API_KEY', '')
     
     def _get_model_name(self) -> str:
@@ -193,6 +245,8 @@ class GeminiStreamManager:
             return os.getenv('GEMINI_CV_MODEL', os.getenv('GEMINI_MODEL', 'gemini-flash-latest'))
         elif self.stream_type == GeminiStream.INTERVIEW:
             return os.getenv('GEMINI_INTERVIEW_MODEL', os.getenv('GEMINI_MODEL', 'gemini-flash-latest'))
+        elif self.stream_type == GeminiStream.LEARNING_PATH:
+            return os.getenv('GEMINI_LEARNING_PATH_MODEL', os.getenv('GEMINI_MODEL', 'gemini-flash-latest'))
         return os.getenv('GEMINI_MODEL', 'gemini-flash-latest')
     
     def is_available(self) -> bool:
@@ -250,18 +304,59 @@ class GeminiStreamManager:
                         config_params['max_output_tokens'] = value  # Convert to correct name
                     elif key == 'max_output_tokens':
                         config_params['max_output_tokens'] = value
+                    elif key == 'timeout_seconds':
+                        # Đây là kwarg cho retry logic, không phải genai config
+                        continue
                     else:
                         config_params[key] = value
                 
-                # Generate content
-                if config_params:
-                    response = self.model.generate_content(
-                        prompt,
-                        generation_config=genai.types.GenerationConfig(**config_params)
-                    )
+                # Per-call timeout (default 60s; configurable via GEMINI_REQUEST_TIMEOUT env)
+                # Use ThreadPoolExecutor for timeout — request_options kwarg breaks older SDK versions.
+                # Override với kwarg `timeout_seconds` nếu caller truyền vào (cho long-running calls như learning_path)
+                timeout_override = kwargs.get('timeout_seconds')
+                if timeout_override is not None:
+                    try:
+                        timeout_s = int(timeout_override)
+                    except (TypeError, ValueError):
+                        timeout_s = int(os.getenv('GEMINI_REQUEST_TIMEOUT', '60'))
                 else:
-                    response = self.model.generate_content(prompt)
-                
+                    timeout_s = int(os.getenv('GEMINI_REQUEST_TIMEOUT', '60'))
+
+                def _do_generate():
+                    if config_params:
+                        return self.model.generate_content(
+                            prompt,
+                            generation_config=genai.types.GenerationConfig(**config_params),
+                        )
+                    return self.model.generate_content(prompt)
+
+                import concurrent.futures
+                _generate_timed_out = False
+                with concurrent.futures.ThreadPoolExecutor(max_workers=1) as _exe:
+                    _future = _exe.submit(_do_generate)
+                    try:
+                        response = _future.result(timeout=timeout_s)
+                    except concurrent.futures.TimeoutError:
+                        _generate_timed_out = True
+                        # Cancel the future (best-effort; the underlying call may continue
+                        # in background but we won't wait for it).
+                        _future.cancel()
+
+                if _generate_timed_out:
+                    detail = f"Gemini call exceeded {timeout_s}s timeout"
+                    print(f"  ⏱️ {self.stream_type.value.title()} timeout: {detail}")
+                    gemini_error_tracker.record(
+                        stream=self.stream_type.value,
+                        error_type="LocalTimeout",
+                        status_code=504,
+                        detail=detail,
+                    )
+                    if attempt < self.max_retries:
+                        print(f"  ⏰ Retrying after {self.retry_delay}s...")
+                        time.sleep(self.retry_delay)
+                        continue
+                    return None
+
                 return response.text.strip()
                 
             except DeadlineExceeded as e:
@@ -289,20 +384,24 @@ class GeminiStreamManager:
                     detail=str(e)[:300],
                 )
 
-                # FAST FAIL mode: Try fallback model if available
+                # FAST FAIL mode: Try fallback model + key rotation
                 if self.fast_fail:
-                    print("  [fast] FAST FAIL mode - trying fallback model...")
+                    print("  [fast] FAST FAIL mode - trying fallback model/key...")
 
-                    # Try to switch to next available model (different API key might have quota)
+                    # _try_fallback_model now also rotates API key when models exhaust
                     if self._try_fallback_model():
                         print(f"  [ok] Switched to fallback model: {self.active_model_name}")
-                        # Retry with new model
+                        # Retry with new model/key
                         continue
                     else:
-                        print("  [err] No fallback models available - immediate fallback")
+                        print("  [err] No fallback models or keys available - immediate fallback")
                         return None
 
-                # Normal mode: retry once
+                # Normal mode: try key rotation first (cheap), then retry once with delay
+                if self._rotate_api_key():
+                    print(f"  [key] Retrying with rotated API key (#{self._active_key_index + 1})")
+                    continue
+
                 if attempt < self.max_retries:
                     delay = self.retry_delay
                     print(f"  ⏰ Waiting {delay} seconds before retry...")
@@ -376,15 +475,50 @@ class GeminiStreamManager:
         except Exception as e:
             print(f"[stream-err] {self.stream_type.value}: {e}")
 
+    def _rotate_api_key(self) -> bool:
+        """Switch to next available API key in the pool. Reconfigure genai with new key.
+
+        Returns True if a new key was activated, False if the pool is exhausted.
+        """
+        if len(self.api_keys) <= 1:
+            return False
+
+        next_index = self._active_key_index + 1
+        if next_index >= len(self.api_keys):
+            # Pool exhausted for this request cycle. Caller decides what to do.
+            return False
+
+        self._active_key_index = next_index
+        self.api_key = self.api_keys[next_index]
+        try:
+            genai.configure(api_key=self.api_key)
+            print(f"  [key] {self.stream_type.value.title()} rotated to API key #{next_index + 1}/{len(self.api_keys)}")
+            return True
+        except Exception as e:
+            print(f"  [warn] Failed to configure new API key: {e}")
+            return False
+
+    def _reset_api_key(self):
+        """Reset to the primary API key (index 0). Called when starting a fresh request cycle."""
+        if not self.api_keys:
+            return
+        self._active_key_index = 0
+        self.api_key = self.api_keys[0]
+        try:
+            genai.configure(api_key=self.api_key)
+        except Exception:
+            pass
+
     def _try_fallback_model(self) -> bool:
-        """Try to switch to a fallback model"""
+        """Try to switch to a fallback model. If all models fail and we have multiple
+        API keys, also try rotating to the next key."""
         current_index = -1
 
         # Normalize helper: strip 'models/' or 'model/' prefix for comparison
         def _clean(name: str) -> str:
             return name.replace('models/', '').replace('model/', '').strip()
 
-        active_clean = _clean(self.active_model_name)
+        active_clean = _clean(self.active_model_name) if self.active_model_name else ''
 
         # Find current model index — compare normalized names
         for i, model_name in enumerate(self.fallback_models):
@@ -400,6 +534,7 @@ class GeminiStreamManager:
             # 2. active model is last in list → also try ALL (wrap around)
             candidates = self.fallback_models
 
+        # Phase 1: try other models on the CURRENT key
         for model_name in candidates:
             try:
                 print(f"  [reload] Trying fallback model: {model_name}")
@@ -413,7 +548,7 @@ class GeminiStreamManager:
                     generation_config=genai.types.GenerationConfig(
                         max_output_tokens=5,
                         temperature=0.1,
-                    )
+                    ),
                 )
 
                 self.model = model
@@ -424,6 +559,22 @@ class GeminiStreamManager:
             except Exception as e:
                 print(f"  [warn] Fallback model {model_name} also failed: {e}")
                 continue
+
+        # Phase 2: rotate API key and retry primary model on the new key
+        if self._rotate_api_key():
+            try:
+                primary_clean = _clean(self.fallback_models[0])
+                model = genai.GenerativeModel(primary_clean)
+                model.generate_content(
+                    "Test",
+                    generation_config=genai.types.GenerationConfig(max_output_tokens=5, temperature=0.1),
+                )
+                self.model = model
+                self.active_model_name = primary_clean
+                print(f"  [ok] Switched to new key + model: {primary_clean}")
+                return True
+            except Exception as e:
+                print(f"  [warn] New key also failing on primary model: {e}")
 
         return False
 
@@ -436,12 +587,14 @@ class MultiStreamGeminiManager:
         self.assessment_stream = GeminiStreamManager(GeminiStream.ASSESSMENT)
         self.cv_stream = GeminiStreamManager(GeminiStream.CV_ANALYSIS)
         self.interview_stream = GeminiStreamManager(GeminiStream.INTERVIEW)
+        self.learning_path_stream = GeminiStreamManager(GeminiStream.LEARNING_PATH)
         
         print("[start] Multi-stream Gemini Manager initialized (lazy mode)")
         print("   Chatbot: [pkg] Ready (will init on first use)")
         print("   Assessment: [pkg] Ready (will init on first use)")
         print("   CV Analysis: [pkg] Ready (will init on first use)")
         print("   Interview: [pkg] Ready (will init on first use)")
+        print("   Learning Path: [pkg] Ready (will init on first use)")
     
     def get_stream(self, stream_type: GeminiStream) -> GeminiStreamManager:
         """Get specific stream manager"""
@@ -453,6 +606,8 @@ class MultiStreamGeminiManager:
             return self.cv_stream
         elif stream_type == GeminiStream.INTERVIEW:
             return self.interview_stream
+        elif stream_type == GeminiStream.LEARNING_PATH:
+            return self.learning_path_stream
         else:
             raise ValueError(f"Unknown stream type: {stream_type}")
     
@@ -472,6 +627,10 @@ class MultiStreamGeminiManager:
         """Get interview stream"""
         return self.interview_stream
     
+    def get_learning_path_stream(self) -> GeminiStreamManager:
+        """Get learning path stream"""
+        return self.learning_path_stream
+    
     def reinitialize_all(self) -> None:
         """Force reinitialize all Gemini streams (public API)."""
         for stream in (
@@ -479,6 +638,7 @@ class MultiStreamGeminiManager:
             self.assessment_stream,
             self.cv_stream,
             self.interview_stream,
+            self.learning_path_stream,
         ):
             stream._initialize_with_fallback()
 
@@ -504,7 +664,12 @@ class MultiStreamGeminiManager:
                 'available': self.interview_stream.is_available(),
                 'model': self.interview_stream.active_model_name,
                 'api_key_prefix': self.interview_stream.api_key[:20] + '...' if self.interview_stream.api_key else None
-            }
+            },
+            'learning_path': {
+                'available': self.learning_path_stream.is_available(),
+                'model': self.learning_path_stream.active_model_name,
+                'api_key_prefix': self.learning_path_stream.api_key[:20] + '...' if self.learning_path_stream.api_key else None
+            },
         }
 
 

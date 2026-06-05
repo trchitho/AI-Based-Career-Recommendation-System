@@ -1,10 +1,22 @@
 # apps/backend/app/services/ai_client.py
+"""
+Client gọi AI-core service.
+
+Sử dụng `app.core.ai_core_config` để có URL + timeout đồng nhất với các module
+khác (recommendation, assessments, nlp).
+"""
+
+from __future__ import annotations
 
 from typing import Optional
 
 import httpx
-from app.core.config import settings
-from fastapi import requests
+import requests
+from app.core.ai_core_config import (
+    AI_CORE_BASE_URL,
+    httpx_timeout,
+    requests_timeout,
+)
 from pydantic import BaseModel
 
 
@@ -16,7 +28,7 @@ class InferTraitsPayload(BaseModel):
 
 
 class AIClient:
-    BASE = settings.AI_SERVICE_URL or "http://localhost:9000"
+    BASE = AI_CORE_BASE_URL
 
     @staticmethod
     async def infer_user_traits(payload: InferTraitsPayload) -> dict:
@@ -36,7 +48,7 @@ class AIClient:
                 "reason": "Bài luận quá ngắn để phân tích.",
             }
         body = {"essay_text": essay_text, "lang": payload.lang or "vi"}
-        async with httpx.AsyncClient(timeout=60.0) as client:
+        async with httpx.AsyncClient(timeout=httpx_timeout()) as client:
             resp = await client.post(url, json=body)
             resp.raise_for_status()
             return resp.json()
@@ -44,6 +56,10 @@ class AIClient:
     @staticmethod
     def recommend_top_careers_sync(user_id: int, top_k: int = 20) -> dict:
         url = f"{AIClient.BASE}/recs/top_careers"
-        resp = requests.post(url, json={"user_id": user_id, "top_k": top_k}, timeout=30)
+        resp = requests.post(
+            url,
+            json={"user_id": user_id, "top_k": top_k},
+            timeout=requests_timeout(),
+        )
         resp.raise_for_status()
         return resp.json()

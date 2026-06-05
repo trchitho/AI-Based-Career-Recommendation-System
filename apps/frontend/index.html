@@ -6,7 +6,7 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="shortcut icon" href="/favicon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Career Development Ecosystem Powered by AI Agents</title>
+  <title>CareerVerse - AI Career Development</title>
 
   <!-- Preconnect to Google Fonts for faster loading -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -23,6 +23,19 @@
 
 <body>
   <div id="root"></div>
+  <script>
+    // Rewrite URL cũ /learning_path/* sang /learning-path/* TRƯỚC khi React boot.
+    // Chạy ở inline script để đảm bảo CHẮC CHẮN execute, không phụ thuộc Vite HMR cache.
+    (function () {
+      try {
+        var p = window.location.pathname;
+        if (p.indexOf('/learning_path') === 0) {
+          var newPath = p.replace(/^\/learning_path/, '/learning-path');
+          window.history.replaceState(null, '', newPath + window.location.search + window.location.hash);
+        }
+      } catch (e) { /* noop */ }
+    })();
+  </script>
   <script type="module" src="/src/main.tsx"></script>
 </body>
 

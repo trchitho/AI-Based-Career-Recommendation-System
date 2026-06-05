@@ -74,7 +74,8 @@ const courseService = {
     (payload.owned_skills ?? []).forEach((s) => params.append("owned_skills", s));
     if (payload.career_name) params.set("career_name", payload.career_name);
     const res = await api.get(`/api/courses/recommend/skill-gap?${params.toString()}`, {
-      timeout: 60000,
+      // Course discovery can be cold when AI/search cache is empty; keep the UI graceful above this limit.
+      timeout: 120000,
     });
     return res.data;
   },

@@ -14,7 +14,9 @@ const API_BASE_URL = import.meta.env.DEV
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  // Default 60s — AI endpoints (recommendations, skill-gap, interview) can take 10-90s.
+  // Per-request override available via { timeout: N } in axios call.
+  timeout: 60000,
   headers: {
     'Content-Type': 'application/json',
   },

@@ -24,70 +24,33 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
   const [selectedSessions, setSelectedSessions] = useState<string[]>([]);
   const [expandedSession, setExpandedSession] = useState<string | null>(null);
 
-  // Group assessments by session/time (within 5 minutes = same session)
+  // Backend đã tách từng session riêng biệt — map trực tiếp, không grouping theo thời gian
   const groupedSessions = useMemo(() => {
-    console.log(' [AssessmentHistory] Raw assessmentHistory:', assessmentHistory);
-    console.log(' [AssessmentHistory] First item test_mode:', assessmentHistory[0]?.test_mode);
-    const sessions: GroupedSession[] = [];
     const sortedHistory = [...assessmentHistory].sort(
       (a, b) => new Date(b.completed_at).getTime() - new Date(a.completed_at).getTime()
     );
 
-    for (const assessment of sortedHistory) {
-      console.log(' [AssessmentHistory] Processing assessment:', {
-        id: assessment.id,
-        test_mode: assessment.test_mode,
-        test_types: assessment.test_types,
-        full_object: assessment
-      });
-      const assessmentTime = new Date(assessment.completed_at).getTime();
+    const sessions: GroupedSession[] = sortedHistory.map(assessment => {
       const testTypes = assessment.test_types || [];
-      const isRiasec = testTypes.some(t => t.toLowerCase().includes('riasec'));
-      const isBigFive = testTypes.some(t => t.toLowerCase().includes('bigfive') || t.toLowerCase().includes('big_five'));
-
-      // Find existing session within 5 minutes
-      let existingSession = sessions.find(s => {
-        const sessionTime = new Date(s.created_at).getTime();
-        return Math.abs(sessionTime - assessmentTime) < 5 * 60 * 1000; // 5 minutes
-      });
-
-      if (existingSession) {
-        // Add to existing session
-        if (isRiasec && !existingSession.riasec_assessment) {
-          existingSession.riasec_assessment = assessment;
-          existingSession.riasec_scores = assessment.riasec_scores;
-        }
-        if (isBigFive && !existingSession.bigfive_assessment) {
-          existingSession.bigfive_assessment = assessment;
-          existingSession.big_five_scores = assessment.big_five_scores;
-        }
-        // If assessment has both types, add both scores
-        if (assessment.riasec_scores && !existingSession.riasec_scores) {
-          existingSession.riasec_scores = assessment.riasec_scores;
-        }
-        if (assessment.big_five_scores && !existingSession.big_five_scores) {
-          existingSession.big_five_scores = assessment.big_five_scores;
-        }
-      } else {
-        // Create new session
-        const newSession: GroupedSession = {
-          session_id: assessment.id,
-          created_at: assessment.completed_at,
-        };
-        // Always try to get scores from assessment regardless of test_types
-        if (isRiasec || assessment.riasec_scores) {
-          newSession.riasec_assessment = assessment;
-          newSession.riasec_scores = assessment.riasec_scores;
-        }
-        if (isBigFive || assessment.big_five_scores) {
-          newSession.bigfive_assessment = assessment;
-          newSession.big_five_scores = assessment.big_five_scores;
-        }
-        sessions.push(newSession);
+      const isRiasec  = testTypes.some(t => t.toLowerCase().includes('riasec'));
+      const isBigFive = testTypes.some(t =>
+        t.toLowerCase().includes('bigfive') || t.toLowerCase().includes('big_five')
+      );
+      const session: GroupedSession = {
+        session_id: assessment.id,
+        created_at: assessment.completed_at,
+      };
+      if (isRiasec || assessment.riasec_scores) {
+        session.riasec_assessment = assessment;
+        session.riasec_scores     = assessment.riasec_scores;
       }
-    }
+      if (isBigFive || assessment.big_five_scores) {
+        session.bigfive_assessment = assessment;
+        session.big_five_scores    = assessment.big_five_scores;
+      }
+      return session;
+    });
 
-    console.log(' [AssessmentHistory] Grouped sessions:', sessions);
     return sessions;
   }, [assessmentHistory]);
 
@@ -267,13 +230,25 @@ const AssessmentHistorySection = ({ assessmentHistory }: AssessmentHistorySectio
                           if (testMode === 'story') {
                             return (
                               <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 text-xs font-semibold rounded-full">
-                                 Chế Độ Câu Chuyện
+                                🎭 Câu Chuyện
+                              </span>
+                            );
+                          } else if (testMode === 'game_puzzle') {
+                            return (
+                              <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs font-semibold rounded-full">
+                                🧩 Xếp Hình
+                              </span>
+                            );
+                          } else if (testMode === 'game_garden') {
+                            return (
+                              <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-semibold rounded-full">
+                                🌳 Vườn Tính Cách
                               </span>
                             );
                           } else if (testMode === 'traditional') {
                             return (
-                              <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs font-semibold rounded-full">
-                                 Truyền Thống
+                              <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-semibold rounded-full">
+                                📝 Truyền Thống
                               </span>
                             );
                           }

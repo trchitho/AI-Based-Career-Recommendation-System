@@ -415,38 +415,39 @@ const InterviewSelectionPage: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                         {/* Hướng 1: Job-based */}
                         <motion.button
-                            whileHover={{ y: -2, scale: 1.01 }}
+                            whileHover={{ y: -2 }}
                             whileTap={{ scale: 0.98 }}
                             type="button"
                             onClick={() => setInterviewDirection('job')}
                             className={`text-left p-5 rounded-2xl border-2 transition-all ${interviewDirection === 'job'
-                                ? 'border-indigo-500 bg-indigo-50/70 dark:bg-indigo-900/20 shadow-lg shadow-indigo-100 dark:shadow-indigo-900/20 ring-1 ring-indigo-400/30'
-                                : 'border-gray-200 dark:border-gray-700/60 bg-white/50 dark:bg-gray-800/40 hover:border-indigo-300 dark:hover:border-indigo-600 hover:bg-indigo-50/30'
+                                ? 'border-indigo-500 bg-indigo-50 shadow-md'
+                                : 'border-gray-200 bg-white hover:border-indigo-300 hover:bg-indigo-50/40'
                                 }`}
                         >
                             <div className="flex items-start gap-3">
                                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${interviewDirection === 'job' ? 'bg-indigo-600' : 'bg-gray-100'}`}>
                                     <Briefcase className={`h-5 w-5 ${interviewDirection === 'job' ? 'text-white' : 'text-gray-500'}`} />
                                 </div>
-                                <div>
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <span className={`text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${interviewDirection === 'job' ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-500'}`}>Hướng 1</span>
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 mb-1.5">
+                                        <span className={`text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${interviewDirection === 'job' ? 'bg-indigo-200 text-indigo-800' : 'bg-gray-100 text-gray-500'}`}>Hướng 1</span>
                                     </div>
-                                    <p className={`font-bold text-sm ${interviewDirection === 'job' ? 'text-indigo-900' : 'text-gray-800'}`}>Phỏng vấn theo Nghề nghiệp</p>
-                                    <p className="text-xs text-gray-500 mt-1">Câu hỏi tiêu chuẩn theo ngành nghề. AI kiểm tra kiến thức nền tảng và quy trình làm việc.</p>
+                                    <p className={`font-bold text-sm mb-1 ${interviewDirection === 'job' ? 'text-indigo-900' : 'text-gray-800'}`}>Phỏng vấn theo Nghề nghiệp</p>
+                                    <p className={`text-xs leading-relaxed ${interviewDirection === 'job' ? 'text-indigo-700' : 'text-gray-500'}`}>Câu hỏi tiêu chuẩn theo ngành nghề. AI kiểm tra kiến thức nền tảng và quy trình làm việc.</p>
                                 </div>
                             </div>
                         </motion.button>
 
                         {/* Hướng 2: CV-based */}
                         <motion.button
-                            whileHover={hasCvData ? { y: -2, scale: 1.01 } : {}}
+                            whileHover={{ y: -2, scale: hasCvData ? 1.01 : 1 }}
                             whileTap={hasCvData ? { scale: 0.98 } : {}}
                             type="button"
-                            onClick={() => hasCvData ? setInterviewDirection('cv') : undefined}
-                            className={`text-left p-5 rounded-2xl border-2 transition-all relative ${!hasCvData ? 'opacity-60 cursor-not-allowed border-gray-200 dark:border-gray-700/60 bg-gray-50/50 dark:bg-gray-800/30'
-                                : interviewDirection === 'cv' ? 'border-cyan-500 bg-cyan-50/70 dark:bg-cyan-900/20 shadow-lg shadow-cyan-100 dark:shadow-cyan-900/20 ring-1 ring-cyan-400/30'
-                                    : 'border-gray-200 dark:border-gray-700/60 bg-white/50 dark:bg-gray-800/40 hover:border-cyan-300 dark:hover:border-cyan-600 hover:bg-cyan-50/30 cursor-pointer'
+                            onClick={() => hasCvData ? setInterviewDirection('cv') : navigate('/skill-gap')}
+                            title={hasCvData ? 'Phỏng vấn từ CV cá nhân của bạn' : 'Bạn chưa có phân tích CV — bấm để upload CV'}
+                            className={`text-left p-5 rounded-2xl border-2 transition-all relative cursor-pointer ${!hasCvData ? 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 hover:border-cyan-300 dark:hover:border-cyan-500 hover:bg-cyan-50/40 dark:hover:bg-cyan-900/10'
+                                : interviewDirection === 'cv' ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-900/30 shadow-lg ring-1 ring-cyan-400/30'
+                                    : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 hover:border-cyan-300 dark:hover:border-cyan-500 hover:bg-cyan-50/30'
                                 }`}
                         >
                             <div className="flex items-start gap-3">
@@ -520,7 +521,7 @@ const InterviewSelectionPage: React.FC = () => {
                             </div>
 
                             {/* Level Selection - Enhanced with Strong Contrast */}
-                            <div className="rounded-[24px] border-[3px] border-indigo-400/70 dark:border-indigo-500/60 shadow-[0_20px_60px_rgba(99,102,241,0.25)] dark:shadow-[0_20px_60px_rgba(99,102,241,0.4)] p-8 bg-white dark:bg-gray-800 relative overflow-hidden">
+                            <div className="rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-8 bg-white dark:bg-gray-800 relative overflow-hidden">
                                 {/* Decorative glow - more subtle */}
                                 <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-400/8 dark:bg-indigo-500/15 rounded-full blur-3xl -z-10" />
                                 <div className="absolute bottom-0 left-0 w-40 h-40 bg-purple-400/8 dark:bg-purple-500/15 rounded-full blur-3xl -z-10" />
@@ -833,7 +834,8 @@ const InterviewSelectionPage: React.FC = () => {
                                     </button>
                                 </div>
 
-                                {/* Gender selector */}
+                                {/* Gender selector — only shown for VOICE interview (text mode doesn't display avatar) */}
+                                {interviewMode === 'voice' && (
                                 <div className="mt-5">
                                     <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">Chọn hình ảnh người phỏng vấn</h4>
                                     <div className="grid grid-cols-2 gap-3">
@@ -856,6 +858,7 @@ const InterviewSelectionPage: React.FC = () => {
                                         ))}
                                     </div>
                                 </div>
+                                )}
                             </div>
 
                             {/* Start Button */}
@@ -918,23 +921,40 @@ const InterviewSelectionPage: React.FC = () => {
                         <div className="space-y-6">
                             {/* Job Skills Preview */}
                             {jobInfo.soft_skills.length > 0 && (
-                                <div className="glass rounded-[24px] border border-white/40 dark:border-gray-700/50 shadow-xl p-6">
-                                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Kỹ năng mềm</h3>
-                                    <div className="space-y-3">
-                                        {jobInfo.soft_skills.slice(0, 5).map((skill, index) => (
-                                            <div key={index} className="flex items-center justify-between p-3 rounded-xl bg-white/50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700/50">
-                                                <span className="font-semibold text-sm text-gray-800 dark:text-gray-200 truncate pr-2">
+                                <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+                                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Kỹ năng mềm</h3>
+                                    <div className="space-y-2.5">
+                                        {jobInfo.soft_skills.slice(0, 10).map((skill, index) => (
+                                            <div key={index} className="group relative flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-gray-700/40 border border-gray-100 dark:border-gray-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:border-indigo-200 dark:hover:border-indigo-700 transition-colors cursor-default">
+                                                <span className="font-medium text-sm text-gray-800 dark:text-gray-200 truncate pr-2" title={skill.skill_name}>
                                                     {skill.skill_name}
                                                 </span>
-                                                <span className="flex items-center gap-1 text-xs font-bold px-2 py-1 bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300 rounded-lg">
+                                                <span className="flex-shrink-0 flex items-center gap-1 text-xs font-bold px-2 py-1 bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300 rounded-lg">
                                                     <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full" />
                                                     {skill.importance.toFixed(1)}/5
                                                 </span>
+                                                {/* Tooltip on hover - hiện sang bên phải màn hình */}
+                                                <div className="hidden group-hover:block fixed right-6 top-1/2 -translate-y-1/2 w-72 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl pointer-events-none z-50 overflow-hidden">
+                                                    <div className="bg-indigo-50 dark:bg-indigo-900/30 px-3.5 py-2.5 border-b border-indigo-100 dark:border-indigo-800/50">
+                                                        <p className="font-bold text-sm text-indigo-900 dark:text-indigo-100">{skill.skill_name}</p>
+                                                        <p className="text-[11px] text-indigo-600 dark:text-indigo-400 mt-0.5 font-medium">Kỹ năng mềm</p>
+                                                    </div>
+                                                    <div className="px-3.5 py-2.5 space-y-2">
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Mức độ quan trọng</span>
+                                                            <span className="text-xs font-bold text-indigo-700 dark:text-indigo-300">{skill.importance.toFixed(1)}/5</span>
+                                                        </div>
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Cấp độ yêu cầu</span>
+                                                            <span className="text-xs font-bold text-indigo-700 dark:text-indigo-300">{skill.level}/7</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
                                         ))}
-                                        {jobInfo.soft_skills.length > 5 && (
-                                            <p className="text-xs text-center text-gray-500 dark:text-gray-400 font-medium pt-2 border-t border-gray-100 dark:border-gray-700/50">
-                                                +{jobInfo.soft_skills.length - 5} kỹ năng khác
+                                        {jobInfo.soft_skills.length > 10 && (
+                                            <p className="text-xs text-center text-gray-500 dark:text-gray-400 font-medium pt-2 border-t border-gray-100 dark:border-gray-700">
+                                                +{jobInfo.soft_skills.length - 10} kỹ năng khác
                                             </p>
                                         )}
                                     </div>
@@ -942,23 +962,40 @@ const InterviewSelectionPage: React.FC = () => {
                             )}
 
                             {jobInfo.hard_skills.length > 0 && (
-                                <div className="glass rounded-[24px] border border-white/40 dark:border-gray-700/50 shadow-xl p-6">
-                                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Kỹ năng chuyên môn</h3>
-                                    <div className="space-y-3">
-                                        {jobInfo.hard_skills.slice(0, 5).map((skill, index) => (
-                                            <div key={index} className="flex items-center justify-between p-3 rounded-xl bg-white/50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700/50">
-                                                <span className="font-semibold text-sm text-gray-800 dark:text-gray-200 truncate pr-2">
+                                <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-6">
+                                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Kỹ năng chuyên môn</h3>
+                                    <div className="space-y-2.5">
+                                        {jobInfo.hard_skills.slice(0, 10).map((skill, index) => (
+                                            <div key={index} className="group relative flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-gray-700/40 border border-gray-100 dark:border-gray-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:border-emerald-200 dark:hover:border-emerald-700 transition-colors cursor-default">
+                                                <span className="font-medium text-sm text-gray-800 dark:text-gray-200 truncate pr-2" title={skill.skill_name}>
                                                     {skill.skill_name}
                                                 </span>
-                                                <span className="flex items-center gap-1 text-xs font-bold px-2 py-1 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 rounded-lg">
+                                                <span className="flex-shrink-0 flex items-center gap-1 text-xs font-bold px-2 py-1 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 rounded-lg">
                                                     <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
                                                     {skill.importance.toFixed(1)}/5
                                                 </span>
+                                                {/* Tooltip on hover - hiện sang bên phải màn hình */}
+                                                <div className="hidden group-hover:block fixed right-6 top-1/2 -translate-y-1/2 w-72 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl pointer-events-none z-50 overflow-hidden">
+                                                    <div className="bg-emerald-50 dark:bg-emerald-900/30 px-3.5 py-2.5 border-b border-emerald-100 dark:border-emerald-800/50">
+                                                        <p className="font-bold text-sm text-emerald-900 dark:text-emerald-100">{skill.skill_name}</p>
+                                                        <p className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-0.5 font-medium">Kỹ năng chuyên môn</p>
+                                                    </div>
+                                                    <div className="px-3.5 py-2.5 space-y-2">
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Mức độ quan trọng</span>
+                                                            <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300">{skill.importance.toFixed(1)}/5</span>
+                                                        </div>
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Cấp độ yêu cầu</span>
+                                                            <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300">{skill.level}/7</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
                                         ))}
-                                        {jobInfo.hard_skills_total > 5 && (
-                                            <p className="text-xs text-center text-gray-500 dark:text-gray-400 font-medium pt-2 border-t border-gray-100 dark:border-gray-700/50">
-                                                +{jobInfo.hard_skills_total - 5} kỹ năng khác
+                                        {jobInfo.hard_skills_total > 10 && (
+                                            <p className="text-xs text-center text-gray-500 dark:text-gray-400 font-medium pt-2 border-t border-gray-100 dark:border-gray-700">
+                                                +{jobInfo.hard_skills_total - 10} kỹ năng khác
                                             </p>
                                         )}
                                     </div>

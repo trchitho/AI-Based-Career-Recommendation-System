@@ -19,7 +19,7 @@ const PaymentReturn = () => {
 
         if (!orderId) {
           setStatus('failed');
-          setMessage('Order information not found');
+          setMessage('Không tìm thấy thông tin đơn hàng');
           return;
         }
 
@@ -30,7 +30,7 @@ const PaymentReturn = () => {
 
         if (result.success && result.payment.status === 'success') {
           setStatus('success');
-          setMessage('Payment successful! Your account has been upgraded.');
+          setMessage('Thanh toán thành công! Tài khoản của bạn đã được nâng cấp.');
 
           // Clear subscription cache to force refresh
           clearSubscriptionCache();
@@ -48,16 +48,16 @@ const PaymentReturn = () => {
 
         } else if (result.payment.status === 'cancelled') {
           setStatus('cancelled');
-          setMessage('Payment was cancelled');
+          setMessage('Giao dịch đã bị hủy');
         } else {
           setStatus('failed');
-          setMessage('Payment failed');
+          setMessage('Thanh toán thất bại');
         }
 
       } catch (error: any) {
         console.error('Error checking payment status:', error);
         setStatus('failed');
-        setMessage('Unable to check payment status');
+        setMessage('Không thể kiểm tra trạng thái thanh toán');
       }
     };
 
@@ -113,13 +113,13 @@ const PaymentReturn = () => {
   const getStatusTitle = () => {
     switch (status) {
       case 'checking':
-        return 'Checking payment...';
+        return 'Đang kiểm tra thanh toán...';
       case 'success':
-        return 'Payment Successful!';
+        return 'Thanh Toán Thành Công!';
       case 'failed':
-        return 'Payment Failed';
+        return 'Thanh Toán Thất Bại';
       case 'cancelled':
-        return 'Payment Cancelled';
+        return 'Giao Dịch Đã Hủy';
     }
   };
 
@@ -141,7 +141,7 @@ const PaymentReturn = () => {
         <div className="space-y-3">
           {status === 'success' && (
             <div className="text-sm text-gray-500 dark:text-gray-400">
-              Redirecting to main page...
+              Đang chuyển hướng về trang chính...
             </div>
           )}
 
@@ -151,13 +151,13 @@ const PaymentReturn = () => {
                 onClick={() => navigate('/pricing')}
                 className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
               >
-                Try payment again
+                Thử thanh toán lại
               </button>
               <button
                 onClick={() => navigate('/')}
                 className="w-full px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium transition-colors"
               >
-                Go to homepage
+                Về trang chủ
               </button>
             </div>
           )}
@@ -167,7 +167,7 @@ const PaymentReturn = () => {
               onClick={() => navigate('/')}
               className="w-full px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium transition-colors"
             >
-              Go to homepage
+              Về trang chủ
             </button>
           )}
         </div>

@@ -3,6 +3,8 @@ import { ChevronDown } from 'lucide-react';
 import { skillGapService } from '../../services/skillGapService';
 import { recommendationService } from '../../services/recommendationService';
 import { assessmentService } from '../../services/assessmentService';
+import { useAnalysisLock } from '../../contexts/AnalysisLockContext';
+import AnalysisLockOverlay from './AnalysisLockOverlay';
 import './CVUploadForm.css';
 
 interface SelectOption { value: string; label: string; }
@@ -92,7 +94,57 @@ interface CVUploadFormProps {
   onAnalysisComplete: (analysisId: number) => void;
 }
 
+// ─── Helper: Validate file trước khi gửi backend ─────────────────────────────
+const MAX_CV_SIZE_MB = 5;
+const MAX_CV_SIZE_BYTES = MAX_CV_SIZE_MB * 1024 * 1024;
+
+function validateCVFile(file: File): string | null {
+  // Kiểm tra định dạng
+  const validTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+  const validExtensions = ['.pdf', '.jpg', '.jpeg', '.png'];
+  const isValidType =
+    validTypes.includes(file.type) ||
+    validExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+
+  if (!isValidType) {
+    return (
+      'Định dạng tệp không hỗ trợ\n\n' +
+      `Tệp '${file.name}' không thuộc các định dạng được hỗ trợ.\n\n` +
+      'Gợi ý:\n' +
+      '• Định dạng hỗ trợ: PDF, JPG, JPEG, PNG\n' +
+      '• Đảm bảo tệp có đuôi mở rộng đúng (ví dụ: cv.pdf)\n' +
+      '• Nếu tệp là ảnh, dùng định dạng JPG hoặc PNG'
+    );
+  }
+
+  // Kiểm tra kích thước
+  if (file.size === 0) {
+    return (
+      'Tệp rỗng\n\n' +
+      'Tệp tải lên không có nội dung (0 bytes).\n\n' +
+      'Gợi ý:\n' +
+      '• Kiểm tra lại tệp CV trên máy tính của bạn\n' +
+      '• Tải lại tệp CV gốc và thử lại'
+    );
+  }
+
+  if (file.size > MAX_CV_SIZE_BYTES) {
+    const sizeMB = (file.size / 1024 / 1024).toFixed(1);
+    return (
+      'Tệp quá lớn\n\n' +
+      `Tệp có kích thước ${sizeMB} MB, vượt quá giới hạn cho phép.\n\n` +
+      'Gợi ý:\n' +
+      `• Kích thước tối đa: ${MAX_CV_SIZE_MB} MB\n` +
+      '• Nén CV bằng công cụ online (Smallpdf, ILovePDF) trước khi tải lại\n' +
+      '• Nếu là ảnh, giảm độ phân giải hoặc đổi sang JPG'
+    );
+  }
+
+  return null;
+}
+
 const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
+  const { setLocked } = useAnalysisLock();
   const [careerId, setCareerId] = useState('');
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
@@ -126,7 +178,7 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
               const careers = recData.items.map((career: any) => ({
                 id: career.slug || career.career_id,
                 title: career.title_vn || career.title_en || 'Nghề nghiệp chưa xác định',
-                match: Math.round(career.display_match || career.match_score || 0)
+                match: parseFloat((career.display_match || career.match_score || 0).toFixed(1))
               }));
 
               setRecommendedCareers(careers);
@@ -167,38 +219,30 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
 
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const file = e.dataTransfer.files[0];
-      const validTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
-      const validExtensions = ['.pdf', '.jpg', '.jpeg', '.png'];
-
-      if (validTypes.includes(file.type) || validExtensions.some(ext => file.name.toLowerCase().endsWith(ext))) {
-        setCvFile(file);
-        setError(null);
-
-        // Create preview URL
-        const url = URL.createObjectURL(file);
-        setPreviewUrl(url);
-      } else {
-        setError('Vui lòng tải lên file PDF hoặc hình ảnh (JPG, PNG)');
+      const errorMsg = validateCVFile(file);
+      if (errorMsg) {
+        setError(errorMsg);
+        return;
       }
+      setCvFile(file);
+      setError(null);
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
     }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      const validTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
-      const validExtensions = ['.pdf', '.jpg', '.jpeg', '.png'];
-
-      if (validTypes.includes(file.type) || validExtensions.some(ext => file.name.toLowerCase().endsWith(ext))) {
-        setCvFile(file);
-        setError(null);
-
-        // Create preview URL
-        const url = URL.createObjectURL(file);
-        setPreviewUrl(url);
-      } else {
-        setError('Vui lòng tải lên file PDF hoặc hình ảnh (JPG, PNG)');
+      const errorMsg = validateCVFile(file);
+      if (errorMsg) {
+        setError(errorMsg);
+        return;
       }
+      setCvFile(file);
+      setError(null);
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
     }
   };
 
@@ -218,63 +262,18 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
     };
   }, [previewUrl]);
 
-  // Prevent page navigation during analysis
+  // Đồng bộ trạng thái khóa phân tích với context toàn cục
+  // Khi `loading` true: bật khóa (ẩn header + sidebar, chặn thao tác).
+  // Đảm bảo gỡ khóa khi unmount.
   useEffect(() => {
-    if (loading) {
-      // Prevent browser back/forward
-      const handlePopState = (e: PopStateEvent) => {
-        e.preventDefault();
-        window.history.pushState(null, '', window.location.href);
+    setLocked(loading);
+  }, [loading, setLocked]);
 
-        // Show warning
-        if (!document.querySelector('.navigation-warning')) {
-          const warning = document.createElement('div');
-          warning.className = 'navigation-warning';
-          warning.style.cssText = `
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: ef4444;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-weight: 600;
-            z-index: 10001;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-          `;
-          warning.textContent = 'Không thể rời khỏi trang khi đang phân tích!';
-          document.body.appendChild(warning);
-
-          setTimeout(() => {
-            if (warning.parentNode) {
-              warning.remove();
-            }
-          }, 3000);
-        }
-      };
-
-      // Prevent page refresh/close
-      const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-        e.preventDefault();
-        e.returnValue = 'Đang phân tích CV. Bạn có chắc muốn rời khỏi trang? Điều này có thể gây lỗi hệ thống.';
-        return e.returnValue;
-      };
-
-      // Add event listeners
-      window.addEventListener('popstate', handlePopState);
-      window.addEventListener('beforeunload', handleBeforeUnload);
-
-      // Push current state to prevent back navigation
-      window.history.pushState(null, '', window.location.href);
-
-      // Cleanup
-      return () => {
-        window.removeEventListener('popstate', handlePopState);
-        window.removeEventListener('beforeunload', handleBeforeUnload);
-      };
-    }
-  }, [loading]);
+  useEffect(() => {
+    return () => {
+      setLocked(false);
+    };
+  }, [setLocked]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -340,10 +339,11 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
     } catch (err: any) {
       console.error('CV analysis error:', err);
 
-      // Check for payment required error (402)
-      if (err.response?.status === 402) {
-        const errorData = err.response?.data?.detail;
+      const status = err.response?.status;
+      const errorData = err.response?.data?.detail;
 
+      // Check for payment required error (402)
+      if (status === 402) {
         if (errorData && typeof errorData === 'object') {
           // Structured error response
           const message = errorData.message || 'Chức năng này yêu cầu gói trả phí';
@@ -363,10 +363,25 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
             'Vui lòng nâng cấp tài khoản để sử dụng tính năng này.'
           );
         }
+      } else if (errorData && typeof errorData === 'object' && errorData.title) {
+        // Structured Vietnamese error from backend - hiển thị title + message + suggestions
+        const title = errorData.title;
+        const message = errorData.message || '';
+        const suggestions: string[] = Array.isArray(errorData.suggestions) ? errorData.suggestions : [];
+        const suggestionText = suggestions.length > 0
+          ? '\n\nGợi ý:\n' + suggestions.map(s => `• ${s}`).join('\n')
+          : '';
+        setError(`${title}\n\n${message}${suggestionText}`);
+      } else if (errorData && typeof errorData === 'string') {
+        // Plain string detail
+        setError(errorData);
       } else {
-        // Other errors - make sure to convert to string
-        const errorMessage = err.message || err.toString() || 'Không thể phân tích CV';
-        setError(errorMessage);
+        // Other errors - fallback
+        const errorMessage =
+          err.response?.data?.message ||
+          err.message ||
+          'Không thể phân tích CV. Vui lòng thử lại sau.';
+        setError(typeof errorMessage === 'string' ? errorMessage : 'Đã có lỗi xảy ra. Vui lòng thử lại.');
       }
 
       setProgress(0);
@@ -380,179 +395,19 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
 
   return (
     <>
-      {/* BLOCKING OVERLAY DURING ANALYSIS */}
-      {loading && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            backdropFilter: 'blur(8px)',
-            zIndex: 9999,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'not-allowed'
-          }}
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            // Show warning if user tries to click
-            if (!document.querySelector('.analysis-warning')) {
-              const warning = document.createElement('div');
-              warning.className = 'analysis-warning';
-              warning.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: ef4444;
-                color: white;
-                padding: 12px 20px;
-                border-radius: 8px;
-                font-weight: 600;
-                z-index: 10000;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-                animation: slideIn 0.3s ease-out;
-              `;
-              warning.textContent = 'Đang phân tích, vui lòng đợi...';
-              document.body.appendChild(warning);
-
-              // Add animation keyframes
-              if (!document.querySelector('analysis-warning-styles')) {
-                const style = document.createElement('style');
-                style.id = 'analysis-warning-styles';
-                style.textContent = `
-                  @keyframes slideIn {
-                    from { transform: translateX(100%); opacity: 0; }
-                    to { transform: translateX(0); opacity: 1; }
-                  }
-                `;
-                document.head.appendChild(style);
-              }
-
-              setTimeout(() => {
-                if (warning.parentNode) {
-                  warning.remove();
-                }
-              }, 3000);
-            }
-          }}
-        >
-          <div
-            style={{
-              background: 'var(--neu-bg-card)',
-              borderRadius: '24px',
-              padding: '3rem 2rem',
-              textAlign: 'center',
-              maxWidth: '500px',
-              margin: '0 20px',
-              boxShadow: 'var(--neu-raised-lg)',
-              position: 'relative'
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Animated AI Icon */}
-            <div
-              style={{
-                fontSize: '4rem',
-                marginBottom: '1.5rem',
-                animation: 'pulse 2s infinite'
-              }}
-            >
-              
-            </div>
-
-            <h2 style={{
-              fontSize: '1.6rem',
-              marginBottom: '0.75rem',
-              color: 'var(--neu-text)',
-              fontWeight: '800'
-            }}>
-              AI đang phân tích CV của bạn
-            </h2>
-
-            <p style={{
-              fontSize: '1rem',
-              color: 'var(--neu-text-muted)',
-              marginBottom: '1.5rem',
-              lineHeight: '1.6'
-            }}>
-              Vui lòng không tắt trình duyệt hoặc rời khỏi trang này.<br />
-              Quá trình phân tích có thể mất 30-60 giây.
-            </p>
-
-            {/* Progress Bar */}
-            <div style={{ width:'100%', height:'8px', background:'var(--neu-bg)', borderRadius:'4px', marginBottom:'0.75rem', overflow:'hidden', boxShadow:'inset 2px 2px 4px var(--neu-shadow-dark)' }}>
-              <div style={{ height:'100%', background:'var(--neu-accent)', borderRadius:'4px', width:`${progress}%`, transition:'width 0.3s ease-out' }} />
-            </div>
-
-            {/* Progress Info */}
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'1.5rem' }}>
-              <span style={{ fontSize:'0.875rem', color:'var(--neu-text-muted)', fontWeight:'#500' }}>{progressMessage}</span>
-              <span style={{ fontSize:'0.875rem', color:'var(--neu-accent)', fontWeight:'#700' }}>{progress}%</span>
-            </div>
-
-            {/* Warning Message */}
-            <div style={{ background:'rgba(245,158,11,0.12)', border:'1px solid rgba(245,158,11,0.35)', borderRadius:'10px', padding:'10px 14px', marginBottom:'1.5rem' }}>
-              <p style={{ fontSize:'0.85rem', color:'#92400e', margin:0, fontWeight:'#500' }}>
-                 Không được tắt trang này khi đang phân tích, có thể gây lỗi hệ thống!
-              </p>
-            </div>
-
-            {/* Processing Steps */}
-            <div style={{ textAlign:'left', marginTop:'1.25rem' }}>
-              <h4 style={{ fontSize:'0.9rem', color:'var(--neu-text)', marginBottom:'0.5rem', fontWeight:'#600' }}>
-                Các bước đang thực hiện:
-              </h4>
-              <div style={{ fontSize:'0.85rem', color:'var(--neu-text-muted)', lineHeight:'1.8' }}>
-                <div style={{
-                  opacity: progress >= 20 ? 1 : 0.5,
-                  transition: 'opacity 0.3s'
-                }}>
-                   Tải lên CV
-                </div>
-                <div style={{
-                  opacity: progress >= 40 ? 1 : 0.5,
-                  transition: 'opacity 0.3s'
-                }}>
-                  {progress >= 40 ? '' : '⏳'} Trích xuất văn bản từ CV
-                </div>
-                <div style={{
-                  opacity: progress >= 60 ? 1 : 0.5,
-                  transition: 'opacity 0.3s'
-                }}>
-                  {progress >= 60 ? '' : '⏳'} AI phân tích kỹ năng
-                </div>
-                <div style={{
-                  opacity: progress >= 80 ? 1 : 0.5,
-                  transition: 'opacity 0.3s'
-                }}>
-                  {progress >= 80 ? '' : '⏳'} So sánh với yêu cầu công việc
-                </div>
-                <div style={{
-                  opacity: progress >= 100 ? 1 : 0.5,
-                  transition: 'opacity 0.3s'
-                }}>
-                  {progress >= 100 ? '' : '⏳'} Tạo báo cáo kết quả
-                </div>
-              </div>
-            </div>
-
-            {/* Add pulse animation */}
-            <style>
-              {`
-                @keyframes pulse {
-                  0%, 100% { transform: scale(1); }
-                  50% { transform: scale(1.1); }
-                }
-              `}
-            </style>
-          </div>
-        </div>
-      )}
+      {/* OVERLAY KHÓA TƯƠNG TÁC KHI ĐANG PHÂN TÍCH */}
+      <AnalysisLockOverlay
+        visible={loading}
+        progress={progress}
+        progressMessage={progressMessage}
+        onConfirmExit={() => {
+          // Người dùng xác nhận muốn thoát: dừng phân tích và reload trang
+          setLoading(false);
+          setProgress(0);
+          setProgressMessage('');
+          window.location.reload();
+        }}
+      />
 
       <div className="cv-upload-form">
         <div className="form-header">
@@ -649,60 +504,173 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
             </div>
           </div>
 
-          {error && (
-            <div className="error-message" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {/* Error text + close */}
-              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
-                <span style={{ whiteSpace: 'pre-line', fontSize: '13px' }}>{error}</span>
-                <button
-                  type="button"
-                  onClick={() => setError(null)}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', lineHeight: 1, color: 'inherit', flexShrink: 0, padding: '0 2px', fontWeight: 'bold' }}
-                  aria-label="Đóng thông báo lỗi"
-                >✕</button>
-              </div>
+          {error && (() => {
+            // Parse structured error: "Title\n\nMessage\n\nGợi ý:\n• ..."
+            const parts = error.split('\n\nGợi ý:\n');
+            const mainPart = parts[0];
+            const suggestionsPart = parts[1] || '';
+            const titleMessageParts = mainPart.split('\n\n');
+            const errorTitle = titleMessageParts.length > 1 ? titleMessageParts[0] : '';
+            const errorMessage = titleMessageParts.length > 1
+              ? titleMessageParts.slice(1).join('\n\n')
+              : mainPart;
+            const suggestions = suggestionsPart
+              .split('\n')
+              .map(s => s.replace(/^[•\-*]\s*/, '').trim())
+              .filter(Boolean);
 
-              {/* Replace CV button */}
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                <label
-                  htmlFor="file-input-retry"
-                  style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '6px',
-                    padding: '8px 16px', backgroundColor: '#1A237E', color: 'white',
-                    border: 'none', borderRadius: '8px', cursor: 'pointer',
-                    fontSize: '13px', fontWeight: '600',
-                  }}
-                >
-                  ↑ Thêm CV khác vào
-                  <input
-                    id="file-input-retry"
-                    type="file"
-                    accept=".pdf,.jpg,.jpeg,.png,image/jpeg,image/png,application/pdf"
-                    onChange={(e) => {
-                      const f = e.target.files?.[0];
-                      if (f) { setCvFile(f); setError(null); }
-                      e.target.value = '';
-                    }}
-                    style={{ display: 'none' }}
-                  />
-                </label>
-                {cvFile && (
+            return (
+              <div className="error-message" style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+                background: '#fef2f2',
+                border: '1px solid #fecaca',
+                borderLeft: '4px solid #ef4444',
+                borderRadius: '12px',
+                padding: '16px 18px',
+                color: '#7f1d1d',
+              }}>
+                {/* Header với icon, title và close button */}
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                  <div style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 10,
+                    background: '#fee2e2',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}>
+                    <span style={{ fontSize: 18 }}>⚠️</span>
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    {errorTitle && (
+                      <h4 style={{
+                        margin: 0,
+                        fontSize: '14px',
+                        fontWeight: 700,
+                        color: '#991b1b',
+                        lineHeight: 1.3,
+                      }}>{errorTitle}</h4>
+                    )}
+                    {errorMessage && (
+                      <p style={{
+                        margin: errorTitle ? '4px 0 0' : 0,
+                        fontSize: '13px',
+                        color: '#7f1d1d',
+                        lineHeight: 1.5,
+                        whiteSpace: 'pre-line',
+                      }}>{errorMessage}</p>
+                    )}
+                  </div>
                   <button
                     type="button"
-                    onClick={() => { setCvFile(null); setError(null); }}
+                    onClick={() => setError(null)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontSize: '16px',
+                      lineHeight: 1,
+                      color: '#991b1b',
+                      flexShrink: 0,
+                      padding: '4px',
+                      fontWeight: 'bold',
+                      borderRadius: 6,
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = '#fecaca'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                    aria-label="Đóng thông báo lỗi"
+                  >✕</button>
+                </div>
+
+                {/* Suggestions list */}
+                {suggestions.length > 0 && (
+                  <div style={{
+                    background: '#fff',
+                    borderRadius: 8,
+                    padding: '10px 14px',
+                    border: '1px solid #fecaca',
+                  }}>
+                    <p style={{
+                      margin: '0 0 6px',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      color: '#991b1b',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em',
+                    }}>Gợi ý khắc phục</p>
+                    <ul style={{
+                      margin: 0,
+                      paddingLeft: '18px',
+                      fontSize: '12.5px',
+                      color: '#7f1d1d',
+                      lineHeight: 1.6,
+                    }}>
+                      {suggestions.map((s, i) => (
+                        <li key={i} style={{ marginBottom: 2 }}>{s}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Action buttons */}
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  <label
+                    htmlFor="file-input-retry"
                     style={{
                       display: 'inline-flex', alignItems: 'center', gap: '6px',
-                      padding: '8px 14px', backgroundColor: 'transparent', color: '#ef4444',
-                      border: '1.5px solid #ef4444', borderRadius: '8px', cursor: 'pointer',
-                      fontSize: '13px', fontWeight: '600',
+                      padding: '8px 16px',
+                      background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontSize: '13px',
+                      fontWeight: '600',
                     }}
                   >
-                    ✕ Xóa CV
-                  </button>
-                )}
+                    ↑ Tải lên CV khác
+                    <input
+                      id="file-input-retry"
+                      type="file"
+                      accept=".pdf,.jpg,.jpeg,.png,image/jpeg,image/png,application/pdf"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) {
+                          const errMsg = validateCVFile(f);
+                          if (errMsg) {
+                            setError(errMsg);
+                          } else {
+                            setCvFile(f);
+                            setError(null);
+                          }
+                        }
+                        e.target.value = '';
+                      }}
+                      style={{ display: 'none' }}
+                    />
+                  </label>
+                  {cvFile && (
+                    <button
+                      type="button"
+                      onClick={() => { setCvFile(null); setError(null); }}
+                      style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '6px',
+                        padding: '8px 14px', backgroundColor: 'transparent', color: '#ef4444',
+                        border: '1.5px solid #ef4444', borderRadius: '8px', cursor: 'pointer',
+                        fontSize: '13px', fontWeight: '600',
+                      }}
+                    >
+                      ✕ Xóa tệp này
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {loading && (
             <div className="progress-container">

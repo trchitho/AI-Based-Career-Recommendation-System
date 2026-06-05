@@ -583,7 +583,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
         startMusic();
       } catch (err) {
         console.error('Error loading questions:', err);
-        setError('Failed to load questions. Please try again.');
+        setError('Không thể tải câu hỏi. Vui lòng thử lại.');
       } finally {
         setTimeout(() => setLoading(false), 500);
       }
@@ -1336,7 +1336,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
       <div className="navigation">
         {isBookClosed ? (
           <button className="nav-btn submit-nav-btn" onClick={handleSubmit}>
-            <span>🚀 Xem Kết Quả</span>
+            <span>Xem Kết Quả</span>
           </button>
         ) : (
           <>
@@ -1357,7 +1357,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
                     disabled={isFlipping}
                     style={{ fontSize: '1rem', padding: '1.25rem 1.75rem', animation: 'pulse-submit 2s ease-in-out infinite' }}
                   >
-                    <span>🚀 Nộp Bài &amp; Xem Kết Quả</span>
+                    <span>Nộp Bài & Xem Kết Quả</span>
                   </button>
                 );
               }
@@ -1370,7 +1370,7 @@ const StoryBasedAssessment = ({ onComplete }: StoryBasedAssessmentProps) => {
                     onClick={handleSubmit}
                     disabled={isFlipping}
                   >
-                    <span>🚀 Nộp Bài</span>
+                    <span>Nộp Bài</span>
                   </button>
                 );
               }

@@ -84,7 +84,7 @@ const RIASECCareerDetailPage = ({ career, rank, sectionTitle }: RIASECCareerDeta
                     )}
                 </div>
                 <span className="text-xs bg-indigo-700 text-white px-3 py-1 rounded-full font-semibold shadow-sm print:text-[10px]">
-                    {Math.round(career.match_score)}% Phù Hợp
+                    {parseFloat(career.match_score.toFixed(1))}% Phù Hợp
                 </span>
             </div>
 
@@ -158,7 +158,7 @@ const RIASECCareerDetailPage = ({ career, rank, sectionTitle }: RIASECCareerDeta
                         </h3>
                         {career.knowledge && career.knowledge.length > 0 ? (
                             <ul className="text-xs text-gray-700 dark:text-gray-300 space-y-0.5 print:text-[10px]">
-                                {career.knowledge.slice(0, 4).map((k, i) => (
+                                {career.knowledge.slice(0, 5).map((k, i) => (
                                     <li key={i} className="flex items-center gap-1.5">
                                         <span className="text-orange-500 text-xs">•</span>
                                         <span>{k.name}</span>
@@ -167,6 +167,26 @@ const RIASECCareerDetailPage = ({ career, rank, sectionTitle }: RIASECCareerDeta
                             </ul>
                         ) : (
                             <p className="text-xs text-gray-500 dark:text-gray-400 italic print:text-[10px]">Không có thông tin kiến thức</p>
+                        )}
+                    </div>
+
+                    {/* Skills */}
+                    <div>
+                        <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1.5 flex items-center gap-1.5 print:text-xs print:mb-1">
+                            <span className="w-1 h-3 bg-green-500 rounded"></span>
+                            Kỹ Năng Cần Thiết
+                        </h3>
+                        {career.skills && career.skills.length > 0 ? (
+                            <ul className="text-xs text-gray-700 dark:text-gray-300 space-y-0.5 print:text-[10px]">
+                                {career.skills.slice(0, 5).map((s, i) => (
+                                    <li key={i} className="flex items-center gap-1.5">
+                                        <span className="text-green-500 text-xs">•</span>
+                                        <span>{s.name}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p className="text-xs text-gray-500 dark:text-gray-400 italic print:text-[10px]">Không có thông tin kỹ năng</p>
                         )}
                     </div>
                 </div>
@@ -215,6 +235,26 @@ const RIASECCareerDetailPage = ({ career, rank, sectionTitle }: RIASECCareerDeta
                                 </div>
                             )}
                         </div>
+                    </div>
+
+                    {/* Abilities */}
+                    <div>
+                        <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1.5 flex items-center gap-1.5 print:text-xs print:mb-1">
+                            <span className="w-1 h-3 bg-purple-500 rounded"></span>
+                            Năng Lực Cần Có
+                        </h3>
+                        {career.abilities && career.abilities.length > 0 ? (
+                            <ul className="text-xs text-gray-700 dark:text-gray-300 space-y-0.5 print:text-[10px]">
+                                {career.abilities.slice(0, 4).map((a, i) => (
+                                    <li key={i} className="flex items-center gap-1.5">
+                                        <span className="text-purple-500 text-xs">•</span>
+                                        <span>{a.name}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p className="text-xs text-gray-500 dark:text-gray-400 italic print:text-[10px]">Không có thông tin năng lực</p>
+                        )}
                     </div>
                 </div>
             </div>

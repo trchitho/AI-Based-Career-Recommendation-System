@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import MainLayout from '../components/layout/MainLayout';
 import { careerGroupService, CareerGroup } from '../services/careerGroupService';
 import { useApiCallTracker } from '../hooks/useApiCallTracker';
+import ONetAttribution from '../components/common/ONetAttribution';
 
 const CareerGroupsPage = () => {
     const [groups, setGroups] = useState<CareerGroup[]>([]);
@@ -438,6 +439,7 @@ const CareerGroupsPage = () => {
 
                 </div>
             </div>
+            <ONetAttribution />
         </MainLayout>
     );
 };

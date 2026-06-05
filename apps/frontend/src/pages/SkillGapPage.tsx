@@ -553,7 +553,7 @@ const SkillGapPage: React.FC = () => {
                   {/* Table */}
                   <div style={{ background: 'var(--neu-bg-card, #fff)', borderRadius: 14, border: '1px solid var(--neu-border, #e5e7eb)', overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
                     {/* Table head */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '3fr 1.5fr 1fr 1fr', padding: '0.65rem 1.25rem', background: 'var(--neu-bg, #f9fafb)', borderBottom: '1px solid var(--neu-border, #e5e7eb)' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '2.5fr 1.2fr 1.2fr 1.2fr', padding: '0.65rem 1.25rem', background: 'var(--neu-bg, #f9fafb)', borderBottom: '1px solid var(--neu-border, #e5e7eb)', gap: '0.5rem' }}>
                       {['TÊN TỆP & NGHỀ MỤC TIÊU', 'NGÀY TẢI LÊN', 'ĐỘ PHÙ HỢP', 'THAO TÁC'].map(h => (
                         <span key={h} style={{ fontSize: '0.68rem', fontWeight: 700, color: '#9ca3af', letterSpacing: '0.07em', textTransform: 'uppercase' }}>{h}</span>
                       ))}
@@ -572,16 +572,16 @@ const SkillGapPage: React.FC = () => {
                         const date = new Date(item.created_at).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
                         const isLast = idx === history.length - 1;
                         return (
-                          <div key={item.id} style={{ display: 'grid', gridTemplateColumns: '3fr 1.5fr 1fr 1fr', padding: '0.9rem 1.25rem', alignItems: 'center', borderBottom: isLast ? 'none' : '1px solid var(--neu-border, #f3f4f6)', transition: 'background 0.15s' }}
+                          <div key={item.id} style={{ display: 'grid', gridTemplateColumns: '2.5fr 1.2fr 1.2fr 1.2fr', padding: '0.9rem 1.25rem', alignItems: 'center', gap: '0.5rem', borderBottom: isLast ? 'none' : '1px solid var(--neu-border, #f3f4f6)', transition: 'background 0.15s' }}
                             onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--neu-bg, #f9fafb)'}
                             onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
                           >
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0 }}>
-                              <div style={{ width: 34, height: 34, borderRadius: 8, background: 'rgba(34,197,94,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                              <div style={{ width: 34, height: 34, borderRadius: 8, background: 'rgba(99,102,241,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                                 <FileText size={16} style={{ color: 'var(--neu-accent)' }} />
                               </div>
                               <div style={{ minWidth: 0 }}>
-                                <div style={{ fontWeight: 700, fontSize: '0.875rem', color: 'var(--neu-text, #111)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                <div style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--neu-text, #111)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                   {item.cv_filename || `Hồ sơ ${item.id}`}
                                 </div>
                                 <div style={{ fontSize: '0.75rem', color: '#6b7280', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -592,16 +592,19 @@ const SkillGapPage: React.FC = () => {
                             <div style={{ fontSize: '0.82rem', color: '#6b7280' }}>{date}</div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                               <div style={{ flex: 1, maxWidth: 60, height: 6, background: '#f3f4f6', borderRadius: 99, overflow: 'hidden' }}>
-                                <div style={{ height: '100%', width: `${pct}%`, background: matchBarColor(pct), borderRadius: 99 }} />
+                                <div style={{ height: '100%', width: `${Math.max(pct, 3)}%`, background: matchBarColor(pct), borderRadius: 99 }} />
                               </div>
                               <span style={{ fontSize: '0.82rem', fontWeight: 700, color: matchBarColor(pct), minWidth: 32 }}>{pct}%</span>
                             </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <div>
                               <button
                                 onClick={() => navigate(`/skill-gap/${item.id}`)}
-                                style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--neu-accent)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 3 }}>
+                                style={{ fontSize: '0.78rem', fontWeight: 700, color: '#fff', background: 'var(--neu-accent, #6366f1)', border: 'none', cursor: 'pointer', padding: '6px 14px', borderRadius: 8, whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: 4, transition: 'opacity 0.15s' }}
+                                onMouseEnter={e => (e.currentTarget as HTMLElement).style.opacity = '0.85'}
+                                onMouseLeave={e => (e.currentTarget as HTMLElement).style.opacity = '1'}
+                              >
                                 Xem phân tích
-                                <ChevronRight size={11} />
+                                <ChevronRight size={12} />
                               </button>
                             </div>
                           </div>
@@ -641,10 +644,11 @@ const SkillGapPage: React.FC = () => {
               <SkillGapResult
                 analysis={analysis}
                 onStartInterview={handleStartInterview}
+                careerName={careerName || analysis.career_id}
               />
 
               <div style={{ marginTop: '1.5rem' }}>
-                <SkillHeatmapGrid analysis={analysis} />
+                <SkillHeatmapGrid analysis={analysis} careerName={careerName || analysis.career_id} />
               </div>
 
               {/* Gợi ý khóa học — tự động lấy từ kỹ năng còn thiếu */}
@@ -653,16 +657,19 @@ const SkillGapPage: React.FC = () => {
                 const toNames = (items: any[] = []) => items
                   .map((s: any) => (typeof s === 'string' ? s : s?.name))
                   .filter(Boolean);
+                const extraSkillNames = (analysis.extra_skills || []).map((s: any) => s?.name).filter(Boolean);
                 const skillGroups = {
                   critical: toNames(gaps?.critical),
                   important: toNames(gaps?.important),
-                  nice_to_have: toNames(gaps?.nice_to_have),
+                  nice_to_have: toNames(gaps?.nice_to_have).slice(0, 10),
+                  extra: extraSkillNames.slice(0, 10),
                 };
                 const ownedSkills = [
                   ...(analysis.cv_skills || []),
                   ...(analysis.matched_skills || []),
                 ].map((s: any) => (typeof s === 'string' ? s : s?.name)).filter(Boolean);
-                const totalMissing = skillGroups.critical.length + skillGroups.important.length + skillGroups.nice_to_have.length;
+                const cvCareerLabel = (analysis.extra_skills || [])[0]?.current_career || '';
+                const totalMissing = skillGroups.critical.length + skillGroups.important.length + skillGroups.nice_to_have.length + skillGroups.extra.length;
                 return totalMissing > 0 ? (
                   <div style={{ marginTop: '1.5rem' }}>
                     <CourseRecommendationPage
@@ -670,6 +677,7 @@ const SkillGapPage: React.FC = () => {
                       skillGroups={skillGroups}
                       ownedSkills={ownedSkills}
                       careerName={careerName || analysis.career_id}
+                      cvCareerName={cvCareerLabel}
                     />
                   </div>
                 ) : null;

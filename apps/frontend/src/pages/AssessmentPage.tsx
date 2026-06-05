@@ -211,7 +211,7 @@ const AssessmentPage = () => {
         setAssessmentSessionId(realSessionId);
       } catch (err) {
         console.error('Failed to load questions:', err);
-        setError('Failed to load questions. Please try again.');
+        setError('Không thể tải câu hỏi. Vui lòng thử lại.');
         return;
       } finally {
         setLoading(false);
@@ -276,16 +276,21 @@ const AssessmentPage = () => {
 
   const handleTestComplete = async (responses: QuestionResponse[]) => {
     try {
-      // Show processing immediately for better UX
-      setStep('processing');
+      // Don't show processing here — go directly to essay after submit.
+      // Processing screen should only appear AFTER the essay step.
       setLoading(true);
       setError(null);
 
-      // Submit assessment in background
+      // Submit assessment in background — map quizMode → correct test_mode
+      const _modeMap: Record<string, string> = {
+        standard: 'game_puzzle',
+        game: 'game_garden',
+        legacy: 'traditional',
+      };
       const result = await assessmentService.submitAssessment({
         testTypes: ['RIASEC', 'BIG_FIVE'],
         responses,
-        test_mode: 'traditional',
+        test_mode: _modeMap[quizMode] ?? 'traditional',
       }) as { assessmentId: string; usage_info?: any };
 
       setAssessmentId(result.assessmentId);
@@ -304,7 +309,7 @@ const AssessmentPage = () => {
       localStorage.removeItem(SAVED_SESSION_KEY);
       localStorage.removeItem(`assessment_seed_${quizMode}`);
 
-      // Move to essay step after processing
+      // Move directly to essay step — skip the intermediate processing screen.
       setStep('essay');
     } catch (err: any) {
       console.error('Error submitting assessment:', err);
@@ -378,7 +383,7 @@ const AssessmentPage = () => {
       setStep('processing');
     } catch (err) {
       console.error('Error submitting essay:', err);
-      setError('Failed to submit essay. Redirecting to results...');
+      setError('Gửi bài viết thất bại. Đang chuyển đến kết quả...');
       // Dừng nhạc khi có lỗi
       submitSound.stop();
       setTimeout(() => {

@@ -4,33 +4,6 @@ import { useNavigate, Link } from "react-router-dom";
 import { ThumbsUp, ThumbsDown, ChevronRight, ChevronLeft, Lock, Briefcase, ArrowRight } from "lucide-react";
 import MainLayout from "../components/layout/MainLayout";
 
-/* ── Career group icon mapping ── */
-const getCareerIcon = (title: string, slug: string): string => {
-  const text = (title + ' ' + slug).toLowerCase();
-  if (text.match(/giáo viên|teacher|education|dạy|training|đào tạo/)) return '📚';
-  if (text.match(/y tế|health|medical|bác sĩ|doctor|nurse|điều dưỡng|dược/)) return '🏥';
-  if (text.match(/kỹ thuật|engineer|technical|cơ khí|điện|electronic/)) return '⚙️';
-  if (text.match(/máy tính|computer|software|developer|lập trình|IT|tech/)) return '💻';
-  if (text.match(/kiến trúc|architect|xây dựng|construction|building/)) return '🏗️';
-  if (text.match(/bán hàng|sales|marketing|quảng cáo|advertising/)) return '📈';
-  if (text.match(/tài chính|finance|ngân hàng|bank|kế toán|accounting/)) return '💰';
-  if (text.match(/luật|law|legal|pháp/)) return '⚖️';
-  if (text.match(/nghệ thuật|art|design|thiết kế|creative|đồ họa/)) return '🎨';
-  if (text.match(/truyền thông|media|journalist|báo chí|communication/)) return '📡';
-  if (text.match(/vận tải|transport|logistics|giao hàng|delivery|lái xe/)) return '🚛';
-  if (text.match(/nông nghiệp|agriculture|farm|trồng|chăn nuôi/)) return '🌾';
-  if (text.match(/ẩm thực|food|cook|đầu bếp|nhà hàng|restaurant/)) return '🍳';
-  if (text.match(/quản lý|management|giám đốc|director|admin/)) return '👔';
-  if (text.match(/khoa học|science|research|nghiên cứu|lab/)) return '🔬';
-  if (text.match(/bảo vệ|security|police|cảnh sát|quân đội|military/)) return '🛡️';
-  if (text.match(/du lịch|travel|tourism|khách sạn|hotel/)) return '✈️';
-  if (text.match(/thể thao|sport|fitness|gym/)) return '⚽';
-  if (text.match(/môi trường|environment|ecology|sinh thái/)) return '🌿';
-  if (text.match(/sản xuất|production|manufacturing|nhà máy|factory/)) return '🏭';
-  if (text.match(/bảo trì|maintenance|sửa chữa|repair|thợ/)) return '🔧';
-  if (text.match(/xã hội|social|community|cộng đồng/)) return '🤝';
-  return '💼';
-};
 import {
   recommendationService,
   CareerRecommendationDTO,
@@ -48,7 +21,7 @@ import "./RecommendationsPage-hero.css";
 /* ── helpers ── */
 type MatchLevel = "excellent" | "great" | "good";
 const getMatchLevel = (score: number): { level: MatchLevel; label: string } => {
-  const pct = Math.round(score * 100);
+  const pct = score * 100;
   if (pct >= 90) return { level: "excellent", label: "Xuất sắc" };
   if (pct >= 75) return { level: "great", label: "Rất phù hợp" };
   return { level: "good", label: "Phù hợp" };
@@ -304,7 +277,7 @@ const RecommendationsPage = () => {
             >
               {recItems.map((it, index) => {
                 const { level, label } = getMatchLevel(it.match_score);
-                const pct = Math.round(it.match_score * 100);
+                const pct = parseFloat(((it.display_match ?? it.match_score * 100)).toFixed(1));
                 const title = it.title_vn || it.title_en || it.career_id || "Unknown";
                 const offset = CIRC - (CIRC * pct) / 100;
                 const fb = feedback[it.career_id];
@@ -478,9 +451,11 @@ const RecommendationsPage = () => {
 
                     {/* Card header with gradient */}
                     <div className={`h-32 bg-gradient-to-br ${gradient} relative flex items-center justify-center`}>
-                      <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/30 text-3xl">
-                        {isLocked ? <Lock size={24} className="text-white" /> : getCareerIcon(c.title, (c as any).slug || c.id)}
-                      </div>
+                      {isLocked && (
+                        <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/30">
+                          <Lock size={24} className="text-white" />
+                        </div>
+                      )}
                       {/* Decorative circles */}
                       <div className="absolute top-3 right-3 w-16 h-16 bg-white/10 rounded-full" />
                       <div className="absolute bottom-2 left-4 w-8 h-8 bg-white/10 rounded-full" />

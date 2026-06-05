@@ -57,3 +57,7 @@ apps/frontend/.venv/
 
 # Large DB dumps
 *.sql
+packages/ai-core/data/processed/interactions_v2.csv
+packages/ai-core/data/processed/interactions.csv
+packages/ai-core/data/processed/item_feats.json
+packages/ai-core/data/processed/user_feats.json

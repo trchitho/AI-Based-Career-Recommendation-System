@@ -852,20 +852,31 @@ const TetrisQuizGame = ({ questions, onComplete, onCancel, assessmentSessionId }
         };
       });
     } else if (currentQuestion.options) {
-      // Translation map for English options to Vietnamese
+      // Bản dịch các tùy chọn từ tiếng Anh sang tiếng Việt.
+      // PHẢI bao phủ TẤT CẢ scale options trả về từ backend
+      // (RIASEC, Agree/Disagree, BigFive Accurate/Inaccurate).
+      // Nếu thêm scale mới ở backend, cập nhật map này.
       const optionTranslations: Record<string, string> = {
+        // RIASEC scale
         'Strongly Dislike': 'Rất không thích',
         'Dislike': 'Không thích',
         'Unsure': 'Không chắc',
         'Like': 'Thích',
         'Strongly Like': 'Rất thích',
+        // Generic Agree/Disagree scale
         'Strongly Disagree': 'Rất không đồng ý',
         'Disagree': 'Không đồng ý',
         'Neutral': 'Trung lập',
         'Agree': 'Đồng ý',
-        'Strongly Agree': 'Rất đồng ý'
+        'Strongly Agree': 'Rất đồng ý',
+        // BigFive (IPIP) Accurate/Inaccurate scale
+        'Very Inaccurate': 'Rất không chính xác',
+        'Moderately Inaccurate': 'Không chính xác',
+        'Neither Accurate nor Inaccurate': 'Không chắc chắn',
+        'Moderately Accurate': 'Chính xác',
+        'Very Accurate': 'Rất chính xác',
       };
-      
+
       return currentQuestion.options.map((option, index) => {
         const shape = shuffledShapes[index % shuffledShapes.length] || 'O';
         // Translate option if it exists in translation map, otherwise use original

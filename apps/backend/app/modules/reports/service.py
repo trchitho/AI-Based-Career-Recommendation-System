@@ -20,128 +20,128 @@ from .models import AssessmentReport, ReportEvent, ReportTemplate
 
 FACET_FORMULAS = {
     "problemSolving": {
-        "title": "How you think and solve problems",
+        "title": "Cách bạn tư duy và giải quyết vấn đề",
         "labels": {
             "innovator": {
                 "weights": {"O": 1, "C": -0.2},
-                "description": "You approach problems with creativity and flexibility, seeking novel solutions and embracing unconventional methods.",
+                "description": "Bạn tiếp cận vấn đề với sự sáng tạo và linh hoạt, tìm kiếm giải pháp mới lạ và chấp nhận phương pháp phi truyền thống.",
             },
             "humanitarian": {
                 "weights": {"A": 1, "O": 0.2},
-                "description": "You prioritize collaborative problem-solving, considering the human impact and seeking solutions that benefit all stakeholders.",
+                "description": "Bạn ưu tiên giải quyết vấn đề theo hướng hợp tác, cân nhắc tác động đến con người và tìm giải pháp có lợi cho tất cả các bên.",
             },
             "caretaker": {
                 "weights": {"C": 1, "O": -0.2},
-                "description": "You prefer systematic, rule-based approaches to problems, valuing proven methods and organizational standards.",
+                "description": "Bạn thích cách tiếp cận có hệ thống, dựa trên quy tắc, coi trọng phương pháp đã được chứng minh và tiêu chuẩn tổ chức.",
             },
             "pragmatist": {
                 "weights": {"C": 0.3, "O": -1},
-                "description": "You focus on practical, efficient solutions that maintain stability and deliver reliable, predictable outcomes.",
+                "description": "Bạn tập trung vào giải pháp thực tế, hiệu quả nhằm duy trì sự ổn định và mang lại kết quả đáng tin cậy, có thể dự đoán.",
             },
         },
     },
     "motivation": {
-        "title": "How you get motivated",
+        "title": "Điều gì thúc đẩy bạn",
         "labels": {
             "ambitious": {
                 "weights": {"E": 1, "C": 1},
-                "description": "You are driven by achievement and recognition, setting high goals and working persistently to accomplish them.",
+                "description": "Bạn được thúc đẩy bởi thành tích và sự công nhận, đặt mục tiêu cao và làm việc kiên trì để đạt được chúng.",
             },
             "dutiful": {
                 "weights": {"C": 1, "N": -0.2},
-                "description": "You find motivation in responsibility and commitment, deriving satisfaction from fulfilling obligations reliably.",
+                "description": "Bạn tìm thấy động lực trong trách nhiệm và cam kết, cảm thấy hài lòng khi hoàn thành nghĩa vụ một cách đáng tin cậy.",
             },
             "excitable": {
                 "weights": {"E": 1, "N": 1},
-                "description": "You are energized by enthusiasm and emotional engagement, thriving in dynamic environments with varied challenges.",
+                "description": "Bạn được tiếp thêm năng lượng bởi sự nhiệt huyết và gắn kết cảm xúc, phát triển mạnh trong môi trường năng động với nhiều thử thách.",
             },
             "casual": {
                 "weights": {"C": -1, "E": -0.2},
-                "description": "You prefer a relaxed approach to work, valuing flexibility and work-life balance over rigid goal structures.",
+                "description": "Bạn thích cách tiếp cận thoải mái trong công việc, coi trọng sự linh hoạt và cân bằng cuộc sống hơn cấu trúc mục tiêu cứng nhắc.",
             },
         },
     },
     "interaction": {
-        "title": "How you interact with others",
+        "title": "Cách bạn tương tác với người khác",
         "labels": {
             "gregarious": {
                 "weights": {"E": 1},
-                "description": "You naturally seek social connection, enjoying collaborative work and drawing energy from interpersonal interactions.",
+                "description": "Bạn tự nhiên tìm kiếm kết nối xã hội, thích làm việc hợp tác và lấy năng lượng từ các tương tác giữa người với người.",
             },
             "dominant": {
                 "weights": {"E": 1, "A": -1},
-                "description": "You take charge in group settings, expressing opinions confidently and preferring leadership roles in interactions.",
+                "description": "Bạn nắm quyền chủ động trong nhóm, thể hiện ý kiến tự tin và thích vai trò lãnh đạo trong các tương tác.",
             },
             "supportive": {
                 "weights": {"A": 1, "E": 0.2},
-                "description": "You prioritize harmony and cooperation, actively supporting others and building positive relationships.",
+                "description": "Bạn ưu tiên sự hài hòa và hợp tác, tích cực hỗ trợ người khác và xây dựng các mối quan hệ tích cực.",
             },
             "independent": {
                 "weights": {"E": -1, "A": -0.2},
-                "description": "You prefer autonomous work, valuing self-reliance and maintaining professional boundaries in interactions.",
+                "description": "Bạn thích làm việc tự chủ, coi trọng sự tự lực và duy trì ranh giới chuyên nghiệp trong các tương tác.",
             },
         },
     },
     "communication": {
-        "title": "How you communicate",
+        "title": "Cách bạn giao tiếp",
         "labels": {
             "inspiring": {
                 "weights": {"O": 1, "E": 1},
-                "description": "You communicate with enthusiasm and creativity, using storytelling and vision to engage and motivate others.",
+                "description": "Bạn giao tiếp với sự nhiệt huyết và sáng tạo, sử dụng kể chuyện và tầm nhìn để thu hút và truyền cảm hứng cho người khác.",
             },
             "informative": {
                 "weights": {"E": 1, "C": 1},
-                "description": "You deliver information clearly and systematically, ensuring your message is well-organized and actionable.",
+                "description": "Bạn truyền đạt thông tin rõ ràng và có hệ thống, đảm bảo thông điệp được tổ chức tốt và có thể hành động.",
             },
             "insightful": {
                 "weights": {"O": 1, "E": -0.2},
-                "description": "You communicate thoughtfully and reflectively, offering deep analysis and nuanced perspectives on topics.",
+                "description": "Bạn giao tiếp một cách sâu sắc và chiêm nghiệm, đưa ra phân tích chuyên sâu và góc nhìn tinh tế về các chủ đề.",
             },
             "concise": {
                 "weights": {"C": 1, "E": -1},
-                "description": "You prefer direct, efficient communication, focusing on essential information without unnecessary elaboration.",
+                "description": "Bạn thích giao tiếp trực tiếp, hiệu quả, tập trung vào thông tin thiết yếu mà không cần diễn giải dài dòng.",
             },
         },
     },
     "teamwork": {
-        "title": "How you contribute to a team",
+        "title": "Cách bạn đóng góp trong nhóm",
         "labels": {
             "cooperator": {
                 "weights": {"A": 1},
-                "description": "You prioritize team cohesion and consensus, working to maintain positive group dynamics and shared goals.",
+                "description": "Bạn ưu tiên sự gắn kết và đồng thuận trong nhóm, làm việc để duy trì động lực nhóm tích cực và mục tiêu chung.",
             },
             "taskmaster": {
                 "weights": {"C": 1, "A": -0.2},
-                "description": "You focus on deliverables and accountability, ensuring the team meets objectives and maintains high standards.",
+                "description": "Bạn tập trung vào kết quả và trách nhiệm giải trình, đảm bảo nhóm đạt mục tiêu và duy trì tiêu chuẩn cao.",
             },
             "empath": {
                 "weights": {"A": 1, "O": 0.2},
-                "description": "You attune to team members' needs and emotions, fostering an inclusive environment where everyone feels valued.",
+                "description": "Bạn đồng cảm với nhu cầu và cảm xúc của thành viên nhóm, tạo môi trường hòa nhập nơi mọi người đều được trân trọng.",
             },
             "improviser": {
                 "weights": {"O": 1, "C": -1},
-                "description": "You bring adaptability and creative thinking to teams, helping navigate unexpected challenges with flexibility.",
+                "description": "Bạn mang đến khả năng thích ứng và tư duy sáng tạo cho nhóm, giúp vượt qua thử thách bất ngờ một cách linh hoạt.",
             },
         },
     },
     "taskManagement": {
-        "title": "How you manage tasks and projects",
+        "title": "Cách bạn quản lý công việc và dự án",
         "labels": {
             "director": {
                 "weights": {"C": 1, "E": 0.2},
-                "description": "You take a structured leadership approach, organizing resources and guiding projects toward defined objectives.",
+                "description": "Bạn áp dụng cách tiếp cận lãnh đạo có cấu trúc, tổ chức nguồn lực và hướng dẫn dự án đến mục tiêu đã xác định.",
             },
             "inspector": {
                 "weights": {"C": 1, "O": -1},
-                "description": "You excel at detailed oversight, ensuring quality through thorough review and adherence to established processes.",
+                "description": "Bạn xuất sắc trong giám sát chi tiết, đảm bảo chất lượng thông qua đánh giá kỹ lưỡng và tuân thủ quy trình đã thiết lập.",
             },
             "visionary": {
                 "weights": {"O": 1, "C": -0.2},
-                "description": "You focus on strategic direction and innovation, identifying opportunities and setting ambitious project visions.",
+                "description": "Bạn tập trung vào định hướng chiến lược và đổi mới, xác định cơ hội và đặt tầm nhìn dự án đầy tham vọng.",
             },
             "responder": {
                 "weights": {"C": -1, "E": 0.2},
-                "description": "You adapt quickly to changing circumstances, handling emerging priorities with flexibility and responsiveness.",
+                "description": "Bạn thích ứng nhanh với hoàn cảnh thay đổi, xử lý các ưu tiên mới nổi với sự linh hoạt và khả năng phản hồi.",
             },
         },
     },
@@ -290,33 +290,34 @@ def generate_challenges(big5_scores: Dict[str, float]) -> List[str]:
 def generate_cover(user_name: Optional[str], completed_at: datetime, report_type: str) -> Dict[str, Any]:
     """Generate cover page data with academic-quality intro paragraphs."""
     if report_type == "big5":
-        title = "Big Five Personality Report"
-        subtitle = "Your Career Personality Profile"
+        title = "Báo Cáo Tính Cách Big Five"
+        subtitle = "Hồ Sơ Tính Cách Nghề Nghiệp Của Bạn"
         intro_paragraphs = [
-            "This report presents a comprehensive analysis of your personality based on the Big Five "
-            "model (also known as OCEAN), one of the most empirically validated frameworks in "
-            "personality psychology. Decades of research have established the Big Five as a reliable "
-            "predictor of workplace behavior and career outcomes.",
-            "Your results are organized into six behavioral patterns that translate your core personality "
-            "traits into practical workplace tendencies. Each pattern represents how your unique "
-            "combination of Openness, Conscientiousness, Extraversion, Agreeableness, and Neuroticism "
-            "manifests in professional contexts.",
-            "Understanding these patterns provides a foundation for informed career decision-making, "
-            "effective self-presentation, and targeted professional development. Use this report as "
-            "a tool for self-reflection and career exploration.",
+            "Báo cáo này trình bày phân tích toàn diện về tính cách của bạn dựa trên mô hình Big Five "
+            "(còn gọi là OCEAN), một trong những khung lý thuyết được kiểm chứng thực nghiệm nhiều nhất "
+            "trong tâm lý học tính cách. Hàng thập kỷ nghiên cứu đã xác lập Big Five là công cụ dự đoán "
+            "đáng tin cậy về hành vi nơi làm việc và kết quả nghề nghiệp.",
+            "Kết quả của bạn được tổ chức thành sáu mẫu hành vi, chuyển đổi các đặc điểm tính cách cốt lõi "
+            "thành xu hướng thực tế tại nơi làm việc. Mỗi mẫu thể hiện cách kết hợp độc đáo của Cởi Mở (Openness), "
+            "Tận Tâm (Conscientiousness), Hướng Ngoại (Extraversion), Dễ Chịu (Agreeableness) và "
+            "Nhạy Cảm (Neuroticism) biểu hiện trong bối cảnh chuyên nghiệp.",
+            "Hiểu các mẫu hành vi này cung cấp nền tảng cho việc ra quyết định nghề nghiệp sáng suốt, "
+            "tự giới thiệu bản thân hiệu quả và phát triển chuyên môn có mục tiêu. Hãy sử dụng báo cáo này "
+            "như công cụ tự phản ánh và khám phá nghề nghiệp.",
         ]
     else:
-        title = "RIASEC Career Interest Report"
-        subtitle = "Your Career Interest Profile"
+        title = "Báo Cáo Sở Thích Nghề Nghiệp RIASEC"
+        subtitle = "Hồ Sơ Sở Thích Nghề Nghiệp Của Bạn"
         intro_paragraphs = [
-            "This report analyzes your career interests using Holland's RIASEC model, a widely "
-            "validated framework that categorizes occupational interests into six types: Realistic, "
-            "Investigative, Artistic, Social, Enterprising, and Conventional.",
-            "Your interest profile indicates which work environments and activities are most likely "
-            "to provide satisfaction and engagement. Research shows that career-interest alignment "
-            "correlates with job satisfaction and performance.",
-            "Use these insights to explore career paths that match your natural interests and to "
-            "understand how your preferences compare across different occupational domains.",
+            "Báo cáo này phân tích sở thích nghề nghiệp của bạn sử dụng mô hình RIASEC của Holland, "
+            "một khung lý thuyết được kiểm chứng rộng rãi phân loại sở thích nghề nghiệp thành sáu loại: "
+            "Kỹ Thuật (Realistic), Nghiên Cứu (Investigative), Nghệ Thuật (Artistic), Xã Hội (Social), "
+            "Kinh Doanh (Enterprising) và Nghiệp Vụ (Conventional).",
+            "Hồ sơ sở thích của bạn cho biết môi trường làm việc và hoạt động nào có khả năng mang lại "
+            "sự hài lòng và gắn kết nhất. Nghiên cứu cho thấy sự phù hợp giữa sở thích và nghề nghiệp "
+            "có tương quan với mức độ hài lòng và hiệu suất công việc.",
+            "Hãy sử dụng những hiểu biết này để khám phá con đường nghề nghiệp phù hợp với sở thích "
+            "tự nhiên của bạn và hiểu cách sở thích của bạn so sánh giữa các lĩnh vực nghề nghiệp khác nhau.",
         ]
 
     return {

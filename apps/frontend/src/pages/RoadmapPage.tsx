@@ -194,12 +194,12 @@ const RoadmapPage = () => {
 
   // Load users who completed this career's roadmap
   useEffect(() => {
-    if (!roadmap?.careerTitle || mentorsLoaded) return;
+    if (!roadmap?.careerTitle || !careerId || mentorsLoaded) return;
     setMentorsLoaded(true);
     mentorMatchingService.findMentorsForCareer(roadmap.careerTitle, 5, careerId)
-      .then(setCompletedMentors)
+      .then(data => setCompletedMentors(data || []))
       .catch(() => setCompletedMentors([]));
-  }, [roadmap?.careerTitle, careerId, mentorsLoaded]);
+  }, [roadmap?.careerTitle, careerId]); // remove mentorsLoaded — prevents re-trigger loop
 
   const handleCompleteMilestone = async (milestoneId: string) => {
     if (!careerId) return;

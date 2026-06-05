@@ -154,7 +154,8 @@ function normalizeAxiosError(error: AxiosError): ApiError {
 /** Axios instance đã được cấu hình với interceptors */
 const apiClient: AxiosInstance = axios.create({
   baseURL: getBaseUrl(),
-  timeout: 15_000,           // 15 giây timeout
+  // Default 60s — AI endpoints can take 10-90s. Override per-call when needed.
+  timeout: 60_000,
   headers: { 'Content-Type': 'application/json' },
 });
 

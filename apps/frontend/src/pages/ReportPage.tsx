@@ -163,14 +163,21 @@ const ReportPage = () => {
 
             // Transform career recommendations to CareerFullData format with enriched data from 5 tables
             const careerData: CareerFullData[] = careerResults.map(({ item, detail, onetCode }) => {
-                // Extract tasks from career_tasks
+                // Extract tasks from career_tasks, fallback to DWAs if empty
                 const tasksRaw = detail?.sections?.tasks;
-                const tasks = Array.isArray(tasksRaw)
-                    ? tasksRaw
-                        .sort((a, b) => (b.importance || 0) - (a.importance || 0))
+                let tasks: string[] = [];
+                if (Array.isArray(tasksRaw) && tasksRaw.length > 0) {
+                    tasks = tasksRaw
+                        .sort((a: any, b: any) => (b.importance || 0) - (a.importance || 0))
                         .slice(0, 10)
-                        .map(t => t.task_text)
-                    : [];
+                        .map((t: any) => t.task_text);
+                } else {
+                    // Fallback: use DWAs (Detailed Work Activities) as tasks
+                    const dwasRaw = detail?.sections?.detailed_work_activities;
+                    if (Array.isArray(dwasRaw) && dwasRaw.length > 0) {
+                        tasks = dwasRaw.slice(0, 10).map((d: any) => d.dwa_title || d.activity_description || '').filter(Boolean);
+                    }
+                }
 
                 // Extract skills from career_ksas (ksa_type = 'skill')
                 const skillsRaw = detail?.sections?.skills;
@@ -199,13 +206,24 @@ const ReportPage = () => {
                         .map(a => ({ name: a.name, level: a.level || 0, importance: a.importance || 0 }))
                     : [];
 
-                // Extract technologies from career_technology
+                // Extract technologies from career_technology, fallback to work_activities
                 const techRaw = detail?.sections?.technology;
-                const technologies = Array.isArray(techRaw)
-                    ? techRaw
+                let technologies: Array<{ category: string; name: string; hot_flag: boolean }> = [];
+                if (Array.isArray(techRaw) && techRaw.length > 0) {
+                    technologies = techRaw
                         .slice(0, 12)
-                        .map(t => ({ category: t.category || '', name: t.name, hot_flag: t.hot_flag || false }))
-                    : [];
+                        .map((t: any) => ({ category: t.category || '', name: t.name, hot_flag: t.hot_flag || false }));
+                } else {
+                    // Fallback: use work_activities as pseudo-technologies
+                    const waRaw = detail?.sections?.work_activities;
+                    if (Array.isArray(waRaw) && waRaw.length > 0) {
+                        technologies = waRaw.slice(0, 8).map((w: any) => ({
+                            category: w.activity_category_vi || w.activity_category || '',
+                            name: w.element_name_vi || w.element_name || '',
+                            hot_flag: w.is_top_activity || false,
+                        })).filter((t: any) => t.name);
+                    }
+                }
 
                 // Get salary from career_overview
                 const overview = detail?.sections?.overview;
@@ -223,8 +241,8 @@ const ReportPage = () => {
                 return {
                     career_id: item.career_id,
                     onet_code: detail?.onet_code || onetCode,
-                    title: detail?.title || item.title_en || item.title_vn || item.career_id,
-                    description: detail?.short_desc || item.description,
+                    title: detail?.title || item.title_vi || item.title_vn || item.title_en || item.career_id,
+                    description: detail?.description || item.description,
                     match_score: item.display_match ?? item.match_score * 100,
                     tags: item.tags || [],
                     tasks,

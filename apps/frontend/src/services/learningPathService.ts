@@ -29,8 +29,17 @@ export interface SkillGapPlan {
   career_id: string | null;
   career_title: string | null;
   onet_code: string | null;
+  cv_filename?: string | null;
   match_percentage: number | null;
   missing_skills_count: number | null;
+  critical_count?: number | null;
+  important_count?: number | null;
+  matched_count?: number | null;
+  has_personalized_roadmap?: boolean;
+  personalized_roadmap_id?: number | null;
+  personalized_roadmap_progress?: number | null;
+  personalized_last_updated?: string | null;
+  personalized_completed_at?: string | null;
   learning_plan: {
     summary?: string;
     total_weeks?: number;

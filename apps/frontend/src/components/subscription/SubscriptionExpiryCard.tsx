@@ -76,7 +76,7 @@ const SubscriptionExpiryCard: React.FC<SubscriptionExpiryCardProps> = ({ classNa
           <div className="text-right">
             <div className="text-2xl font-bold">{Math.abs(daysRemaining)}</div>
             <div className="text-xs opacity-90">
-              {isExpired ? 'days ago' : 'days remaining'}
+              {isExpired ? 'ngày trước' : 'ngày còn lại'}
             </div>
           </div>
         </div>
@@ -86,13 +86,13 @@ const SubscriptionExpiryCard: React.FC<SubscriptionExpiryCardProps> = ({ classNa
       <div className="p-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Activation Date</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Ngày Kích Hoạt</p>
             <p className="text-sm font-semibold text-gray-900 dark:text-white">
               {activationDate.toLocaleDateString('en-US')}
             </p>
           </div>
           <div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Expiry Date</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Ngày Hết Hạn</p>
             <p className="text-sm font-semibold text-gray-900 dark:text-white">
               {expiryDate.toLocaleDateString('en-US')}
             </p>
@@ -102,7 +102,7 @@ const SubscriptionExpiryCard: React.FC<SubscriptionExpiryCardProps> = ({ classNa
         {/* Progress Bar */}
         <div className="mt-4">
           <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-2">
-            <span>Usage Time</span>
+            <span>Thời Gian Sử Dụng</span>
             <span>{usagePercentage.toFixed(1)}%</span>
           </div>
           <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
@@ -154,7 +154,7 @@ const SubscriptionExpiryCard: React.FC<SubscriptionExpiryCardProps> = ({ classNa
                   ? 'Plan has expired'
                   : isExpiringSoon
                     ? `Plan expiring in ${daysRemaining} days`
-                    : `Plan valid for ${daysRemaining} days`
+                    : `Gói còn hiệu lực ${daysRemaining} ngày`
                 }
               </p>
               <p className={`text-xs mt-1 ${isExpired
@@ -167,7 +167,7 @@ const SubscriptionExpiryCard: React.FC<SubscriptionExpiryCardProps> = ({ classNa
                   ? 'Renew now to continue using all Premium features'
                   : isExpiringSoon
                     ? 'Renew early to avoid service interruption'
-                    : 'You can continue using all Premium features'
+                    : 'Bạn có thể tiếp tục sử dụng tất cả tính năng cao cấp'
                 }
               </p>
             </div>

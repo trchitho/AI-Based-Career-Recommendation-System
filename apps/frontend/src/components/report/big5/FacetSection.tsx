@@ -202,6 +202,39 @@ const DEFAULT_CARD: CardColor = {
     ring: 'ring-gray-400',
 };
 
+// Vietnamese display names for facet labels
+const LABEL_DISPLAY_NAMES: Record<string, string> = {
+    innovator: 'Nhà Đổi Mới (Innovator)',
+    humanitarian: 'Nhà Nhân Đạo (Humanitarian)',
+    caretaker: 'Người Cẩn Trọng (Caretaker)',
+    pragmatist: 'Người Thực Tế (Pragmatist)',
+    ambitious: 'Tham Vọng (Ambitious)',
+    excitable: 'Nhiệt Huyết (Excitable)',
+    dutiful: 'Tận Tụy (Dutiful)',
+    casual: 'Thoải Mái (Casual)',
+    gregarious: 'Hòa Đồng (Gregarious)',
+    dominant: 'Quyết Đoán (Dominant)',
+    supportive: 'Hỗ Trợ (Supportive)',
+    independent: 'Độc Lập (Independent)',
+    inspiring: 'Truyền Cảm Hứng (Inspiring)',
+    informative: 'Cung Cấp Thông Tin (Informative)',
+    insightful: 'Sâu Sắc (Insightful)',
+    concise: 'Ngắn Gọn (Concise)',
+    taskmaster: 'Người Dẫn Dắt (Taskmaster)',
+    empath: 'Đồng Cảm (Empath)',
+    improviser: 'Ứng Biến (Improviser)',
+    cooperator: 'Hợp Tác (Cooperator)',
+    director: 'Người Điều Phối (Director)',
+    visionary: 'Tầm Nhìn (Visionary)',
+    inspector: 'Kiểm Soát (Inspector)',
+    responder: 'Linh Hoạt (Responder)',
+};
+
+const getLabelDisplayName = (labelName: string): string => {
+    const lowerName = labelName.toLowerCase();
+    return LABEL_DISPLAY_NAMES[lowerName] || labelName;
+};
+
 const getCardColorByName = (labelName: string): CardColor => {
     const lowerName = labelName.toLowerCase();
     return LABEL_CARD_COLORS[lowerName] || DEFAULT_CARD;
@@ -299,9 +332,9 @@ const FacetSection = ({ facet }: FacetSectionProps) => {
                             >
                                 <div className="flex items-center justify-between mb-1">
                                     <h4
-                                        className={`font-bold uppercase text-xs print:text-[10px] ${cardColor.text}`}
+                                        className={`font-bold text-xs print:text-[10px] ${cardColor.text}`}
                                     >
-                                        {label.name}
+                                        {getLabelDisplayName(label.name)}
                                     </h4>
                                     <span
                                         className={`text-xs font-semibold print:text-[10px] ${cardColor.text}`}

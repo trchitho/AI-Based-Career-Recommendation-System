@@ -542,13 +542,7 @@ KHÔNG PHẢI CV nếu:
         if not text or not text.strip():
             raise ValueError("Không tìm thấy nội dung văn bản trong ảnh")
 
-        # TC-NON-02: Validate that extracted text is actually CV content using AI
-        print("  [CV Validation] Checking if content is a valid CV...")
-        is_cv, reason = self._is_cv_content(text)
-        if not is_cv:
-            raise ValueError(f"Tài liệu không phải là CV. {reason}")
-
-        print("  [CV Validation] ✓ Content validated as CV")
+        # Skip redundant CV validation here — parse_cv_complete does it once after extraction
         return text
 
     # ── TC-IMG-12: Multi-image merge ──────────────────────────────────────
@@ -1098,6 +1092,14 @@ Be lenient: as long as the document contains some professional information (expe
 
 STEP 2 — If it is a professional document, extract all information.
 
+Extract skills from ALL sections: Skills section, Experience bullets, About Me.
+Also infer IMPLIED skills from experience context:
+- Managing people → "Active Listening", "Social Perceptiveness", "Coordination", "Monitoring", "Time Management"
+- Writing reports → "Writing", "Reading Comprehension"
+- Growing sales/revenue → "Judgment and Decision Making", "Active Learning", "Service Orientation"
+- Planning/strategy → "Critical Thinking", "Systems Analysis", "Learning Strategies"
+- Customer-facing roles → "Service Orientation", "Social Perceptiveness", "Persuasion"
+
 Return ONLY valid JSON:
 {{
   "is_cv": true,
@@ -1108,7 +1110,7 @@ Return ONLY valid JSON:
   }},
   "skills": [
     {{"name": "Python", "category": "Programming"}},
-    {{"name": "React", "category": "Frontend"}}
+    {{"name": "Active Listening", "category": "Soft Skill", "source": "implied"}}
   ]
 }}
 
@@ -1117,19 +1119,23 @@ If clearly NOT a professional document (e.g., a recipe, a movie script, an invoi
 
 RULES:
 - Return ONLY valid JSON, no markdown
-- Extract ALL skills (technical + soft)
+- Extract ALL skills (technical + soft + implied from experience)
+- Include both explicitly listed skills AND skills implied by experience/achievements
 - name = person's real name (2-4 words, NOT a job title). If not found, use "".
 """
         try:
             cv_stream = multi_stream_manager.get_cv_stream()
             if not cv_stream.is_available():
-                return {"is_cv": False, "reason": "AI stream not available"}
+                # Stream unavailable → allow by default, return minimal valid structure
+                print("  [WARN] CV stream unavailable, allowing document by default")
+                return {"is_cv": True, "reason": "stream unavailable", "personal_info": {}, "skills": []}
 
-            print(f"  📤 [COMBINED] Sending {len(cv_text)} chars — validate + extract in 1 call")
+            print(f"  [COMBINED] Sending {len(cv_text)} chars — validate + extract in 1 call")
             response_text = cv_stream.generate_content_with_retry(prompt)
 
             if not response_text:
-                return {"is_cv": False, "reason": "No AI response"}
+                print("  [WARN] No AI response, allowing document by default")
+                return {"is_cv": True, "reason": "no response", "personal_info": {}, "skills": []}
 
             # Strip markdown fences
             if '```json' in response_text:
@@ -1203,15 +1209,15 @@ Return ONLY valid JSON, no markdown, no explanations.
             cv_stream = multi_stream_manager.get_cv_stream()
             
             if not cv_stream.is_available():
-                print("  [WARN] CV analysis stream not available, assuming NOT a CV (safe default)")
-                return False
-            
-            print(f"  📤 Sending {len(text_preview)} chars to Gemini for CV validation...")
+                print("  [WARN] CV analysis stream not available, allowing by default")
+                return True
+
+            print(f"  Sending {len(text_preview)} chars to Gemini for CV validation...")
             response_text = cv_stream.generate_content_with_retry(prompt)
-            
+
             if not response_text:
-                print("  [WARN] No response from Gemini, assuming NOT a CV (safe default)")
-                return False
+                print("  [WARN] No response from Gemini, allowing by default")
+                return True
             
             # Parse JSON response
             if '```json' in response_text:
@@ -1333,10 +1339,11 @@ Return ONLY valid JSON, no markdown, no explanations.
             print("\n[ERROR] Could not extract text from file")
             raise ValueError("Không thể đọc nội dung từ file.")
 
-        # CRITICAL: Validate content BEFORE calling Gemini (saves tokens!)
+        # Quick heuristic check — only reject obvious non-CVs (financial docs, lorem ipsum)
+        # Detailed AI validation happens in _validate_and_extract below
         is_cv, reason = self._is_cv_content(text)
-        if not is_cv:
-            print(f"\n[ERR] ERROR: File does not appear to be a CV — {reason}")
+        if not is_cv and any(kw in reason.lower() for kw in ["hóa đơn", "invoice", "lorem", "biên lai"]):
+            print(f"\n[ERR] File is clearly not a CV — {reason}")
             raise ValueError(f"File tải lên không phải là CV. {reason}")
 
         print("\n[OK] TEXT EXTRACTION SUCCESSFUL")

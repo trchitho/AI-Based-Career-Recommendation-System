@@ -137,7 +137,7 @@ async def deepgram_stt_websocket(
     try:
         async with websockets.connect(
             dg_url,
-            additional_headers={"Authorization": f"Token {api_key}"},
+            extra_headers={"Authorization": f"Token {api_key}"},
             ping_interval=None,   # Deepgram manages its own keepalive
             close_timeout=5,
         ) as dg_ws:
@@ -208,8 +208,8 @@ async def deepgram_stt_websocket(
                         logger.warning(f"[DG-WS] send error: {e}")
 
             # Run both tasks concurrently and cancel remaining when one finishes
-            recv_task = asyncio.create_task(_recv_from_deepgram())
-            send_task = asyncio.create_task(_send_to_deepgram())
+            recv_task = asyncio.create_task(_recv_transcripts())
+            send_task = asyncio.create_task(_send_audio())
             
             try:
                 # Wait for either task to complete

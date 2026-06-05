@@ -38,7 +38,7 @@ const CareerMatches = ({ careers }: CareerMatchesProps) => {
 
             <div className="space-y-6">
                 {careers.map((career, index) => {
-                    const matchPercent = career.display_match ?? Math.round(career.match_score * 100);
+                    const matchPercent = parseFloat((career.display_match ?? career.match_score * 100).toFixed(1));
                     const careerId = career.slug || career.career_id;
 
                     return (

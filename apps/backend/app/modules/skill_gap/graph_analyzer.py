@@ -155,20 +155,29 @@ class SkillGraphAnalyzer:
                 ORDER BY importance DESC
             """), {"code": actual_onet_code}).fetchall()
 
+            seen_names: set = set()
             skills = []
             for row in rows:
-                skill_name = row.name_en or row.name_vn or ""
+                # Ưu tiên tên tiếng Việt, fallback sang tiếng Anh
+                skill_name = row.name_vn or row.name_en or ""
                 if not skill_name:
                     continue
+                # Dedup theo tên (case-insensitive)
+                key = skill_name.strip().lower()
+                if key in seen_names:
+                    continue
+                seen_names.add(key)
+
                 # Importance stored as 0-100 or 0-1, normalize to 0-1
                 raw_imp = float(row.importance or 50)
                 importance = raw_imp / 100.0 if raw_imp > 1 else raw_imp
 
                 skills.append({
-                    'name': row.name_en or row.name_vn or "",
+                    'name': skill_name.strip(),
+                    'name_en': row.name_en or "",
                     'category': row.category or 'Other',
                     'importance': importance,
-                    'proficiency_level': 'intermediate',  # Default
+                    'proficiency_level': 'intermediate',
                     'source': 'onet_database'
                 })
             
@@ -673,8 +682,9 @@ class SkillGraphAnalyzer:
             cv_key = cv_skill_name.lower()
             job_key = job_skill_name.lower()
 
-            # Skip if either side already matched
-            if cv_key in seen_cv_skills or job_key in seen_job_skills:
+            # Allow many-to-many: one CV skill can cover multiple job skills.
+            # Only skip if this exact job skill was already covered (avoid double-counting).
+            if job_key in seen_job_skills:
                 continue
 
             seen_cv_skills.add(cv_key)
@@ -684,7 +694,7 @@ class SkillGraphAnalyzer:
                 confidence = float(pair.get('confidence', 0.8))
             except (TypeError, ValueError):
                 confidence = 0.0
-            if confidence < 0.75:
+            if confidence < 0.65:   # Lowered from 0.75 to handle cross-language matching
                 unmatched_cv.add(cv_skill_name)
                 unmatched_job.add(job_skill_name)
                 continue
@@ -763,12 +773,33 @@ class SkillGraphAnalyzer:
         print(f"     - Nice-to-have gaps: {len(nice_to_have_gaps)}")
         print(f"     - Extra skills: {len(extra_skills)}")
         
+        # Dedup matched_skills by CV skill name — keep highest importance
+        dedup_matched: dict = {}
+        for ms in matched_skills:
+            key = ms['name'].strip().lower()
+            if key not in dedup_matched or ms['importance'] > dedup_matched[key]['importance']:
+                dedup_matched[key] = ms
+        matched_skills_deduped = list(dedup_matched.values())
+
+        # Dedup gaps by skill name
+        def _dedup_gaps(gaps: list) -> list:
+            seen: dict = {}
+            for g in gaps:
+                k = g['name'].strip().lower()
+                if k not in seen or g['importance'] > seen[k]['importance']:
+                    seen[k] = g
+            return list(seen.values())
+
+        critical_gaps    = _dedup_gaps(critical_gaps)
+        important_gaps   = _dedup_gaps(important_gaps)
+        nice_to_have_gaps = _dedup_gaps(nice_to_have_gaps)
+
         return {
             'match_percentage': round(match_percentage, 2),
             'total_required_skills': len(job_skills),
-            'matched_skills_count': len(matched_skills),
+            'matched_skills_count': len(matched_skills_deduped),
             'missing_skills_count': len(unmatched_job),
-            'matched_skills': sorted(matched_skills, key=lambda x: x['importance'], reverse=True),
+            'matched_skills': sorted(matched_skills_deduped, key=lambda x: x['importance'], reverse=True),
             'skill_gaps': {
                 'critical': sorted(critical_gaps, key=lambda x: x['importance'], reverse=True),
                 'important': sorted(important_gaps, key=lambda x: x['importance'], reverse=True),

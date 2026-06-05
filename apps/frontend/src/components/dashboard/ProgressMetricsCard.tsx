@@ -27,34 +27,34 @@ const ProgressMetricsCard: React.FC<ProgressMetricsCardProps> = ({ metrics }) =>
       </div>
 
       {/* Metrics Grid */}
-      <div className="flex justify-between items-center text-center divide-x divide-gray-100 dark:divide-gray-700">
+      <div className="flex justify-between items-stretch text-center divide-x divide-gray-100 dark:divide-gray-700">
 
         {/* Assessments */}
-        <div className="flex-1 px-2 group cursor-default">
-          <div className="text-4xl font-extrabold text-gray-900 dark:text-white mb-1 group-hover:text-indigo-800 transition-colors duration-300">
+        <div className="flex-1 px-2 group cursor-default flex flex-col items-center justify-start">
+          <div className="text-4xl font-extrabold text-gray-900 dark:text-white mb-2 group-hover:text-indigo-800 transition-colors duration-300">
             {metrics.completedAssessments}
           </div>
-          <div className="text-[10px] sm:text-xs text-gray-400 font-bold uppercase tracking-wider leading-tight">
+          <div className="text-[10px] sm:text-xs text-gray-400 font-bold uppercase tracking-wider leading-tight min-h-[2.5em] flex items-center">
             {t("dashboard.stats.assessmentsCompleted")}
           </div>
         </div>
 
         {/* Active Roadmaps */}
-        <div className="flex-1 px-2 group cursor-default">
-          <div className="text-4xl font-extrabold text-gray-900 dark:text-white mb-1 group-hover:text-indigo-800 transition-colors duration-300">
+        <div className="flex-1 px-2 group cursor-default flex flex-col items-center justify-start">
+          <div className="text-4xl font-extrabold text-gray-900 dark:text-white mb-2 group-hover:text-indigo-800 transition-colors duration-300">
             {metrics.activeRoadmaps}
           </div>
-          <div className="text-[10px] sm:text-xs text-gray-400 font-bold uppercase tracking-wider leading-tight">
+          <div className="text-[10px] sm:text-xs text-gray-400 font-bold uppercase tracking-wider leading-tight min-h-[2.5em] flex items-center">
             {t("dashboard.stats.activeRoadmaps")}
           </div>
         </div>
 
         {/* Milestones */}
-        <div className="flex-1 px-2 group cursor-default">
-          <div className="text-4xl font-extrabold text-gray-900 dark:text-white mb-1 group-hover:text-indigo-800 transition-colors duration-300">
+        <div className="flex-1 px-2 group cursor-default flex flex-col items-center justify-start">
+          <div className="text-4xl font-extrabold text-gray-900 dark:text-white mb-2 group-hover:text-indigo-800 transition-colors duration-300">
             {metrics.completedMilestones}
           </div>
-          <div className="text-[10px] sm:text-xs text-gray-400 font-bold uppercase tracking-wider leading-tight">
+          <div className="text-[10px] sm:text-xs text-gray-400 font-bold uppercase tracking-wider leading-tight min-h-[2.5em] flex items-center">
             {t("dashboard.stats.milestonesAchieved")}
           </div>
         </div>

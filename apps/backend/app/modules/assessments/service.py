@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import json
-import os
 import random
 from typing import Any, Literal, Optional
 
 import requests
+from app.core.ai_core_config import AI_CORE_BASE_URL, requests_timeout
 from app.core.exceptions import NotFoundError
 from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session
@@ -24,8 +24,8 @@ from .models import (
 )
 from .schemas import TraitSnapshot
 
-# URL AI-core (có thể override qua env)
-AI_CORE_URL = os.getenv("AI_CORE_URL", "http://localhost:9000")
+# URL AI-core — dùng config tập trung từ app.core.ai_core_config.
+AI_CORE_URL = AI_CORE_BASE_URL
 
 # ĐÃ CÓ: fuse_user_traits(session, user_id, test_riasec=None, test_big5=None)
 # Mình chỉ wrap lại cho gọn.
@@ -148,10 +148,23 @@ def infer_user_traits_for_essay(
         resp = requests.post(
             url,
             json={"essay_text": essay_text, "lang": "vi"},
-            timeout=60,
+            timeout=requests_timeout(),
         )
 
         print(f"[assessments] AI-core response status: {resp.status_code}")
+
+        if resp.status_code == 422:
+            # AI-core validation error (essay too short or malformed request)
+            detail = ""
+            try:
+                detail = resp.json().get("detail", resp.text[:200])
+            except Exception:
+                detail = resp.text[:200]
+            print(
+                f"[assessments] infer_user_traits_for_essay: AI-core returned 422 "
+                f"(essay_len={len(essay_text)}, detail={detail}). Skipping."
+            )
+            return
 
         resp.raise_for_status()
         data = resp.json()
@@ -427,7 +440,13 @@ def save_assessment(session: Session, user_id: int, payload: dict) -> int:
             "trung lập": 3.0,
             "thích": 4.0,
             "rất thích": 5.0,
-            # Big Five style
+            # Big Five style (accuracy scale)
+            "very inaccurate": 1.0,
+            "moderately inaccurate": 2.0,
+            "neither accurate nor inaccurate": 3.0,
+            "moderately accurate": 4.0,
+            "very accurate": 5.0,
+            # Big Five agree/disagree style
             "strongly disagree": 1.0,
             "disagree": 2.0,
             "agree": 4.0,
@@ -437,6 +456,12 @@ def save_assessment(session: Session, user_id: int, payload: dict) -> int:
             "không đồng ý": 2.0,
             "đồng ý": 4.0,
             "rất đồng ý": 5.0,
+            # Generic
+            "very low": 1.0,
+            "low": 2.0,
+            "medium": 3.0,
+            "high": 4.0,
+            "very high": 5.0,
         }
 
         return likert_map.get(sl)
@@ -549,6 +574,8 @@ def save_assessment(session: Session, user_id: int, payload: dict) -> int:
             skipped_count += 1
             continue
 
+        # dim_letter từ effective_key = COALESCE(question_key, dimension)
+        # Ví dụ: "R1"→"R", "O1"→"O", "C3"→"C"
         dim_letter = (qkey or "").strip()[:1].upper() or None
         if not dim_letter:
             skipped_count += 1
