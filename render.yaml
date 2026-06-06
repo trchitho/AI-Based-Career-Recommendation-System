@@ -14,25 +14,27 @@ services:
       - key: REDIS_URL
         sync: false
       - key: ALLOWED_ORIGINS
-        sync: false
+        value: https://ai-based-career-recommendation-system.pages.dev
       - key: FRONTEND_BASE_URL
-        sync: false
+        value: https://ai-based-career-recommendation-system.pages.dev
       - key: FRONTEND_VERIFY_URL
-        sync: false
+        value: https://ai-based-career-recommendation-system.pages.dev/verify?token={token}
       - key: FRONTEND_OAUTH_REDIRECT
-        sync: false
+        value: https://ai-based-career-recommendation-system.pages.dev/oauth/callback
       - key: GOOGLE_REDIRECT_URI
-        sync: false
+        value: https://career-ai-backend-elu0.onrender.com/api/auth/google/callback
       - key: ZALOPAY_CALLBACK_URL
-        sync: false
+        value: https://career-ai-backend-elu0.onrender.com/api/payment/callback
       - key: ZALOPAY_REDIRECT_URL
-        sync: false
+        value: https://ai-based-career-recommendation-system.pages.dev/payment/return
       - key: NEO4J_URL
         sync: false
       - key: NEO4J_URI
         sync: false
       - key: NEO4J_USER
         sync: false
+      - key: NEO4J_DATABASE
+        value: 9f9dcc33
       - key: NEO4J_PASS
         sync: false
       - key: NEO4J_PASSWORD
