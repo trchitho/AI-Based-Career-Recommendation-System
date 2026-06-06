@@ -34,7 +34,10 @@ export const SocketProvider = ({ children }: SocketProviderProps) => {
     if (!token) return;
 
     // Initialize native WebSocket connection to FastAPI endpoint
-    const WS_BASE = import.meta.env.DEV ? 'ws://127.0.0.1:8000' : window.location.origin.replace(/^http/, 'ws');
+    const API_ORIGIN = import.meta.env.DEV
+      ? 'http://127.0.0.1:8000'
+      : (import.meta.env.VITE_API_URL || window.location.origin).replace(/\/$/, '');
+    const WS_BASE = API_ORIGIN.replace(/^http/, 'ws');
     const url = `${WS_BASE}/ws/notifications?token=${encodeURIComponent(token)}`;
 
     try {

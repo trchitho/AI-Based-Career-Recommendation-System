@@ -242,7 +242,7 @@ const ReportPage = () => {
                     career_id: item.career_id,
                     onet_code: detail?.onet_code || onetCode,
                     title: detail?.title || item.title_vi || item.title_vn || item.title_en || item.career_id,
-                    description: detail?.description || item.description,
+                    description: detail?.short_desc || item.description,
                     match_score: item.display_match ?? item.match_score * 100,
                     tags: item.tags || [],
                     tasks,

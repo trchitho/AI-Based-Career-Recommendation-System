@@ -88,7 +88,7 @@ export const preloadAssets = () => {
   });
 
   // Preload critical images
-  Object.values(ASSETS.images).forEach((url) => {
+  (Object.values(ASSETS.images) as string[]).forEach((url) => {
     const img = new Image();
     img.src = url;
   });

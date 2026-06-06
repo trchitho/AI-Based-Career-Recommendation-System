@@ -1,0 +1,43 @@
+services:
+  - type: web
+    name: career-ai-backend
+    runtime: docker
+    rootDir: .
+    dockerfilePath: ./apps/backend/Dockerfile
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: FRONTEND_BASE_URL
+        sync: false
+      - key: FRONTEND_VERIFY_URL
+        sync: false
+      - key: FRONTEND_OAUTH_REDIRECT
+        sync: false
+      - key: GOOGLE_REDIRECT_URI
+        sync: false
+      - key: ZALOPAY_CALLBACK_URL
+        sync: false
+      - key: ZALOPAY_REDIRECT_URL
+        sync: false
+      - key: NEO4J_URL
+        sync: false
+      - key: NEO4J_URI
+        sync: false
+      - key: NEO4J_USER
+        sync: false
+      - key: NEO4J_PASS
+        sync: false
+      - key: NEO4J_PASSWORD
+        sync: false
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: ADMIN_API_TOKEN
+        generateValue: true
