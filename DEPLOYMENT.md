@@ -105,3 +105,27 @@ After first deploy, update these external dashboards:
 ## Free Tier Limits
 
 Render free web services spin down after idle time, so the first request after inactivity can be slow. The 10 GB local model folder is intentionally not copied into the backend image; use Gemini fallback for the free online deployment or move models to a paid service/object storage later.
+
+## 8. PostgreSQL Migration to Neon
+
+The production database uses the five application schemas `core`, `ai`,
+`analytics`, `chatbot`, and `interview`. The migration script also preserves
+custom types and functions in `public`, then recreates the required extensions.
+
+Set connection strings only in the current shell. Do not save them in the
+repository:
+
+```powershell
+$env:SOURCE_DATABASE_URL = "postgresql://..."
+$env:TARGET_DATABASE_URL = "postgresql://..."
+
+.\scripts\migrate-postgres-to-neon.ps1 `
+  -SourceDatabaseUrl $env:SOURCE_DATABASE_URL `
+  -TargetDatabaseUrl $env:TARGET_DATABASE_URL `
+  -CompactSource `
+  -Force
+```
+
+The script checks the source size against the Neon Free 0.5 GB limit, creates
+a rollback dump of the current target, performs fail-fast transactional
+restores, and verifies table counts after migration.
