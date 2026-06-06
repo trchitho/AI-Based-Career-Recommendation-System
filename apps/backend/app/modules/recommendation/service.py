@@ -10,6 +10,7 @@ import httpx
 from app.core.ai_core_config import (
     AI_CORE_BASE_URL,
     AI_CORE_CONNECT_TIMEOUT,
+    AI_CORE_ENABLED,
     AI_CORE_READ_TIMEOUT,
     HTTPX_CONNECT_TIMEOUT,
     HTTPX_NETWORK_ERRORS,
@@ -335,19 +336,26 @@ class RecService:
         riasec_values = traits.get("riasec_values")
         top_dim = traits.get("riasec_top_dim")
 
-        # 3) Gọi AI-core
-        logger.debug(f"[get_main_recommendations] Calling AI-core for assessment {assessment_id}")
-        scored = self._call_ai_core_top_careers(assessment_id, internal_top_k)
-        logger.debug(f"[get_main_recommendations] AI-core returned {len(scored) if scored else 0} items")
+        # 3) Use AI-core only when it is deployed as a separate service.
+        if AI_CORE_ENABLED:
+            logger.debug(f"[get_main_recommendations] Calling AI-core for assessment {assessment_id}")
+            scored = self._call_ai_core_top_careers(assessment_id, internal_top_k)
+            logger.debug(f"[get_main_recommendations] AI-core returned {len(scored) if scored else 0} items")
+        else:
+            logger.info(
+                "[Recommendations] AI-core disabled; using persisted PostgreSQL "
+                "recommendations and deterministic RIASEC catalog scoring"
+            )
+            scored = []
 
         # 3.1) Nếu AI-core không trả về kết quả, thử saved recommendations rồi fallback catalog.
         if not scored:
-            logger.warning(f"AI-core returned no results, trying saved recommendations for assessment {assessment_id}")
+            logger.info(f"Trying saved recommendations for assessment {assessment_id}")
             saved_items = self._get_saved_recommendations_from_db(db, assessment_id, top_k)
             if saved_items:
                 logger.debug(f"Returning {len(saved_items)} saved recommendations")
                 return {"request_id": None, "items": saved_items}
-            logger.warning(f"No saved recommendations found for assessment {assessment_id}; using catalog fallback")
+            logger.info(f"No saved recommendations found for assessment {assessment_id}; scoring PostgreSQL catalog")
             fallback_items = self._get_catalog_fallback_recommendations(db, riasec_values, top_k)
             self._apply_display_match(fallback_items)
             for idx, it in enumerate(fallback_items, start=1):
@@ -524,7 +532,7 @@ class RecService:
 
             items = []
             for row in rows:
-                riasec_codes = row[10] if row[10] else []
+                riasec_codes = row[9] if row[9] else []
                 if isinstance(riasec_codes, (list, tuple)):
                     riasec_codes = [str(x) for x in riasec_codes if x is not None]
 

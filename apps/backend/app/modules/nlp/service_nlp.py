@@ -17,7 +17,7 @@ import time
 from typing import Optional
 
 import requests
-from app.core.ai_core_config import AI_CORE_BASE_URL, requests_timeout
+from app.core.ai_core_config import AI_CORE_BASE_URL, AI_CORE_ENABLED, requests_timeout
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -26,11 +26,7 @@ logger = logging.getLogger(__name__)
 # URL AI-core — dùng config tập trung từ app.core.ai_core_config.
 AI_CORE_URL = AI_CORE_BASE_URL
 EMBEDDING_DIM = 768
-_GEMINI_EMBED_MODELS = [
-    m.strip()
-    for m in os.getenv("GEMINI_EMBEDDING_MODELS", "models/embedding-001,text-embedding-004").split(",")
-    if m.strip()
-]
+_GEMINI_EMBED_MODEL = os.getenv("GEMINI_EMBEDDING_MODEL", "gemini-embedding-001").strip()
 _gemini_embed_unavailable = False
 
 RIASEC_KEYS = ["realistic", "investigative", "artistic", "social", "enterprising", "conventional"]
@@ -53,7 +49,8 @@ _ESSAY_CACHE_MAX = 200  # evict oldest when full
 
 def _gemini_api_key() -> str:
     return (
-        os.getenv("GEMINI_API_KEY")
+        os.getenv("GEMINI_ASSESSMENT_API_KEY")
+        or os.getenv("GEMINI_API_KEY")
         or os.getenv("GEMINI_API_KEY_1")
         or os.getenv("GEMINI_API_KEY_2")
         or ""
@@ -80,27 +77,28 @@ def get_embedding(text_input: str, task_type: str = "RETRIEVAL_DOCUMENT") -> lis
     """
     PB33: Generate 768D text embedding.
     Primary: AI-core SBERT (Vietnamese-optimized)
-    Fallback: Gemini text-embedding-004
+    Fallback: Gemini gemini-embedding-001 with 768 output dimensions
     Returns [] on failure (caller decides whether to skip or raise).
     """
     text_input = (text_input or "").strip()
     if not text_input:
         return []
 
-    # 1) Try AI-core SBERT endpoint
-    try:
-        res = requests.post(
-            f"{AI_CORE_URL}/ai/encode",
-            json={"text": text_input[:2000]},
-            timeout=requests_timeout(),
-        )
-        if res.status_code == 200:
-            data = res.json()
-            emb = data.get("embedding") or data.get("vector") or []
-            if emb and len(emb) == EMBEDDING_DIM:
-                return [float(x) for x in emb]
-    except Exception as e:
-        logger.debug(f"[NLP] AI-core /ai/encode unavailable: {e}")
+    # 1) Try AI-core SBERT endpoint only when a separately deployed service is enabled.
+    if AI_CORE_ENABLED:
+        try:
+            res = requests.post(
+                f"{AI_CORE_URL}/ai/encode",
+                json={"text": text_input[:2000]},
+                timeout=requests_timeout(),
+            )
+            if res.status_code == 200:
+                data = res.json()
+                emb = data.get("embedding") or data.get("vector") or []
+                if emb and len(emb) == EMBEDDING_DIM:
+                    return [float(x) for x in emb]
+        except Exception as e:
+            logger.debug(f"[NLP] AI-core /ai/encode unavailable: {e}")
 
     # 2) Fallback: Gemini embed
     global _gemini_embed_unavailable
@@ -111,27 +109,29 @@ def get_embedding(text_input: str, task_type: str = "RETRIEVAL_DOCUMENT") -> lis
     if not api_key:
         return []
     try:
-        import google.generativeai as genai
-        genai.configure(api_key=api_key)
-        last_error: Exception | None = None
-        for model_name in _GEMINI_EMBED_MODELS:
-            try:
-                result = genai.embed_content(
-                    model=model_name,
-                    content=text_input[:2000],
-                    task_type=task_type,
-                )
-                emb = result.get("embedding") if isinstance(result, dict) else None
-                if emb:
-                    return emb
-            except Exception as e:
-                last_error = e
-                logger.debug(f"[NLP] Gemini embed model {model_name} failed: {e}")
-        if last_error:
-            raise last_error
+        model_name = _GEMINI_EMBED_MODEL.removeprefix("models/")
+        response = requests.post(
+            f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:embedContent",
+            headers={
+                "Content-Type": "application/json",
+                "x-goog-api-key": api_key,
+            },
+            json={
+                "model": f"models/{model_name}",
+                "content": {"parts": [{"text": text_input[:2000]}]},
+                "taskType": task_type,
+                "outputDimensionality": EMBEDDING_DIM,
+            },
+            timeout=requests_timeout(),
+        )
+        response.raise_for_status()
+        emb = (response.json().get("embedding") or {}).get("values") or []
+        if len(emb) == EMBEDDING_DIM:
+            return [float(x) for x in emb]
+        raise ValueError(f"Gemini embedding dimension mismatch: {len(emb)}")
     except Exception as e:
         _gemini_embed_unavailable = True
-        logger.warning(f"[NLP] Gemini embed_content failed: {e}")
+        logger.warning(f"[NLP] Gemini {_GEMINI_EMBED_MODEL} failed: {e}")
         return []
 
 
@@ -141,6 +141,8 @@ def get_embedding(text_input: str, task_type: str = "RETRIEVAL_DOCUMENT") -> lis
 
 def _analyze_via_aicore(essay_text: str, lang: str = "vi") -> dict | None:
     """Try AI-core PhoBERT service. Returns None if unavailable."""
+    if not AI_CORE_ENABLED:
+        return None
     try:
         res = requests.post(
             f"{AI_CORE_URL}/ai/infer_user_traits",
@@ -246,7 +248,7 @@ def _essay_cache_key(essay_text: str, lang: str) -> str:
 def analyze_essay(essay_text: str, lang: str = "vi") -> dict:
     """
     PB32 - Main entry: analyze essay → RIASEC + Big5 + embedding.
-    Tries PhoBERT AI-core first, falls back to Gemini.
+    Uses PhoBERT AI-core when explicitly enabled, otherwise Gemini.
     Returns unified structure with padded/trimmed arrays.
 
     Enhancements (TC18):
@@ -305,7 +307,7 @@ def store_user_embedding(
     user_id: int,
     embedding: list[float],
     source: str = "essay",
-    model_name: str = "gemini-text-embedding-004",
+    model_name: str = "gemini-embedding-001",
 ) -> bool:
     """Store latest user embedding in ai.user_embeddings (one vector per user)."""
     if not embedding or len(embedding) != EMBEDDING_DIM:
@@ -348,7 +350,7 @@ def analyze_and_store(
             user_id,
             result["embedding"],
             source="essay",
-            model_name="phobert" if result["source"] == "phobert" else "gemini-text-embedding-004",
+            model_name="phobert" if result["source"] == "phobert" else "gemini-embedding-001",
         )
     return result
 
@@ -378,7 +380,7 @@ def ensure_pgvector_schema(session: Session) -> bool:
                 title       TEXT,
                 description TEXT,
                 embedding   vector(768),
-                model_name  TEXT DEFAULT 'gemini-text-embedding-004',
+                model_name  TEXT DEFAULT 'gemini-embedding-001',
                 built_at    TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
                 UNIQUE(career_id)
             )
@@ -432,7 +434,7 @@ def store_career_embedding(
     title: str,
     description: str,
     embedding: list[float],
-    model_name: str = "gemini-text-embedding-004",
+    model_name: str = "gemini-embedding-001",
 ) -> bool:
     """PB33/PB34: Upsert a career's 768D embedding in pgvector."""
     if not embedding or len(embedding) != EMBEDDING_DIM:
@@ -800,7 +802,7 @@ def get_index_status(session: Session) -> dict:
             "unindexed_careers":  max(int(total_careers) - indexed, 0),
             "user_embeddings":    user_emb_count,
             "vector_dim":         EMBEDDING_DIM,
-            "model":              model_name or "gemini-text-embedding-004",
+            "model":              model_name or "gemini-embedding-001",
             "last_built":         last_built,
             "pgvector_ready":     indexed > 0,
             "ai_core_url":        AI_CORE_URL,
@@ -813,7 +815,7 @@ def get_index_status(session: Session) -> dict:
             "unindexed_careers": 0,
             "user_embeddings": 0,
             "vector_dim":      EMBEDDING_DIM,
-            "model":           "gemini-text-embedding-004",
+            "model":           "gemini-embedding-001",
             "last_built":      None,
             "pgvector_ready":  False,
             "ai_core_url":     AI_CORE_URL,

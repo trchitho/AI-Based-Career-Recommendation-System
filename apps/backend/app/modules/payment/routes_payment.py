@@ -10,6 +10,7 @@ from typing import List
 
 from app.core.db import engine, get_db
 from app.core.jwt import get_current_user
+from app.core.public_urls import frontend_base_url, vnpay_return_url
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from loguru import logger
@@ -108,8 +109,11 @@ def get_vnpay_service() -> VNPayService:
     return VNPayService(
         tmn_code=os.getenv("VNPAY_TMN_CODE", "CGXZLS0Z"),
         hash_secret=os.getenv("VNPAY_HASH_SECRET", "XNBCJFAKAZQSGTARRLGCHVZWCIOIGSHN"),
-        payment_url=os.getenv("VNPAY_PAYMENT_URL", "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"),
-        return_url=os.getenv("VNPAY_RETURN_URL", "http://localhost:8000/api/payment/vnpay/return"),
+        payment_url=os.getenv(
+            "VNPAY_PAYMENT_URL",
+            os.getenv("VNPAY_URL", "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"),
+        ),
+        return_url=vnpay_return_url(),
         api_url=os.getenv("VNPAY_API_URL", "https://sandbox.vnpayment.vn/merchant_webapi/api/transaction"),
     )
 
@@ -260,8 +264,7 @@ def vnpay_return(
         params = dict(request.query_params)
         logger.info(f"VNPay return params: {params}")
 
-        # Frontend chạy trên port 3000
-        frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+        frontend_url = frontend_base_url()
         order_id = params.get("vnp_TxnRef", "")
         response_code = params.get("vnp_ResponseCode", "")
 
@@ -324,7 +327,7 @@ def vnpay_return(
 
     except Exception as e:
         logger.error(f"VNPay return error: {e}")
-        frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+        frontend_url = frontend_base_url()
         return RedirectResponse(url=f"{frontend_url}/pricing?status=error")
 
 
@@ -675,8 +678,7 @@ def payment_redirect(
     """
     ZaloPay redirect handler - xử lý khi user thanh toán xong hoặc hủy
     """
-    # Frontend chạy trên port 3000
-    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    frontend_url = frontend_base_url()
 
     app_trans_id = apptransid or order_id
     if not app_trans_id:

@@ -21,8 +21,18 @@ services:
         value: https://ai-based-career-recommendation-system.pages.dev/verify?token={token}
       - key: FRONTEND_OAUTH_REDIRECT
         value: https://ai-based-career-recommendation-system.pages.dev/oauth/callback
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
       - key: GOOGLE_REDIRECT_URI
         value: https://career-ai-backend-elu0.onrender.com/api/auth/google/callback
+      - key: BACKEND_BASE_URL
+        value: https://career-ai-backend-elu0.onrender.com
+      - key: VNPAY_RETURN_URL
+        value: https://career-ai-backend-elu0.onrender.com/api/payment/vnpay/return
+      - key: AI_CORE_ENABLED
+        value: "false"
       - key: ZALOPAY_CALLBACK_URL
         value: https://career-ai-backend-elu0.onrender.com/api/payment/callback
       - key: ZALOPAY_REDIRECT_URL

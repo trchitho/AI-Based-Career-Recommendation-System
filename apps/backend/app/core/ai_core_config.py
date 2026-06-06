@@ -11,7 +11,13 @@ Env vars (theo thứ tự ưu tiên):
   - AI_CORE_BASE_URL  (chính thức, ưu tiên cao nhất)
   - AI_CORE_URL       (legacy, backward compat)
   - AI_SERVICE_URL    (legacy, backward compat)
+  - AI_CORE_BASE      (legacy, backward compat)
   Mặc định: http://localhost:9000
+
+Enablement:
+  - AI_CORE_ENABLED=true|false
+  - On Render, localhost URLs are always disabled because they point back to
+    the backend container, not to a separately deployed AI-core service.
 
 Timeout (giây):
   - AI_CORE_CONNECT_TIMEOUT  (default 5)  — fail nhanh nếu service down
@@ -29,7 +35,7 @@ import httpx
 
 def _resolve_base_url() -> str:
     """Resolve AI-core base URL theo thứ tự env var ưu tiên."""
-    for var in ("AI_CORE_BASE_URL", "AI_CORE_URL", "AI_SERVICE_URL"):
+    for var in ("AI_CORE_BASE_URL", "AI_CORE_URL", "AI_SERVICE_URL", "AI_CORE_BASE"):
         val = os.getenv(var)
         if val:
             return val.rstrip("/")
@@ -37,6 +43,27 @@ def _resolve_base_url() -> str:
 
 
 AI_CORE_BASE_URL: Final[str] = _resolve_base_url()
+
+
+def _env_bool(name: str, default: bool) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _is_local_url(url: str) -> bool:
+    normalized = url.strip().lower()
+    return normalized.startswith(
+        ("http://localhost", "https://localhost", "http://127.0.0.1", "https://127.0.0.1")
+    )
+
+
+_RUNNING_ON_RENDER = bool(os.getenv("RENDER") or os.getenv("RENDER_SERVICE_ID"))
+AI_CORE_ENABLED: Final[bool] = (
+    _env_bool("AI_CORE_ENABLED", not _RUNNING_ON_RENDER)
+    and not (_RUNNING_ON_RENDER and _is_local_url(AI_CORE_BASE_URL))
+)
 
 # Connect timeout: thấp để fail nhanh nếu AI-core offline (tránh block API).
 AI_CORE_CONNECT_TIMEOUT: Final[float] = float(
@@ -109,6 +136,7 @@ HTTPX_NETWORK_ERRORS: Final[Tuple[Type[BaseException], ...]] = tuple(
 
 __all__ = [
     "AI_CORE_BASE_URL",
+    "AI_CORE_ENABLED",
     "AI_CORE_CONNECT_TIMEOUT",
     "AI_CORE_READ_TIMEOUT",
     "HTTPX_CONNECT_TIMEOUT",

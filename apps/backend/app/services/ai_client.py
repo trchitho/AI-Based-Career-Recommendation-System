@@ -14,6 +14,7 @@ import httpx
 import requests
 from app.core.ai_core_config import (
     AI_CORE_BASE_URL,
+    AI_CORE_ENABLED,
     httpx_timeout,
     requests_timeout,
 )
@@ -32,7 +33,6 @@ class AIClient:
 
     @staticmethod
     async def infer_user_traits(payload: InferTraitsPayload) -> dict:
-        url = f"{AIClient.BASE}/ai/infer_user_traits"
         essay_text = (payload.essay_text or "").strip()
         if len(essay_text) < 5:
             return {
@@ -47,6 +47,12 @@ class AIClient:
                 "skipped": True,
                 "reason": "Bài luận quá ngắn để phân tích.",
             }
+        if not AI_CORE_ENABLED:
+            from app.modules.nlp.service_nlp import analyze_essay
+
+            return analyze_essay(essay_text, payload.lang or "vi")
+
+        url = f"{AIClient.BASE}/ai/infer_user_traits"
         body = {"essay_text": essay_text, "lang": payload.lang or "vi"}
         async with httpx.AsyncClient(timeout=httpx_timeout()) as client:
             resp = await client.post(url, json=body)
@@ -55,6 +61,8 @@ class AIClient:
 
     @staticmethod
     def recommend_top_careers_sync(user_id: int, top_k: int = 20) -> dict:
+        if not AI_CORE_ENABLED:
+            return {"items": [], "source": "postgresql"}
         url = f"{AIClient.BASE}/recs/top_careers"
         resp = requests.post(
             url,

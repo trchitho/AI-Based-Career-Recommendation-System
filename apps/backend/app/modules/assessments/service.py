@@ -4,8 +4,6 @@ import json
 import random
 from typing import Any, Literal, Optional
 
-import requests
-from app.core.ai_core_config import AI_CORE_BASE_URL, requests_timeout
 from app.core.exceptions import NotFoundError
 from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session
@@ -23,9 +21,6 @@ from .models import (
     UserFeedback,
 )
 from .schemas import TraitSnapshot
-
-# URL AI-core — dùng config tập trung từ app.core.ai_core_config.
-AI_CORE_URL = AI_CORE_BASE_URL
 
 # ĐÃ CÓ: fuse_user_traits(session, user_id, test_riasec=None, test_big5=None)
 # Mình chỉ wrap lại cho gọn.
@@ -123,7 +118,7 @@ def infer_user_traits_for_essay(
     essay_text: str,
 ) -> None:
     """
-    Gọi AI-core /ai/infer_user_traits và lưu vào:
+    Phân tích essay bằng pipeline NLP được cấu hình và lưu vào:
       - ai.user_embeddings
       - ai.user_trait_preds (theo từng essay)
     Không raise ra ngoài, chỉ log nếu lỗi.
@@ -131,49 +126,33 @@ def infer_user_traits_for_essay(
     essay_text = (essay_text or "").strip()
     if len(essay_text) < 5:
         print(
-            f"[assessments] infer_user_traits_for_essay: skip AI-core vì bài luận quá ngắn "
+            f"[assessments] infer_user_traits_for_essay: skip vì bài luận quá ngắn "
             f"(user_id={user_id}, essay_id={essay_id}, text_len={len(essay_text)})"
         )
         return
 
     print(
-        f"[assessments] infer_user_traits_for_essay: calling AI-core for "
+        f"[assessments] infer_user_traits_for_essay: analyzing essay for "
         f"user_id={user_id}, essay_id={essay_id}, text_len={len(essay_text)}"
     )
 
     try:
-        url = f"{AI_CORE_URL}/ai/infer_user_traits"
-        print(f"[assessments] POST {url}")
+        from ..nlp.service_nlp import analyze_essay
 
-        resp = requests.post(
-            url,
-            json={"essay_text": essay_text, "lang": "vi"},
-            timeout=requests_timeout(),
-        )
-
-        print(f"[assessments] AI-core response status: {resp.status_code}")
-
-        if resp.status_code == 422:
-            # AI-core validation error (essay too short or malformed request)
-            detail = ""
-            try:
-                detail = resp.json().get("detail", resp.text[:200])
-            except Exception:
-                detail = resp.text[:200]
-            print(
-                f"[assessments] infer_user_traits_for_essay: AI-core returned 422 "
-                f"(essay_len={len(essay_text)}, detail={detail}). Skipping."
-            )
-            return
-
-        resp.raise_for_status()
-        data = resp.json()
-
+        data = analyze_essay(essay_text, lang="vi")
         embedding = data.get("embedding") or []
         riasec = data.get("riasec")
         big5 = data.get("big5")
+        source = data.get("source") or "unknown"
 
-        print(f"[assessments] AI-core returned: embedding_len={len(embedding)}, riasec={riasec}, big5={big5}")
+        if not riasec or not big5 or source in {"no_api_key", "gemini_error", "parse_error"}:
+            print(f"[assessments] essay analysis unavailable: source={source}")
+            return
+
+        print(
+            f"[assessments] essay analysis returned: source={source}, "
+            f"embedding_len={len(embedding)}, riasec={riasec}, big5={big5}"
+        )
 
         save_essay_traits(
             session,
@@ -182,18 +161,10 @@ def infer_user_traits_for_essay(
             embedding=embedding,
             riasec=riasec,
             big5=big5,
-            model="phobert+vi-sbert",
+            model=source,
         )
         session.commit()
         print(f"[assessments] infer_user_traits_for_essay: saved traits for user_id={user_id}, essay_id={essay_id}")
-    except requests.exceptions.ConnectionError as e:
-        session.rollback()
-        print(f"[assessments] infer_user_traits_for_essay CONNECTION ERROR: AI-core not reachable at {AI_CORE_URL}")
-        print(f"[assessments] Error details: {repr(e)}")
-    except requests.exceptions.Timeout as e:
-        session.rollback()
-        print("[assessments] infer_user_traits_for_essay TIMEOUT: AI-core took too long")
-        print(f"[assessments] Error details: {repr(e)}")
     except Exception as e:
         session.rollback()
         print(f"[assessments] infer_user_traits_for_essay error: {repr(e)}")
