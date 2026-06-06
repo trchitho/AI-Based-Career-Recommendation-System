@@ -1,26 +1,25 @@
+import os
+
 import psycopg2
 from neo4j import GraphDatabase
 from psycopg2.extras import RealDictCursor
 
-# --- CẤU HÌNH KẾT NỐI ---
-# Postgres (Đọc từ docker-compose cũ của bạn)
-PG_HOST = "localhost"
-PG_PORT = "5433"  # Port mapping ra máy host
-PG_DB = "career_ai"
-PG_USER = "postgres"
-PG_PASS = "123456"
-
-# Neo4j (Đọc từ docker-compose mới)
-NEO_URI = "bolt://localhost:7687"
-NEO_USER = "neo4j"
-NEO_PASS = "password123456"
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "postgresql://postgres:123456@localhost:5433/career_ai?client_encoding=utf8",
+)
+NEO_URI = os.getenv("NEO4J_URI") or os.getenv("NEO4J_URL", "bolt://localhost:7687")
+NEO_USER = os.getenv("NEO4J_USER", "neo4j")
+NEO_PASS = os.getenv("NEO4J_PASSWORD") or os.getenv("NEO4J_PASS", "password123456")
+NEO4J_DATABASE = os.getenv("NEO4J_DATABASE", "neo4j")
+GRAPH_CLEAR_BEFORE_IMPORT = os.getenv("GRAPH_CLEAR_BEFORE_IMPORT", "false").lower() in {"1", "true", "yes"}
 
 
 class CareerGraphETL:
     def __init__(self):
         """Khởi tạo kết nối đến PostgreSQL và Neo4j"""
         try:
-            self.pg_conn = psycopg2.connect(host=PG_HOST, port=PG_PORT, dbname=PG_DB, user=PG_USER, password=PG_PASS)
+            self.pg_conn = psycopg2.connect(DATABASE_URL)
             print("[OK] Kết nối PostgreSQL thành công")
         except Exception as e:
             print(f"[ERR] Lỗi kết nối PostgreSQL: {e}")
@@ -29,7 +28,7 @@ class CareerGraphETL:
         try:
             self.neo_driver = GraphDatabase.driver(NEO_URI, auth=(NEO_USER, NEO_PASS))
             # Test connection
-            with self.neo_driver.session() as session:
+            with self.neo_driver.session(database=NEO4J_DATABASE) as session:
                 session.run("RETURN 1")
             print("[OK] Kết nối Neo4j thành công")
         except Exception as e:
@@ -46,7 +45,7 @@ class CareerGraphETL:
     def setup_schema(self):
         """Bước 1: Tạo Constraint để đảm bảo dữ liệu duy nhất và index nhanh"""
         print("🔄 Đang cấu hình Schema Neo4j...")
-        with self.neo_driver.session() as session:
+        with self.neo_driver.session(database=NEO4J_DATABASE) as session:
             # Tạo constraint cho Job ID (O*NET Code)
             session.run("CREATE CONSTRAINT job_id_unique IF NOT EXISTS FOR (j:Job) REQUIRE j.id IS UNIQUE")
             # Tạo constraint cho Skill ID
@@ -58,7 +57,7 @@ class CareerGraphETL:
     def clear_database(self):
         """(Tùy chọn) Xóa sạch database để nạp lại từ đầu"""
         print("[WARN] Đang xóa toàn bộ dữ liệu Neo4j cũ...")
-        with self.neo_driver.session() as session:
+        with self.neo_driver.session(database=NEO4J_DATABASE) as session:
             session.run("MATCH (n) DETACH DELETE n")
         print("[OK] Đã xóa sạch.")
 
@@ -112,14 +111,14 @@ class CareerGraphETL:
             SELECT 
                 c.onet_code AS job_id,
                 COALESCE(c.title_vi, c.title_en) AS job_title,
-                k.name AS skill_id,
-                COALESCE(k.description_vi, k.description) AS skill_name,
+                'KSA_' || k.id::text AS skill_id,
+                COALESCE(k.name_vn, k.name_en, k.description_vn, k.description_en) AS skill_name,
                 k.importance,
                 k.level,
                 k.ksa_type as type
             FROM core.careers c
             JOIN core.career_ksas k ON c.onet_code = k.onet_code
-            WHERE k.importance >= 4.5 AND k.ksa_type = 'skill'  -- Chỉ lấy skills quan trọng nhất
+            WHERE k.importance >= 45 AND k.ksa_type = 'skill'
             ORDER BY c.onet_code, k.importance DESC
         """
         cur.execute(query)
@@ -150,7 +149,7 @@ class CareerGraphETL:
                 'Technology' as type
             FROM core.careers c
             JOIN core.career_technology t ON c.onet_code = t.onet_code
-            WHERE t.hot_flag = 'Y' OR t.in_demand_flag = 'Y'  -- Hot hoặc In-demand tech
+            WHERE t.hot_flag IS TRUE OR t.in_demand_flag IS TRUE
         """
         cur.execute(query)
         rows = cur.fetchall()
@@ -202,7 +201,7 @@ class CareerGraphETL:
             r.combined_score = row.combined_score
         """
 
-        with self.neo_driver.session() as session:
+        with self.neo_driver.session(database=NEO4J_DATABASE) as session:
             total = len(data_rows)
             for i in range(0, total, batch_size):
                 batch = data_rows[i : i + batch_size]
@@ -214,7 +213,7 @@ class CareerGraphETL:
     def create_summary_stats(self):
         """Bước 4: Tạo thống kê tổng quan"""
         print("📊 Đang tạo thống kê tổng quan...")
-        with self.neo_driver.session() as session:
+        with self.neo_driver.session(database=NEO4J_DATABASE) as session:
             # Đếm số lượng nodes và relationships
             job_count = session.run("MATCH (j:Job) RETURN count(j) as count").single()["count"]
             skill_count = session.run("MATCH (s:Skill) RETURN count(s) as count").single()["count"]
@@ -240,7 +239,7 @@ class CareerGraphETL:
     def test_job_specific_skills(self):
         """Bước 5: Test để verify skills thực sự job-specific"""
         print("\n🧪 TESTING: Kiểm tra skills có job-specific không...")
-        with self.neo_driver.session() as session:
+        with self.neo_driver.session(database=NEO4J_DATABASE) as session:
             # Test Software Developer
             sw_dev_result = session.run(
                 """
@@ -293,7 +292,8 @@ class CareerGraphETL:
         """Chạy toàn bộ quy trình ETL với Work Activities"""
         try:
             self.setup_schema()
-            self.clear_database()  # Comment dòng này nếu muốn giữ dữ liệu cũ
+            if GRAPH_CLEAR_BEFORE_IMPORT:
+                self.clear_database()
 
             # 1. Load Work Activities (Primary source - job-specific)
             work_activities_data = self.fetch_work_activities_from_postgres()
