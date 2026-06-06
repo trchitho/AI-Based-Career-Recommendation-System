@@ -47,14 +47,20 @@ _ESSAY_CACHE_MAX = 200  # evict oldest when full
 #  Helpers
 # ─────────────────────────────────────────────────────────────
 
-def _gemini_api_key() -> str:
-    return (
-        os.getenv("GEMINI_ASSESSMENT_API_KEY")
-        or os.getenv("GEMINI_API_KEY")
-        or os.getenv("GEMINI_API_KEY_1")
-        or os.getenv("GEMINI_API_KEY_2")
-        or ""
-    )
+def _gemini_api_keys() -> list[str]:
+    keys: list[str] = []
+    for name in (
+        "GEMINI_ASSESSMENT_API_KEY",
+        "GEMINI_ASSESSMENT_BACKUP_KEY",
+        "GEMINI_API_KEY",
+        "GEMINI_API_KEY_1",
+        "GEMINI_API_KEY_2",
+        "GEMINI_CHATBOT_BACKUP_KEY",
+    ):
+        value = (os.getenv(name) or "").strip()
+        if value and value not in keys:
+            keys.append(value)
+    return keys
 
 
 def _vec_to_pg(embedding: list[float]) -> str:
@@ -105,34 +111,47 @@ def get_embedding(text_input: str, task_type: str = "RETRIEVAL_DOCUMENT") -> lis
     if _gemini_embed_unavailable:
         return []
 
-    api_key = _gemini_api_key()
-    if not api_key:
+    api_keys = _gemini_api_keys()
+    if not api_keys:
         return []
-    try:
-        model_name = _GEMINI_EMBED_MODEL.removeprefix("models/")
-        response = requests.post(
-            f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:embedContent",
-            headers={
-                "Content-Type": "application/json",
-                "x-goog-api-key": api_key,
-            },
-            json={
-                "model": f"models/{model_name}",
-                "content": {"parts": [{"text": text_input[:2000]}]},
-                "taskType": task_type,
-                "outputDimensionality": EMBEDDING_DIM,
-            },
-            timeout=requests_timeout(),
-        )
-        response.raise_for_status()
-        emb = (response.json().get("embedding") or {}).get("values") or []
-        if len(emb) == EMBEDDING_DIM:
-            return [float(x) for x in emb]
-        raise ValueError(f"Gemini embedding dimension mismatch: {len(emb)}")
-    except Exception as e:
-        _gemini_embed_unavailable = True
-        logger.warning(f"[NLP] Gemini {_GEMINI_EMBED_MODEL} failed: {e}")
-        return []
+    model_name = _GEMINI_EMBED_MODEL.removeprefix("models/")
+    last_error: Exception | None = None
+    for key_index, api_key in enumerate(api_keys, start=1):
+        try:
+            response = requests.post(
+                f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:embedContent",
+                headers={
+                    "Content-Type": "application/json",
+                    "x-goog-api-key": api_key,
+                },
+                json={
+                    "model": f"models/{model_name}",
+                    "content": {"parts": [{"text": text_input[:2000]}]},
+                    "taskType": task_type,
+                    "outputDimensionality": EMBEDDING_DIM,
+                },
+                timeout=requests_timeout(),
+            )
+            response.raise_for_status()
+            emb = (response.json().get("embedding") or {}).get("values") or []
+            if len(emb) == EMBEDDING_DIM:
+                if key_index > 1:
+                    logger.info("[NLP] Gemini embedding succeeded with backup key %d", key_index)
+                return [float(x) for x in emb]
+            raise ValueError(f"Gemini embedding dimension mismatch: {len(emb)}")
+        except Exception as e:
+            last_error = e
+            logger.warning(
+                "[NLP] Gemini %s failed with key %d/%d: %s",
+                _GEMINI_EMBED_MODEL,
+                key_index,
+                len(api_keys),
+                e,
+            )
+
+    _gemini_embed_unavailable = True
+    logger.error("[NLP] All Gemini embedding keys failed: %s", last_error)
+    return []
 
 
 # ─────────────────────────────────────────────────────────────
@@ -172,16 +191,11 @@ def _analyze_via_gemini(essay_text: str) -> dict:
     PB32 fallback: Gemini structured NLP for Vietnamese/English essay.
     Extracts RIASEC + Big5 via prompt engineering.
     """
-    api_key = _gemini_api_key()
-    if not api_key:
+    api_keys = _gemini_api_keys()
+    if not api_keys:
         return _empty_analysis("no_api_key")
 
-    try:
-        import google.generativeai as genai
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel("gemini-2.5-flash")
-
-        prompt = f"""Bạn là chuyên gia tâm lý học nghề nghiệp. Hãy phân tích đoạn văn dưới đây và cho điểm theo hai thang đo tính cách.
+    prompt = f"""Bạn là chuyên gia tâm lý học nghề nghiệp. Hãy phân tích đoạn văn dưới đây và cho điểm theo hai thang đo tính cách.
 
 Văn bản: "{essay_text[:1500]}"
 
@@ -197,34 +211,48 @@ Trả về **chỉ JSON** với định dạng chính xác sau (điểm từ 0.0
 RIASEC: R=Realistic(thực tế/kỹ thuật), I=Investigative(nghiên cứu/khoa học), A=Artistic(sáng tạo/nghệ thuật), S=Social(giao tiếp/giúp đỡ), E=Enterprising(lãnh đạo/kinh doanh), C=Conventional(ngăn nắp/hệ thống).
 Chỉ trả về JSON, không thêm markdown hay giải thích."""
 
-        response = model.generate_content(prompt)
-        raw = (response.text or "").strip()
-        # Strip markdown code fences if present
-        raw = re.sub(r"^```(?:json)?\s*", "", raw, flags=re.MULTILINE)
-        raw = re.sub(r"\s*```$", "", raw, flags=re.MULTILINE)
-        match = re.search(r"\{[\s\S]*\}", raw)
-        if not match:
-            logger.warning(f"[NLP] Gemini returned non-JSON: {raw[:200]}")
-            return _empty_analysis("parse_error")
+    last_error: Exception | None = None
+    for key_index, api_key in enumerate(api_keys, start=1):
+        try:
+            import google.generativeai as genai
 
-        parsed = json.loads(match.group())
-        riasec = _pad_list([float(x) for x in (parsed.get("riasec") or [])], 6)
-        big5   = _pad_list([float(x) for x in (parsed.get("big5")   or [])], 5)
+            genai.configure(api_key=api_key)
+            model = genai.GenerativeModel("gemini-2.5-flash")
+            response = model.generate_content(prompt)
+            raw = (response.text or "").strip()
+            raw = re.sub(r"^```(?:json)?\s*", "", raw, flags=re.MULTILINE)
+            raw = re.sub(r"\s*```$", "", raw, flags=re.MULTILINE)
+            match = re.search(r"\{[\s\S]*\}", raw)
+            if not match:
+                raise ValueError(f"Gemini returned non-JSON: {raw[:200]}")
 
-        embedding = get_embedding(essay_text, task_type="RETRIEVAL_DOCUMENT")
+            parsed = json.loads(match.group())
+            riasec = _pad_list([float(x) for x in (parsed.get("riasec") or [])], 6)
+            big5 = _pad_list([float(x) for x in (parsed.get("big5") or [])], 5)
+            embedding = get_embedding(essay_text, task_type="RETRIEVAL_DOCUMENT")
 
-        return {
-            "source":        "gemini",
-            "detected_lang": parsed.get("detected_lang", "vi"),
-            "riasec":        riasec,
-            "big5":          big5,
-            "embedding":     embedding,
-            "traits_vi":     parsed.get("traits_vi", []),
-            "dominant":      parsed.get("dominant", ""),
-        }
-    except Exception as e:
-        logger.error(f"[NLP] Gemini analysis failed: {e}")
-        return _empty_analysis("gemini_error")
+            if key_index > 1:
+                logger.info("[NLP] Gemini trait analysis succeeded with backup key %d", key_index)
+            return {
+                "source": "gemini",
+                "detected_lang": parsed.get("detected_lang", "vi"),
+                "riasec": riasec,
+                "big5": big5,
+                "embedding": embedding,
+                "traits_vi": parsed.get("traits_vi", []),
+                "dominant": parsed.get("dominant", ""),
+            }
+        except Exception as e:
+            last_error = e
+            logger.warning(
+                "[NLP] Gemini trait analysis failed with key %d/%d: %s",
+                key_index,
+                len(api_keys),
+                e,
+            )
+
+    logger.error("[NLP] All Gemini trait keys failed: %s", last_error)
+    return _empty_analysis("gemini_error")
 
 
 def _empty_analysis(reason: str) -> dict:
