@@ -457,7 +457,7 @@ def generate_personalized(
     # Lấy thông tin phân tích
     analysis_query = text("""
         SELECT 
-            sga.id, sga.career_id, sga.matched_skills, sga.skill_gaps,
+            sga.id, sga.career_id, sga.cv_skills, sga.matched_skills, sga.skill_gaps,
             COALESCE(c.title_vi, c.title_en, sga.career_id) AS career_title
         FROM core.skill_gap_analyses sga
         LEFT JOIN core.careers c ON (c.slug = sga.career_id OR c.onet_code = sga.career_id)
@@ -468,8 +468,11 @@ def generate_personalized(
         raise HTTPException(status_code=404, detail="Không tìm thấy phân tích CV.")
 
     # Parse skills - existing = matched (không phải toàn bộ CV)
+    cv_raw = row["cv_skills"] or []
     matched_raw = row["matched_skills"] or []
     skill_gaps_raw = row["skill_gaps"] or {}
+    if isinstance(cv_raw, str):
+        cv_raw = json.loads(cv_raw)
     if isinstance(matched_raw, str):
         matched_raw = json.loads(matched_raw)
     if isinstance(skill_gaps_raw, str):
@@ -492,12 +495,7 @@ def generate_personalized(
             )
         return ""
 
-    existing_skills = []
-    if isinstance(matched_raw, list):
-        for s in matched_raw:
-            nm = _pick_vn_name(s)
-            if nm:
-                existing_skills.append(nm)
+    existing_skills = _matched_or_cv_skills(matched_raw, cv_raw)
 
     # TÁCH RIÊNG nhóm Quan trọng & Nên có - đây là điểm cá nhân hóa quan trọng
     critical_skills: List[str] = []
