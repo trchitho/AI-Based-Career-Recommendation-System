@@ -217,6 +217,8 @@ def get_skill_gap_plans(
             sga.match_percentage,
             sga.missing_skills_count,
             sga.matched_skills_count,
+            sga.cv_skills,
+            sga.matched_skills,
             sga.skill_gaps,
             sga.learning_plan_cache,
             sga.created_at::text AS created_at,
@@ -274,6 +276,13 @@ def get_skill_gap_plans(
         if not isinstance(skill_gaps, dict):
             skill_gaps = {}
 
+        matched_raw = row["matched_skills"] or []
+        cv_raw = row["cv_skills"] or []
+        if isinstance(matched_raw, str):
+            matched_raw = json.loads(matched_raw)
+        if isinstance(cv_raw, str):
+            cv_raw = json.loads(cv_raw)
+        matched_count = len(_matched_or_cv_skills(matched_raw, cv_raw))
         critical_count = len(skill_gaps.get("critical") or []) + len(skill_gaps.get("important") or [])
         important_count = len(skill_gaps.get("nice_to_have") or [])
 
@@ -287,7 +296,7 @@ def get_skill_gap_plans(
             missing_skills_count=int(row["missing_skills_count"]) if row["missing_skills_count"] else None,
             critical_count=critical_count,
             important_count=important_count,
-            matched_count=int(row["matched_skills_count"]) if row["matched_skills_count"] else None,
+            matched_count=matched_count,
             has_personalized_roadmap=bool(row["personalized_roadmap_id"]),
             personalized_roadmap_id=row["personalized_roadmap_id"],
             personalized_roadmap_progress=(float(row["personalized_roadmap_progress"]) if row["personalized_roadmap_progress"] is not None else None),
