@@ -87,16 +87,18 @@ class SkillGapService:
             for s in analysis.get('matched_skills', [])
         }
         is_same = bool(relation.get('same_career')) and float(relation.get('confidence') or 0) >= 0.6
+        missing_target = [
+            s for s in job_skills
+            if str(s.get('name', '')).strip().lower() not in cv_names
+            and str(s.get('name', '')).strip().lower() not in matched_jobs
+        ] or [s for s in job_skills if str(s.get('name', '')).strip().lower() not in cv_names] or job_skills
 
         if is_same:
             analysis['extra_skills'] = []
+            if not gaps['nice_to_have']:
+                for skill in sorted(missing_target, key=lambda item: item.get('importance', 0))[:10]:
+                    gaps['nice_to_have'].append(self._gap_from_job_skill(skill))
         else:
-            missing_target = [
-                s for s in job_skills
-                if str(s.get('name', '')).strip().lower() not in cv_names
-                and str(s.get('name', '')).strip().lower() not in matched_jobs
-            ] or [s for s in job_skills if str(s.get('name', '')).strip().lower() not in cv_names] or job_skills
-
             if not (gaps['critical'] or gaps['important'] or gaps['nice_to_have']):
                 for skill in sorted(missing_target, key=lambda item: item.get('importance', 0), reverse=True):
                     target = gaps['important'] if skill.get('importance', 0.5) >= 0.5 else gaps['nice_to_have']
