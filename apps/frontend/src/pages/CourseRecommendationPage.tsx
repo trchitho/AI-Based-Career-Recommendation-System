@@ -182,6 +182,7 @@ const CourseRecommendationPage = ({
     () => [...initialGroups.important, ...initialGroups.nice_to_have, ...initialGroups.extra],
     [initialGroups]
   );
+  const totalPlannedSkills = allInitialSkills.length;
 
   useEffect(() => {
     if (allInitialSkills.length > 0) {
@@ -487,10 +488,12 @@ const CourseRecommendationPage = ({
         <div className="flex items-center justify-between flex-wrap gap-3 bg-white/80 dark:bg-gray-900/60 rounded-2xl border border-gray-200/70 dark:border-white/10 p-4">
           <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-300">
             <Award className="w-4 h-4 text-indigo-500" />
-            <span>Có <b className="text-indigo-600 dark:text-indigo-300">{data.total}</b> khóa học cho <b>{data.missing_skills.length}</b> kỹ năng còn thiếu</span>
+            <span>
+              Có <b className="text-indigo-600 dark:text-indigo-300">{allVisibleRecommendations.length}</b> khóa học phù hợp cho <b>{totalPlannedSkills}</b> kỹ năng cần học
+            </span>
             {data.recommendations.length > 0 && (
               <span className="text-xs text-gray-500 dark:text-gray-400">
-                Đã phủ <b>{uniqueSkillNames(data.recommendations.map((rec) => rec.skill_name)).length}</b> kỹ năng có khóa học
+                Đã phủ <b>{uniqueSkillNames(allVisibleRecommendations.map((rec) => rec.skill_name)).length}</b> kỹ năng có khóa học
               </span>
             )}
             <span className="text-[10px] font-black uppercase tracking-wide px-2.5 py-1 rounded-full bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
