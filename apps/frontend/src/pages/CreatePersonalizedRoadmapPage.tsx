@@ -47,6 +47,7 @@ const CreatePersonalizedRoadmapPage = () => {
   const [userNotes, setUserNotes] = useState('');
 
   const [currentStep, setCurrentStep] = useState(1);
+  const [activeSkillGroup, setActiveSkillGroup] = useState<'critical' | 'important' | 'existing'>('critical');
 
   useEffect(() => {
     if (!analysisId) return;
@@ -61,6 +62,17 @@ const CreatePersonalizedRoadmapPage = () => {
   }, [analysisId]);
 
   const currentRules = config?.duration_rules?.[String(durationMonths)];
+
+  const skillGroups = useMemo(() => {
+    if (!config) return [];
+    return [
+      { key: 'critical' as const, color: 'orange' as const, value: config.total_critical, label: 'Quan trọng', skills: config.critical_skills },
+      { key: 'important' as const, color: 'amber' as const, value: config.total_important, label: 'Nên có', skills: config.important_skills },
+      { key: 'existing' as const, color: 'emerald' as const, value: config.total_existing, label: 'Đã có', skills: config.existing_skills },
+    ];
+  }, [config]);
+
+  const activeGroup = skillGroups.find(group => group.key === activeSkillGroup) || skillGroups[0];
 
   // Tính các tick marks cho slider giờ học
   const sliderTicks = useMemo(() => {
