@@ -1,9 +1,31 @@
 /**
  * Service for Skill Gap Analysis API
  */
+import axios from 'axios';
+import api from '../lib/api';
 import { SkillGapAnalysis, HeatmapData, InterviewPrepData, LearningPlan } from '../types/skillGap';
 
 const API_BASE_URL = '/api/skill-gap';
+const AI_REQUEST_TIMEOUT_MS = 180_000;
+
+function apiError(error: unknown, fallback: string): Error {
+  if (!axios.isAxiosError(error)) {
+    return error instanceof Error ? error : new Error(fallback);
+  }
+
+  const status = error.response?.status;
+  const data = error.response?.data;
+  const detail = data?.detail;
+  const message = typeof detail === 'string'
+    ? detail
+    : detail?.message || data?.message || error.message || fallback;
+
+  const normalized: any = new Error(message);
+  normalized.response = error.response
+    ? { status, data }
+    : undefined;
+  return normalized;
+}
 
 class SkillGapService {
   /**
@@ -14,114 +36,82 @@ class SkillGapService {
     formData.append('career_id', careerId);
     formData.append('cv_file', cvFile);
 
-    const token = localStorage.getItem('accessToken');
-    const response = await fetch(`${API_BASE_URL}/analyze`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      
-      // If detail is an object (payment required), throw it as-is
-      if (typeof error.detail === 'object' && error.detail !== null) {
-        const err: any = new Error('Payment required');
-        err.response = { status: response.status, data: error };
-        throw err;
+    try {
+      const response = await api.post(`${API_BASE_URL}/analyze`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: AI_REQUEST_TIMEOUT_MS,
+      });
+      if (!response.data) {
+        throw new Error('Máy chủ không trả về kết quả phân tích CV.');
       }
-      
-      // Otherwise throw as string
-      throw new Error(error.detail || 'Failed to analyze CV');
+      return response.data;
+    } catch (error) {
+      throw apiError(error, 'Không thể phân tích CV. Vui lòng thử lại.');
     }
-
-    return response.json();
   }
 
   /**
    * Lấy danh sách phân tích của user
    */
   async getMyAnalyses(limit: number = 10): Promise<SkillGapAnalysis[]> {
-    const token = localStorage.getItem('accessToken');
-    const response = await fetch(`${API_BASE_URL}/my-analyses?limit=${limit}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch analyses');
+    try {
+      const response = await api.get(`${API_BASE_URL}/my-analyses`, {
+        params: { limit },
+      });
+      return response.data;
+    } catch (error) {
+      throw apiError(error, 'Không thể tải lịch sử phân tích CV.');
     }
-
-    return response.json();
   }
 
   /**
    * Lấy chi tiết một phân tích
    */
   async getAnalysisDetail(analysisId: number): Promise<SkillGapAnalysis> {
-    const token = localStorage.getItem('accessToken');
-    const response = await fetch(`${API_BASE_URL}/analysis/${analysisId}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch analysis detail');
+    try {
+      const response = await api.get(`${API_BASE_URL}/analysis/${analysisId}`);
+      return response.data;
+    } catch (error) {
+      throw apiError(error, 'Không thể tải chi tiết phân tích CV.');
     }
-
-    return response.json();
   }
 
   /**
    * Lấy dữ liệu heatmap
    */
   async getHeatmapData(analysisId: number): Promise<HeatmapData> {
-    const token = localStorage.getItem('accessToken');
-    const response = await fetch(`${API_BASE_URL}/heatmap/${analysisId}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch heatmap data');
+    try {
+      const response = await api.get(`${API_BASE_URL}/heatmap/${analysisId}`);
+      return response.data;
+    } catch (error) {
+      throw apiError(error, 'Không thể tải bản đồ kỹ năng.');
     }
-
-    return response.json();
   }
 
   /**
    * Lấy dữ liệu chuẩn bị phỏng vấn
    */
   async getInterviewPrepData(analysisId: number): Promise<InterviewPrepData> {
-    const token = localStorage.getItem('accessToken');
-    const response = await fetch(`${API_BASE_URL}/interview-prep/${analysisId}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch interview prep data');
+    try {
+      const response = await api.get(`${API_BASE_URL}/interview-prep/${analysisId}`);
+      return response.data;
+    } catch (error) {
+      throw apiError(error, 'Không thể tải dữ liệu chuẩn bị phỏng vấn.');
     }
-
-    return response.json();
   }
 
   /**
    * Lấy lộ trình học tập AI-generated
    */
   async getLearningPlan(analysisId: number): Promise<{ success: boolean; plan: LearningPlan; career_id: string }> {
-    const token = localStorage.getItem('accessToken');
-    const response = await fetch(`${API_BASE_URL}/learning-plan/${analysisId}`, {
-      headers: { 'Authorization': `Bearer ${token}` },
-    });
-    if (!response.ok) throw new Error('Failed to fetch learning plan');
-    return response.json();
+    try {
+      const response = await api.get(`${API_BASE_URL}/learning-plan/${analysisId}`, {
+        timeout: AI_REQUEST_TIMEOUT_MS,
+      });
+      return response.data;
+    } catch (error) {
+      throw apiError(error, 'Không thể tạo lộ trình học tập.');
+    }
   }
 }
 
