@@ -45,3 +45,24 @@ def test_invalid_terminal_is_rejected_before_redirect():
 
     assert result["success"] is False
     assert "VNPAY_TMN_CODE" in result["message"]
+
+
+def test_verify_return_reports_signature_validity():
+    service = _service()
+    created = service.create_payment_url(
+        amount=10000,
+        order_id="ORDER_2",
+        order_info="Test",
+    )
+    params = dict(
+        urllib.parse.parse_qsl(
+            urllib.parse.urlparse(created["payment_url"]).query
+        )
+    )
+    params["vnp_ResponseCode"] = "00"
+    params["vnp_TransactionStatus"] = "00"
+
+    invalid = service.verify_return(params)
+
+    assert invalid["success"] is False
+    assert invalid["valid_signature"] is False

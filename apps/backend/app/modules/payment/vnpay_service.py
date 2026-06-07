@@ -174,6 +174,7 @@ class VNPayService:
             if not hmac.compare_digest(vnp_secure_hash.lower(), computed_hash.lower()):
                 return {
                     "success": False,
+                    "valid_signature": False,
                     "message": "Invalid signature",
                 }
             
@@ -184,6 +185,7 @@ class VNPayService:
             if response_code == "00" and transaction_status == "00":
                 return {
                     "success": True,
+                    "valid_signature": True,
                     "status": "success",
                     "order_id": params.get("vnp_TxnRef"),
                     "amount": int(params.get("vnp_Amount", 0)) // 100,
@@ -194,6 +196,7 @@ class VNPayService:
             else:
                 return {
                     "success": False,
+                    "valid_signature": True,
                     "status": "failed",
                     "order_id": params.get("vnp_TxnRef"),
                     "response_code": response_code,

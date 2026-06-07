@@ -136,6 +136,24 @@ def _payment_response(payment: Payment) -> PaymentResponse:
     )
 
 
+def _upgrade_subscription_for_payment(payment: Payment, db: Session) -> None:
+    from app.core.subscription import SubscriptionService
+
+    plan_name = "Basic"
+    if payment.amount >= 280000:
+        plan_name = "Pro"
+    elif payment.amount >= 180000:
+        plan_name = "Premium"
+
+    SubscriptionService.upgrade_user_subscription(
+        user_id=payment.user_id,
+        plan_name=plan_name,
+        payment_id=payment.id,
+        session=db,
+    )
+    logger.info(f"User {payment.user_id} upgraded to {plan_name}")
+
+
 @router.post("/create", response_model=PaymentCreateResponse)
 def create_payment(
     payment_req: PaymentCreateRequest,
@@ -148,7 +166,7 @@ def create_payment(
     """
     try:
         user_id = current_user["user_id"]
-        order_id = f"ORDER_{user_id}_{int(datetime.utcnow().timestamp())}"
+        order_id = f"ORDER_{user_id}_{datetime.utcnow().strftime('%Y%m%d%H%M%S%f')}"
         payment_method = payment_req.payment_method or "vnpay"
 
         # Get client IP
@@ -287,29 +305,25 @@ def vnpay_return(
 
         if payment:
             if result.get("success") and result.get("status") == "success":
+                returned_amount = int(result.get("amount") or 0)
+                if returned_amount != payment.amount:
+                    logger.error(
+                        f"VNPay amount mismatch for {order_id}: "
+                        f"expected={payment.amount}, received={returned_amount}"
+                    )
+                    return RedirectResponse(url=f"{frontend_url}/pricing?status=error&reason=amount_mismatch")
+
                 payment.status = PaymentStatus.SUCCESS.value
                 payment.paid_at = datetime.utcnow()
-                payment.transaction_id = params.get("vnp_TransactionNo")
+                payment.zp_trans_token = params.get("vnp_TransactionNo")
+                payment.callback_data = json.dumps(params)
                 db.commit()
 
                 logger.info(f"Payment {order_id} marked as SUCCESS via VNPay")
 
                 # Auto-upgrade subscription
                 try:
-                    from app.core.subscription import SubscriptionService
-
-                    plan_name = "Basic"
-                    if payment.amount >= 280000:
-                        plan_name = "Pro"
-                    elif payment.amount >= 180000:
-                        plan_name = "Premium"
-                    elif payment.amount >= 80000:
-                        plan_name = "Basic"
-
-                    SubscriptionService.upgrade_user_subscription(
-                        user_id=payment.user_id, plan_name=plan_name, payment_id=payment.id, session=db
-                    )
-                    logger.info(f"User {payment.user_id} upgraded to {plan_name}")
+                    _upgrade_subscription_for_payment(payment, db)
                 except Exception as e:
                     logger.error(f"Auto-upgrade error: {e}")
 
@@ -329,6 +343,59 @@ def vnpay_return(
         logger.error(f"VNPay return error: {e}")
         frontend_url = frontend_base_url()
         return RedirectResponse(url=f"{frontend_url}/pricing?status=error")
+
+
+@router.get("/vnpay/ipn")
+def vnpay_ipn(
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    """Server-to-server payment notification endpoint required by VNPay."""
+    params = dict(request.query_params)
+    order_id = params.get("vnp_TxnRef", "")
+
+    try:
+        result = get_vnpay_service().verify_return(params.copy())
+        if not result.get("valid_signature"):
+            return {"RspCode": "97", "Message": "Invalid checksum"}
+
+        payment = db.query(Payment).filter(Payment.order_id == order_id).first()
+        if not payment:
+            return {"RspCode": "01", "Message": "Order not found"}
+
+        returned_amount = int(params.get("vnp_Amount", "0")) // 100
+        if returned_amount != payment.amount:
+            return {"RspCode": "04", "Message": "Invalid amount"}
+
+        if payment.status == PaymentStatus.SUCCESS.value:
+            return {"RspCode": "02", "Message": "Order already confirmed"}
+
+        response_code = params.get("vnp_ResponseCode", "")
+        transaction_status = params.get("vnp_TransactionStatus", "")
+        payment.callback_data = json.dumps(params)
+        payment.zp_trans_token = params.get("vnp_TransactionNo")
+
+        if response_code == "00" and transaction_status == "00":
+            payment.status = PaymentStatus.SUCCESS.value
+            payment.paid_at = datetime.utcnow()
+            db.commit()
+            try:
+                _upgrade_subscription_for_payment(payment, db)
+            except Exception as exc:
+                logger.error(f"VNPay IPN subscription upgrade failed: {exc}")
+            return {"RspCode": "00", "Message": "Confirm success"}
+
+        payment.status = (
+            PaymentStatus.CANCELLED.value
+            if response_code == "24"
+            else PaymentStatus.FAILED.value
+        )
+        db.commit()
+        return {"RspCode": "00", "Message": "Payment status recorded"}
+    except Exception as exc:
+        db.rollback()
+        logger.exception(f"VNPay IPN processing failed for {order_id}: {exc}")
+        return {"RspCode": "99", "Message": "Unknown error"}
 
 
 @router.post("/callback")
