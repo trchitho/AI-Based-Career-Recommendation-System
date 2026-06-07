@@ -191,7 +191,7 @@ const SkillGapPage: React.FC = () => {
           .catch(() => setCareerName(getVietnameseCareerName(analysisData.career_id)));
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to load analysis');
+      setError(err.message || 'Không thể tải phân tích CV.');
     } finally {
       setLoading(false);
     }

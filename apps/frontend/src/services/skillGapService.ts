@@ -8,21 +8,48 @@ import { SkillGapAnalysis, HeatmapData, InterviewPrepData, LearningPlan } from '
 const API_BASE_URL = '/api/skill-gap';
 const AI_REQUEST_TIMEOUT_MS = 180_000;
 
+function toVietnameseError(message: string, fallback: string): string {
+  const raw = String(message || '').trim();
+  const lower = raw.toLowerCase();
+  if (!raw) return fallback;
+  if (lower.includes('network error') || lower.includes('failed to fetch')) {
+    return 'Không thể kết nối máy chủ. Vui lòng kiểm tra mạng và thử lại.';
+  }
+  if (lower.includes('timeout') || lower.includes('timed out') || lower.includes('econnaborted')) {
+    return 'Máy chủ xử lý quá lâu. Vui lòng thử lại sau vài giây.';
+  }
+  if (lower.includes('unexpected end of json') || lower.includes("failed to execute 'json'")) {
+    return 'Máy chủ trả về phản hồi không hợp lệ. Vui lòng tải lại trang và thử lại.';
+  }
+  if (lower.includes('file is empty')) return 'Tệp tải lên đang rỗng. Vui lòng chọn lại CV hợp lệ.';
+  if (lower.includes('file too small')) return 'Tệp tải lên quá nhỏ. Vui lòng chọn lại CV đầy đủ nội dung.';
+  if (lower.includes('file too large')) return 'Tệp tải lên quá lớn. Vui lòng nén tệp hoặc chọn CV dưới 5 MB.';
+  if (lower.includes('unsupported file format')) return 'Định dạng tệp không được hỗ trợ. Vui lòng tải lên PDF, JPG hoặc PNG.';
+  if (lower.includes('request failed with status code')) return fallback;
+  return raw;
+}
+
 function apiError(error: unknown, fallback: string): Error {
   if (!axios.isAxiosError(error)) {
-    return error instanceof Error ? error : new Error(fallback);
+    return error instanceof Error
+      ? new Error(toVietnameseError(error.message, fallback))
+      : new Error(fallback);
   }
 
   const status = error.response?.status;
   const data = error.response?.data;
   const detail = data?.detail;
-  const message = typeof detail === 'string'
+  const rawMessage = typeof detail === 'string'
     ? detail
     : detail?.message || data?.message || error.message || fallback;
+  const message = toVietnameseError(rawMessage, fallback);
 
   const normalized: any = new Error(message);
+  const normalizedData = data && typeof data === 'object'
+    ? { ...data, detail: typeof detail === 'string' ? message : detail, message }
+    : data;
   normalized.response = error.response
-    ? { status, data }
+    ? { status, data: normalizedData }
     : undefined;
   return normalized;
 }
