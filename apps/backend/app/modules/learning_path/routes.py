@@ -376,12 +376,7 @@ def get_personalization_config(
             )
         return ""
 
-    existing_skills = []
-    if isinstance(matched_raw, list):
-        for s in matched_raw:
-            nm = _pick_vn_name(s)
-            if nm:
-                existing_skills.append(nm)
+    existing_skills = _matched_or_cv_skills(matched_raw, cv_skills_raw)
 
     # TÁCH RIÊNG nhóm Quan trọng & Nên có
     critical_skills = []
