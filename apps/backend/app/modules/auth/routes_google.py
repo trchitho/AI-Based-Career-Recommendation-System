@@ -3,6 +3,7 @@ import logging
 import os
 import secrets
 import urllib.parse
+import urllib.error
 import urllib.request
 
 from fastapi import APIRouter, HTTPException, Request
@@ -35,8 +36,34 @@ def _env(name: str, default: str | None = None) -> str:
 
 
 def _backend_callback_url(request: Request) -> str:
-    # giữ nguyên như file cũ
     return os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:8000/api/auth/google/callback")
+
+
+def _frontend_oauth_redirect(state: str | None) -> str:
+    try:
+        payload = json.loads(urllib.parse.unquote(state or "")) if state else {}
+    except (json.JSONDecodeError, TypeError):
+        payload = {}
+    return payload.get("redirect") or os.getenv(
+        "FRONTEND_OAUTH_REDIRECT",
+        "http://localhost:3000/oauth/callback",
+    )
+
+
+def _oauth_error_redirect(state: str | None, error: str) -> RedirectResponse:
+    frontend = _frontend_oauth_redirect(state)
+    separator = "&" if "?" in frontend else "?"
+    return RedirectResponse(
+        f"{frontend}{separator}error={urllib.parse.quote(error)}"
+    )
+
+
+def _read_google_error(exc: urllib.error.HTTPError) -> str:
+    try:
+        payload = json.loads(exc.read().decode("utf-8"))
+        return payload.get("error_description") or payload.get("error") or "Google OAuth request failed"
+    except Exception:
+        return f"Google OAuth request failed ({exc.code})"
 
 
 @router.get("/google/login")
@@ -44,8 +71,14 @@ def google_login(request: Request, redirect: str | None = None):
     client_id = _env("GOOGLE_CLIENT_ID")
     callback = _backend_callback_url(request)
 
-    state_payload = {"redirect": redirect or os.getenv("FRONTEND_OAUTH_REDIRECT", "http://localhost:3000/oauth/callback")}
-    state = urllib.parse.quote(json.dumps(state_payload))
+    state_payload = {
+        "redirect": redirect
+        or os.getenv(
+            "FRONTEND_OAUTH_REDIRECT",
+            "http://localhost:3000/oauth/callback",
+        )
+    }
+    state = json.dumps(state_payload, separators=(",", ":"))
 
     params = {
         "client_id": client_id,
@@ -84,8 +117,16 @@ def google_callback(request: Request, code: str | None = None, state: str | None
         data=data,
         headers={"Content-Type": "application/x-www-form-urlencoded"},
     )
-    with urllib.request.urlopen(req, timeout=10) as resp:
-        token_payload = json.loads(resp.read().decode("utf-8"))
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            token_payload = json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        detail = _read_google_error(exc)
+        logger.error("Google token exchange failed: %s", detail)
+        return _oauth_error_redirect(state, "google_token_exchange_failed")
+    except (urllib.error.URLError, TimeoutError) as exc:
+        logger.error("Google token endpoint unavailable: %s", exc)
+        return _oauth_error_redirect(state, "google_unavailable")
 
     access_token = token_payload.get("access_token")
     if not access_token:
@@ -96,8 +137,16 @@ def google_callback(request: Request, code: str | None = None, state: str | None
         "https://www.googleapis.com/oauth2/v3/userinfo",
         headers={"Authorization": f"Bearer {access_token}"},
     )
-    with urllib.request.urlopen(ui_req, timeout=10) as r2:
-        ui = json.loads(r2.read().decode("utf-8"))
+    try:
+        with urllib.request.urlopen(ui_req, timeout=10) as r2:
+            ui = json.loads(r2.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        detail = _read_google_error(exc)
+        logger.error("Google userinfo failed: %s", detail)
+        return _oauth_error_redirect(state, "google_userinfo_failed")
+    except (urllib.error.URLError, TimeoutError) as exc:
+        logger.error("Google userinfo endpoint unavailable: %s", exc)
+        return _oauth_error_redirect(state, "google_unavailable")
 
     email = (ui.get("email") or "").strip().lower()
     full_name = ui.get("name") or None
@@ -215,11 +264,6 @@ def google_callback(request: Request, code: str | None = None, state: str | None
         logger.error(f"Failed to log Google OAuth audit: {e}")
 
     # Redirect back to FE with tokens in query (dev-friendly)
-    try:
-        st = json.loads(urllib.parse.unquote(state or "")) if state else {}
-    except Exception:
-        st = {}
-
-    fe_redirect = st.get("redirect") or os.getenv("FRONTEND_OAUTH_REDIRECT", "http://localhost:3000/oauth/callback")
+    fe_redirect = _frontend_oauth_redirect(state)
     loc = f"{fe_redirect}?access_token={urllib.parse.quote(access)}&refresh_token={urllib.parse.quote(rt.token)}"
     return RedirectResponse(loc)
