@@ -350,9 +350,12 @@ def get_personalization_config(
         raise HTTPException(status_code=404, detail="Không tìm thấy phân tích CV này.")
 
     # Parse skills
+    cv_skills_raw = row["cv_skills"] or []
     matched_raw = row["matched_skills"] or []
     skill_gaps_raw = row["skill_gaps"] or {}
 
+    if isinstance(cv_skills_raw, str):
+        cv_skills_raw = json.loads(cv_skills_raw)
     if isinstance(matched_raw, str):
         matched_raw = json.loads(matched_raw)
     if isinstance(skill_gaps_raw, str):
