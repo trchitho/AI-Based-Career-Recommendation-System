@@ -241,7 +241,7 @@ def get_skill_gap_plans(
             except Exception:
                 plan_data = None
 
-        # Parse skill_gaps to count critical/important
+        # Parse skill_gaps to count important/nice-to-have/matched
         skill_gaps = row["skill_gaps"]
         if isinstance(skill_gaps, str):
             try:
@@ -251,8 +251,8 @@ def get_skill_gap_plans(
         if not isinstance(skill_gaps, dict):
             skill_gaps = {}
 
-        critical_count = len(skill_gaps.get("critical") or [])
-        important_count = len(skill_gaps.get("important") or [])
+        critical_count = len(skill_gaps.get("critical") or []) + len(skill_gaps.get("important") or [])
+        important_count = len(skill_gaps.get("nice_to_have") or [])
 
         plans.append(SkillGapPlanOut(
             analysis_id=row["analysis_id"],
