@@ -235,5 +235,42 @@ CRITICAL: Return ONLY valid JSON, no markdown.
             print(f"  [ERR] Failed to parse semantic matching JSON: {e}")
             return None
 
+    def assess_career_relationship(self, cv_skills: list, target_career: str) -> Optional[dict]:
+        """Ask Gemini whether the CV career and target career are effectively the same."""
+        if not self.is_available():
+            return None
+
+        skill_names = [str(s.get('name', '')).strip() for s in cv_skills if s.get('name')]
+        prompt = f"""
+You are a senior career analyst. Infer the candidate's current CV career from skills,
+then decide whether it is effectively the same career direction as the target career.
+
+Target career: {target_career}
+CV skills: {', '.join(skill_names[:80])}
+
+Return ONLY valid JSON:
+{{
+  "current_career": "career inferred from CV",
+  "same_career": true,
+  "confidence": 0.0,
+  "reason": "short reason"
+}}
+"""
+        response_text = self.generate_content_with_retry(prompt)
+        if not response_text:
+            return None
+        try:
+            if '```json' in response_text:
+                response_text = response_text.split('```json')[1].split('```')[0].strip()
+            elif '```' in response_text:
+                response_text = response_text.split('```')[1].split('```')[0].strip()
+            result = json.loads(response_text)
+            result['same_career'] = bool(result.get('same_career'))
+            result['confidence'] = float(result.get('confidence') or 0)
+            return result
+        except Exception as e:
+            print(f"  [WARN] Failed to parse career relationship JSON: {e}")
+            return None
+
 # Global instance
 gemini_manager = GeminiAPIManager()
