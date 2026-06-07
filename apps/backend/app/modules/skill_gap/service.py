@@ -197,6 +197,13 @@ class SkillGapService:
         else:
             print("  R2 upload skipped (not configured or failed)")
 
+        target_title = self._get_target_career_title(career_id)
+        job_skills = self.graph_analyzer.get_job_required_skills(career_id)
+        relation = self._assess_career_relationship(cv_skills, target_title)
+        analysis_result = self._normalize_groups_by_career_relation(
+            analysis_result, cv_skills, job_skills, relation
+        )
+
         # Save to database
         print("[5/5] Saving to database...")
         db_start = time.time()
@@ -225,7 +232,7 @@ class SkillGapService:
             cv_email=personal_info.get('email') or None,
             cv_phone=personal_info.get('phone') or None,
             cv_skills=cv_skills,
-            job_skills=self.graph_analyzer.get_job_required_skills(career_id),
+            job_skills=job_skills,
             matched_skills=analysis_result.get('matched_skills', []),
             skill_gaps=analysis_result.get('skill_gaps', {}),
             extra_skills=analysis_result.get('extra_skills', []),
@@ -241,11 +248,10 @@ class SkillGapService:
         print(f"  Saved in {time.time() - db_start:.2f}s")
 
         # ── Stage 4/5: NeuMF + Thompson Sampling (background, non-blocking) ──
-        job_skills_raw = self.graph_analyzer.get_job_required_skills(career_id)
         import asyncio as _aio
         _aio.ensure_future(
             self._run_ai_ranking_pipeline(
-                skill_gap_record.id, cv_skills, job_skills_raw, user_id
+                skill_gap_record.id, cv_skills, job_skills, user_id
             )
         )
 
