@@ -94,6 +94,17 @@ class SkillGapService:
         ] or [s for s in job_skills if str(s.get('name', '')).strip().lower() not in cv_names] or job_skills
 
         if is_same:
+            analysis['matched_skills'] = [
+                {
+                    'name': skill.get('name'),
+                    'onet_skill': skill.get('name'),
+                    'category': skill.get('category', 'Other'),
+                    'importance': skill.get('importance', 0.7),
+                    'match_type': 'same_career_cv_skill',
+                    'confidence': max(float(relation.get('confidence') or 0), 0.8)
+                }
+                for skill in cv_skills if skill.get('name')
+            ]
             analysis['extra_skills'] = []
             if not gaps['nice_to_have']:
                 for skill in sorted(missing_target, key=lambda item: item.get('importance', 0))[:10]:
