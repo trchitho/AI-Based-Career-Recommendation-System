@@ -4,8 +4,10 @@ Tích hợp VNPay API cho thanh toán thẻ Visa/Mastercard/ATM
 """
 import hashlib
 import hmac
+import re
+import unicodedata
 import urllib.parse
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict
 
 from loguru import logger
@@ -13,6 +15,8 @@ from loguru import logger
 
 class VNPayService:
     """Service xử lý thanh toán VNPay"""
+
+    VIETNAM_TZ = timezone(timedelta(hours=7))
 
     def __init__(
         self,
@@ -27,6 +31,24 @@ class VNPayService:
         self.payment_url = payment_url
         self.return_url = return_url
         self.api_url = api_url
+
+    @staticmethod
+    def _normalize_order_info(value: str) -> str:
+        ascii_value = (
+            unicodedata.normalize("NFKD", value or "")
+            .encode("ascii", "ignore")
+            .decode("ascii")
+        )
+        normalized = re.sub(r"[^A-Za-z0-9 .,_-]", " ", ascii_value)
+        return re.sub(r"\s+", " ", normalized).strip()[:255]
+
+    def _validate_configuration(self) -> None:
+        if not re.fullmatch(r"[A-Za-z0-9]{8}", self.tmn_code or ""):
+            raise ValueError("VNPAY_TMN_CODE must be the 8-character sandbox Terminal ID")
+        if not self.hash_secret or self.hash_secret.startswith("YOUR_"):
+            raise ValueError("VNPAY_HASH_SECRET is not configured")
+        if not self.return_url.startswith("https://"):
+            raise ValueError("VNPAY_RETURN_URL must use HTTPS in production")
 
     def create_payment_url(
         self,
@@ -52,12 +74,17 @@ class VNPayService:
             Dict chứa payment_url
         """
         try:
+            self._validate_configuration()
+
             # VNPay yêu cầu amount * 100
             vnp_amount = amount * 100
             
-            # Tạo thời gian
-            create_date = datetime.now().strftime('%Y%m%d%H%M%S')
-            # expire_date = datetime.now().strftime('%Y%m%d%H%M%S')  # Unused variable removed
+            now = datetime.now(self.VIETNAM_TZ)
+            create_date = now.strftime("%Y%m%d%H%M%S")
+            expire_date = (now + timedelta(minutes=15)).strftime("%Y%m%d%H%M%S")
+            normalized_order_info = self._normalize_order_info(order_info)
+            if not normalized_order_info:
+                normalized_order_info = f"Thanh toan don hang {order_id}"
             
             # Params theo thứ tự alphabet
             vnp_params = {
@@ -65,9 +92,10 @@ class VNPayService:
                 "vnp_Command": "pay",
                 "vnp_CreateDate": create_date,
                 "vnp_CurrCode": "VND",
+                "vnp_ExpireDate": expire_date,
                 "vnp_IpAddr": ip_addr,
                 "vnp_Locale": locale,
-                "vnp_OrderInfo": order_info,
+                "vnp_OrderInfo": normalized_order_info,
                 "vnp_OrderType": "other",
                 "vnp_ReturnUrl": self.return_url,
                 "vnp_TmnCode": self.tmn_code,
@@ -82,7 +110,7 @@ class VNPayService:
             sorted_params = sorted(vnp_params.items())
             
             # Tạo query string
-            query_string = urllib.parse.urlencode(sorted_params)
+            query_string = urllib.parse.urlencode(sorted_params, quote_via=urllib.parse.quote_plus)
             
             # Tạo secure hash
             hash_data = query_string

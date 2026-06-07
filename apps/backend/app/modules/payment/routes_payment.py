@@ -107,8 +107,8 @@ def get_zalopay_service() -> ZaloPayService:
 def get_vnpay_service() -> VNPayService:
     """Init VNPay service from env"""
     return VNPayService(
-        tmn_code=os.getenv("VNPAY_TMN_CODE", "CGXZLS0Z"),
-        hash_secret=os.getenv("VNPAY_HASH_SECRET", "XNBCJFAKAZQSGTARRLGCHVZWCIOIGSHN"),
+        tmn_code=os.getenv("VNPAY_TMN_CODE", ""),
+        hash_secret=os.getenv("VNPAY_HASH_SECRET", ""),
         payment_url=os.getenv(
             "VNPAY_PAYMENT_URL",
             os.getenv("VNPAY_URL", "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"),

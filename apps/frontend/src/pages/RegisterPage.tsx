@@ -6,6 +6,7 @@ import ThemeToggle from "../components/ThemeToggle";
 import LanguageSwitcher from "../components/LanguageSwitcher";
 import { useAppSettings } from "../contexts/AppSettingsContext";
 import api from "../lib/api";
+import { joinUrl } from "../lib/url";
 import { authTokenService } from "../services/authTokenService";
 
 const RegisterPage = () => {
@@ -416,7 +417,7 @@ const RegisterPage = () => {
                 type="button"
                 onClick={() => {
                   const redirect = `${window.location.origin}/oauth/callback`;
-                  window.location.href = `${api.defaults.baseURL}api/auth/google/login?redirect=${encodeURIComponent(redirect)}`;
+                  window.location.href = `${joinUrl(api.defaults.baseURL, "/api/auth/google/login")}?redirect=${encodeURIComponent(redirect)}`;
                 }}
                 className="w-full flex items-center justify-center gap-3 py-[17px] px-4 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-[18px] hover:bg-gray-50 dark:hover:bg-gray-600 hover:border-gray-300 dark:hover:border-gray-500 transition-all text-gray-700 dark:text-white font-semibold text-[16px]"
               >
