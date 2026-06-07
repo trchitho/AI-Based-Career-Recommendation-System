@@ -494,7 +494,7 @@ const LearningPathPage = () => {
                             </div>
                             <div style={{ padding: '0.85rem', background: '#fef3c7', border: '1px solid #fde68a', borderRadius: 10, textAlign: 'center' }}>
                               <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#92400e' }}>{plan.important_count ?? 0}</div>
-                              <div style={{ fontSize: '0.72rem', color: '#92400e', fontWeight: 700, marginTop: 2 }}>NÊN CÓ</div>
+                              <div style={{ fontSize: '0.72rem', color: '#92400e', fontWeight: 700, marginTop: 2 }}>NÊN CÓ ({plan.career_title || plan.career_id || 'nghề mục tiêu'})</div>
                               <div style={{ fontSize: '0.65rem', color: '#92400e', marginTop: 1 }}>Bổ sung sau</div>
                             </div>
                             <div style={{ padding: '0.85rem', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 10, textAlign: 'center' }}>
