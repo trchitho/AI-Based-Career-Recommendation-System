@@ -28,6 +28,35 @@ class SkillGapService:
         self.cv_parser = CVParser(db_session=db)
         self.cv_parser_v2 = CVParserV2(db_session=db)  # New AI-first parser
         self.graph_analyzer = SkillGraphAnalyzer(neo4j_driver, db_session=db)
+
+    def _get_target_career_title(self, career_id: str) -> str:
+        if not self.db:
+            return career_id
+        try:
+            from app.modules.content.models import Career
+            career = self.db.query(Career).filter(
+                (Career.slug == career_id) | (Career.onet_code == career_id)
+            ).first()
+            if career:
+                return career.title_vi or career.title_en or career.slug or career_id
+        except Exception as e:
+            print(f"  [WARN] Could not resolve target career title: {e}")
+        return career_id
+
+    def _assess_career_relationship(self, cv_skills: List[Dict], target_title: str) -> Dict:
+        try:
+            from .gemini_utils import gemini_manager
+            result = gemini_manager.assess_career_relationship(cv_skills, target_title) or {}
+        except Exception as e:
+            print(f"  [WARN] Career relationship assessment failed: {e}")
+            result = {}
+        return {
+            'current_career': result.get('current_career') or 'Nghề trong CV',
+            'target_career': target_title,
+            'same_career': bool(result.get('same_career')),
+            'confidence': float(result.get('confidence') or 0),
+            'reason': result.get('reason') or ''
+        }
     
     async def analyze_cv(
         self, 
