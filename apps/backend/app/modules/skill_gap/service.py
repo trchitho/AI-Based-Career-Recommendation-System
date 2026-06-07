@@ -57,6 +57,59 @@ class SkillGapService:
             'confidence': float(result.get('confidence') or 0),
             'reason': result.get('reason') or ''
         }
+
+    @staticmethod
+    def _gap_from_job_skill(skill: Dict) -> Dict:
+        importance = skill.get('importance', 0.5)
+        return {
+            'name': skill.get('name'),
+            'category': skill.get('category', 'Other'),
+            'importance': importance,
+            'proficiency_level': skill.get('proficiency_level', 'intermediate'),
+            'market_demand': 'high' if importance >= 0.8 else 'medium' if importance >= 0.5 else 'low'
+        }
+
+    def _normalize_groups_by_career_relation(
+        self,
+        analysis: Dict,
+        cv_skills: List[Dict],
+        job_skills: List[Dict],
+        relation: Dict,
+    ) -> Dict:
+        gaps = analysis.setdefault('skill_gaps', {})
+        gaps.setdefault('critical', [])
+        gaps.setdefault('important', [])
+        gaps.setdefault('nice_to_have', [])
+
+        cv_names = {str(s.get('name', '')).strip().lower() for s in cv_skills}
+        matched_jobs = {
+            str(s.get('onet_skill') or s.get('name') or '').strip().lower()
+            for s in analysis.get('matched_skills', [])
+        }
+        is_same = bool(relation.get('same_career')) and float(relation.get('confidence') or 0) >= 0.6
+
+        if is_same:
+            analysis['extra_skills'] = []
+        else:
+            missing_target = [
+                s for s in job_skills
+                if str(s.get('name', '')).strip().lower() not in cv_names
+                and str(s.get('name', '')).strip().lower() not in matched_jobs
+            ] or [s for s in job_skills if str(s.get('name', '')).strip().lower() not in cv_names] or job_skills
+
+            if not (gaps['critical'] or gaps['important'] or gaps['nice_to_have']):
+                for skill in sorted(missing_target, key=lambda item: item.get('importance', 0), reverse=True):
+                    target = gaps['important'] if skill.get('importance', 0.5) >= 0.5 else gaps['nice_to_have']
+                    target.append(self._gap_from_job_skill(skill))
+
+            current = relation.get('current_career') or 'Nghề trong CV'
+            target = relation.get('target_career') or ''
+            for skill in analysis.get('extra_skills', []):
+                skill['current_career'] = current
+                skill['target_career'] = target
+
+        analysis['career_relation'] = relation
+        return analysis
     
     async def analyze_cv(
         self, 
