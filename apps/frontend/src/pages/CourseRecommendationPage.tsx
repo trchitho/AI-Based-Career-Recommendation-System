@@ -93,6 +93,21 @@ const SOURCE_LABELS: Record<string, string> = {
   fallback: "Embedding fallback",
 };
 
+const PLATFORM_FILTERS = [
+  { value: "all", label: "Tất cả nguồn" },
+  { value: "coursera", label: "Coursera" },
+  { value: "edx", label: "edX" },
+  { value: "udemy", label: "Udemy" },
+  { value: "freecodecamp", label: "freeCodeCamp" },
+  { value: "linkedin learning", label: "LinkedIn Learning" },
+];
+
+const PRICE_FILTERS = [
+  { value: "all", label: "Tất cả chi phí" },
+  { value: "free", label: "Miễn phí" },
+  { value: "paid", label: "Có phí" },
+];
+
 const LEVEL_LABELS: Record<string, string> = {
   beginner: "Cơ bản",
   intermediate: "Trung cấp",
@@ -175,6 +190,8 @@ const CourseRecommendationPage = ({
   const [timeoutNotice, setTimeoutNotice] = useState(false);
   const [activeGroup, setActiveGroup] = useState<PriorityGroup | "all">("all");
   const [activeSkill, setActiveSkill] = useState<string | null>(null);
+  const [activePlatform, setActivePlatform] = useState("all");
+  const [activePrice, setActivePrice] = useState("all");
   const [manualSkills, setManualSkills] = useState("");
   const [coursePage, setCoursePage] = useState(1);
 
@@ -284,21 +301,33 @@ const CourseRecommendationPage = ({
     [visibleGroups.join("|"), activeSkill, groupedRecommendations]
   );
 
+  const filteredRecommendations = useMemo(
+    () => allVisibleRecommendations.filter((rec) => {
+      const platform = rec.course.platform?.toLowerCase() || "";
+      const matchesPlatform = activePlatform === "all" || platform === activePlatform;
+      const matchesPrice =
+        activePrice === "all" ||
+        (activePrice === "free" ? rec.course.is_free : !rec.course.is_free);
+      return matchesPlatform && matchesPrice;
+    }),
+    [allVisibleRecommendations, activePlatform, activePrice]
+  );
+
   useEffect(() => {
     setCoursePage(1);
-  }, [activeGroup, activeSkill, data]);
+  }, [activeGroup, activeSkill, activePlatform, activePrice, data]);
 
-  const totalCoursePages = Math.max(1, Math.ceil(allVisibleRecommendations.length / COURSE_PAGE_SIZE));
+  const totalCoursePages = Math.max(1, Math.ceil(filteredRecommendations.length / COURSE_PAGE_SIZE));
   const currentCoursePage = Math.min(coursePage, totalCoursePages);
-  const pagedRecommendations = allVisibleRecommendations.slice(
+  const pagedRecommendations = filteredRecommendations.slice(
     (currentCoursePage - 1) * COURSE_PAGE_SIZE,
     currentCoursePage * COURSE_PAGE_SIZE
   );
 
-  const coursePagination = allVisibleRecommendations.length > COURSE_PAGE_SIZE && (
+  const coursePagination = filteredRecommendations.length > COURSE_PAGE_SIZE && (
     <div className="px-5 sm:px-6 pb-5 sm:pb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
       <span className="text-xs font-bold text-gray-500 dark:text-gray-400">
-        Hiển thị {(currentCoursePage - 1) * COURSE_PAGE_SIZE + 1}-{Math.min(currentCoursePage * COURSE_PAGE_SIZE, allVisibleRecommendations.length)} / {allVisibleRecommendations.length} khóa học
+        Hiển thị {(currentCoursePage - 1) * COURSE_PAGE_SIZE + 1}-{Math.min(currentCoursePage * COURSE_PAGE_SIZE, filteredRecommendations.length)} / {filteredRecommendations.length} khóa học
       </span>
       <div className="flex items-center gap-2">
         <button
@@ -489,20 +518,37 @@ const CourseRecommendationPage = ({
           <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-300">
             <Award className="w-4 h-4 text-indigo-500" />
             <span>
-              Có <b className="text-indigo-600 dark:text-indigo-300">{allVisibleRecommendations.length}</b> khóa học phù hợp cho <b>{totalPlannedSkills}</b> kỹ năng cần học
+              Có <b className="text-indigo-600 dark:text-indigo-300">{filteredRecommendations.length}</b> khóa học phù hợp cho <b>{totalPlannedSkills}</b> kỹ năng cần học
             </span>
             {data.recommendations.length > 0 && (
               <span className="text-xs text-gray-500 dark:text-gray-400">
-                Đã phủ <b>{uniqueSkillNames(allVisibleRecommendations.map((rec) => rec.skill_name)).length}</b> kỹ năng có khóa học
+                Đã phủ <b>{uniqueSkillNames(filteredRecommendations.map((rec) => rec.skill_name)).length}</b> kỹ năng có khóa học
               </span>
             )}
             <span className="text-[10px] font-black uppercase tracking-wide px-2.5 py-1 rounded-full bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
               {SOURCE_LABELS[data.source] || data.source}
             </span>
           </div>
-          <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+          <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
             <Filter className="w-3.5 h-3.5" />
-            Chỉ dùng 5 nguồn: Coursera, edX, Udemy, freeCodeCamp, LinkedIn Learning
+            <select
+              value={activePlatform}
+              onChange={(event) => setActivePlatform(event.target.value)}
+              className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 font-bold text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              {PLATFORM_FILTERS.map((option) => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
+            </select>
+            <select
+              value={activePrice}
+              onChange={(event) => setActivePrice(event.target.value)}
+              className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 font-bold text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              {PRICE_FILTERS.map((option) => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
+            </select>
           </div>
         </div>
       )}
@@ -515,7 +561,7 @@ const CourseRecommendationPage = ({
         </div>
       )}
 
-      {!loading && data && activeGroup === "all" && allVisibleRecommendations.length > 0 && (
+      {!loading && data && activeGroup === "all" && filteredRecommendations.length > 0 && (
         <section className="rounded-3xl border border-gray-200 dark:border-white/10 bg-white/85 dark:bg-gray-900/70 shadow-lg overflow-hidden">
           <div className="p-5 sm:p-6 border-b border-gray-200 dark:border-white/10 flex items-start justify-between gap-4">
             <div>
@@ -525,7 +571,7 @@ const CourseRecommendationPage = ({
               <h2 className="mt-3 text-xl font-black text-gray-950 dark:text-white">Khóa học phù hợp</h2>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Tổng hợp theo toàn bộ kỹ năng còn thiếu.</p>
             </div>
-            <span className="text-sm font-bold text-gray-500 dark:text-gray-400">{allVisibleRecommendations.length} khóa học</span>
+            <span className="text-sm font-bold text-gray-500 dark:text-gray-400">{filteredRecommendations.length} khóa học</span>
           </div>
           <div className="p-5 sm:p-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
             {pagedRecommendations.map((rec, i) => <CourseCard key={`all-${rec.course.external_id}-${i}`} rec={rec} />)}
@@ -534,7 +580,7 @@ const CourseRecommendationPage = ({
         </section>
       )}
 
-      {!loading && data && allVisibleRecommendations.length === 0 && (
+      {!loading && data && filteredRecommendations.length === 0 && (
         <div className="bg-white/70 dark:bg-gray-900/60 rounded-3xl border border-dashed border-amber-300 dark:border-amber-800 p-10 text-center">
           <GraduationCap className="w-12 h-12 mx-auto text-amber-400 mb-3" />
           <h3 className="text-lg font-black text-gray-950 dark:text-white">Chưa có khóa học đủ khớp</h3>
@@ -542,7 +588,7 @@ const CourseRecommendationPage = ({
         </div>
       )}
 
-      {!loading && data && activeGroup !== "all" && visibleGroups.map((group) => {
+      {!loading && data && activeGroup !== "all" && filteredRecommendations.length > 0 && visibleGroups.map((group) => {
         const items = filteredBySkill(groupedRecommendations[group]);
         if (items.length === 0) return null;
         const dynamicLabel = group === "nice_to_have" && careerName
@@ -563,7 +609,7 @@ const CourseRecommendationPage = ({
                 </h2>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{GROUP_META[group].caption}</p>
               </div>
-              <span className="text-sm font-bold text-gray-500 dark:text-gray-400">{items.length} khóa học</span>
+              <span className="text-sm font-bold text-gray-500 dark:text-gray-400">{filteredRecommendations.length} khóa học</span>
             </div>
             <div className="p-5 sm:p-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
               {pagedRecommendations.map((rec, i) => <CourseCard key={`${group}-${rec.course.external_id}-${i}`} rec={rec} />)}
