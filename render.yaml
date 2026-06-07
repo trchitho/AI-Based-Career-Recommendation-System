@@ -31,6 +31,12 @@ services:
         value: https://career-ai-backend-elu0.onrender.com
       - key: VNPAY_RETURN_URL
         value: https://career-ai-backend-elu0.onrender.com/api/payment/vnpay/return
+      - key: VNPAY_TMN_CODE
+        sync: false
+      - key: VNPAY_HASH_SECRET
+        sync: false
+      - key: VNPAY_PAYMENT_URL
+        value: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
       - key: AI_CORE_ENABLED
         value: "false"
       - key: ZALOPAY_CALLBACK_URL
