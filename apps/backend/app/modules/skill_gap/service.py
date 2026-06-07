@@ -336,6 +336,28 @@ class SkillGapService:
             .order_by(SkillGapAnalysis.created_at.desc())\
             .limit(limit)\
             .all()
+
+    @staticmethod
+    def _apply_cv_matched_fallback(analysis: SkillGapAnalysis) -> SkillGapAnalysis:
+        matched = analysis.matched_skills if isinstance(analysis.matched_skills, list) else []
+        cv_skills = analysis.cv_skills if isinstance(analysis.cv_skills, list) else []
+        if matched or not cv_skills:
+            return analysis
+
+        analysis.matched_skills = [
+            {
+                'name': skill.get('name') if isinstance(skill, dict) else str(skill),
+                'onet_skill': skill.get('name') if isinstance(skill, dict) else str(skill),
+                'category': skill.get('category', 'Other') if isinstance(skill, dict) else 'Other',
+                'importance': skill.get('importance', 0.7) if isinstance(skill, dict) else 0.7,
+                'match_type': 'cv_skill_fallback',
+                'confidence': 0.8
+            }
+            for skill in cv_skills
+            if (skill.get('name') if isinstance(skill, dict) else str(skill))
+        ]
+        analysis.matched_skills_count = len(analysis.matched_skills)
+        return analysis
     
     def get_analysis_by_id(self, analysis_id: int, user_id: int) -> SkillGapAnalysis:
         """
@@ -348,12 +370,13 @@ class SkillGapService:
         Returns:
             SkillGapAnalysis: Chi tiết phân tích
         """
-        return self.db.query(SkillGapAnalysis)\
+        analysis = self.db.query(SkillGapAnalysis)\
             .filter(
                 SkillGapAnalysis.id == analysis_id,
                 SkillGapAnalysis.user_id == user_id
             )\
             .first()
+        return self._apply_cv_matched_fallback(analysis) if analysis else None
     
     def generate_heatmap_data(self, analysis_id: int, user_id: int) -> Dict:
         """
