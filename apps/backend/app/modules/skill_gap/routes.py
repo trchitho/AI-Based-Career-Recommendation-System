@@ -15,6 +15,10 @@ from .service import SkillGapService
 router = APIRouter(tags=["Skill Gap Analysis"])
 
 
+def _looks_like_pdf(file_content: bytes) -> bool:
+    return file_content.lstrip(b"\xef\xbb\xbf\r\n\t ").startswith(b"%PDF-")
+
+
 def get_neo4j_driver():
     """Get Neo4j driver"""
     return get_driver()
@@ -88,7 +92,7 @@ async def test_analyze_cv_skill_gap(
             detail=f"File too large ({file_size / 1024 / 1024:.2f} MB). Maximum size: {MAX_FILE_SIZE_MB} MB."
         )
 
-    if file_ext == '.pdf' and not file_content.startswith(b'%PDF-'):
+    if file_ext == '.pdf' and not _looks_like_pdf(file_content):
         raise HTTPException(
             status_code=422,
             detail="File có đuôi PDF nhưng nội dung không phải tài liệu PDF hợp lệ."
@@ -344,7 +348,7 @@ async def analyze_cv_skill_gap(
             detail=f"File too large ({file_size / 1024 / 1024:.2f} MB). Maximum size: {MAX_FILE_SIZE_MB} MB."
         )
 
-    if file_ext == '.pdf' and not file_content.startswith(b'%PDF-'):
+    if file_ext == '.pdf' and not _looks_like_pdf(file_content):
         raise HTTPException(
             status_code=422,
             detail="File có đuôi PDF nhưng nội dung không phải tài liệu PDF hợp lệ."
