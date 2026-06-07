@@ -351,7 +351,7 @@ def get_personalization_config(
             if nm:
                 existing_skills.append(nm)
 
-    # TÁCH RIÊNG critical & important
+    # TÁCH RIÊNG nhóm Quan trọng & Nên có
     critical_skills = []
     important_skills = []
     if isinstance(skill_gaps_raw, dict):
@@ -360,6 +360,10 @@ def get_personalization_config(
             if nm:
                 critical_skills.append(nm)
         for s in skill_gaps_raw.get("important", []):
+            nm = _pick_vn_name(s)
+            if nm:
+                critical_skills.append(nm)
+        for s in skill_gaps_raw.get("nice_to_have", []):
             nm = _pick_vn_name(s)
             if nm:
                 important_skills.append(nm)
