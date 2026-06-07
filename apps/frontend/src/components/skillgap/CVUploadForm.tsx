@@ -156,6 +156,24 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
   const [loadingCareers, setLoadingCareers] = useState(true);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
+  const selectCvFile = (file: File) => {
+    setCvFile(file);
+    setError(null);
+    setPreviewUrl(prevUrl => {
+      if (prevUrl) URL.revokeObjectURL(prevUrl);
+      return URL.createObjectURL(file);
+    });
+  };
+
+  const clearCvFile = () => {
+    setCvFile(null);
+    setError(null);
+    setPreviewUrl(prevUrl => {
+      if (prevUrl) URL.revokeObjectURL(prevUrl);
+      return null;
+    });
+  };
+
   // Load career recommendations from latest assessment
   useEffect(() => {
     const loadCareerRecommendations = async () => {
@@ -224,10 +242,7 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
         setError(errorMsg);
         return;
       }
-      setCvFile(file);
-      setError(null);
-      const url = URL.createObjectURL(file);
-      setPreviewUrl(url);
+      selectCvFile(file);
     }
   };
 
@@ -239,11 +254,9 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
         setError(errorMsg);
         return;
       }
-      setCvFile(file);
-      setError(null);
-      const url = URL.createObjectURL(file);
-      setPreviewUrl(url);
+      selectCvFile(file);
     }
+    e.currentTarget.value = '';
   };
 
   const handlePreviewClick = () => {
@@ -476,7 +489,7 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
                   <button
                     type="button"
                     className="remove-file"
-                    onClick={() => { setCvFile(null); setError(null); }}
+                    onClick={clearCvFile}
                     title="Xóa và thêm CV khác"
                     style={{ display: 'flex', alignItems: 'center', gap: '3px', fontSize: '12px', fontWeight: '600' }}
                   >
@@ -644,8 +657,7 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
                           if (errMsg) {
                             setError(errMsg);
                           } else {
-                            setCvFile(f);
-                            setError(null);
+                            selectCvFile(f);
                           }
                         }
                         e.target.value = '';
@@ -656,7 +668,7 @@ const CVUploadForm: React.FC<CVUploadFormProps> = ({ onAnalysisComplete }) => {
                   {cvFile && (
                     <button
                       type="button"
-                      onClick={() => { setCvFile(null); setError(null); }}
+                      onClick={clearCvFile}
                       style={{
                         display: 'inline-flex', alignItems: 'center', gap: '6px',
                         padding: '8px 14px', backgroundColor: 'transparent', color: '#ef4444',
