@@ -124,6 +124,10 @@ class SkillGapService:
                 skill['target_career'] = target
 
         analysis['career_relation'] = relation
+        analysis['missing_skills_count'] = sum(
+            len(gaps.get(group, [])) for group in ('critical', 'important', 'nice_to_have')
+        )
+        analysis['matched_skills_count'] = len(analysis.get('matched_skills', []))
         return analysis
     
     async def analyze_cv(
