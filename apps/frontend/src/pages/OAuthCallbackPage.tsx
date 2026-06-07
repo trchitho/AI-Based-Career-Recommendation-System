@@ -1,9 +1,6 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 const OAuthCallbackPage = () => {
-  const navigate = useNavigate();
-
   // ==========================================
   // 1. LOGIC BLOCK (GIỮ NGUYÊN)
   // ==========================================
@@ -11,15 +8,21 @@ const OAuthCallbackPage = () => {
     const params = new URLSearchParams(window.location.search);
     const access = params.get('access_token');
     const refresh = params.get('refresh_token');
+    const error = params.get('error');
 
-    if (access) localStorage.setItem('accessToken', access);
-    if (refresh) localStorage.setItem('refreshToken', refresh);
+    if (error || !access || !refresh) {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      window.location.replace(`/login?oauth_error=${encodeURIComponent(error || 'missing_tokens')}`);
+      return;
+    }
 
-    // Go to home after login
-    // Thêm một chút delay nhỏ để người dùng kịp nhìn thấy hiệu ứng chuyển cảnh mượt mà nếu muốn, 
-    // nhưng ở đây giữ nguyên logic redirect ngay lập tức để tối ưu tốc độ.
-    navigate('/home', { replace: true });
-  }, [navigate]);
+    localStorage.setItem('accessToken', access);
+    localStorage.setItem('refreshToken', refresh);
+
+    // Reload the application so AuthProvider initializes from the new tokens.
+    window.location.replace('/home');
+  }, []);
 
   // ==========================================
   // 2. NEW DESIGN UI
