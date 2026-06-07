@@ -280,6 +280,47 @@ async def lifespan(_: FastAPI):
         print("🚀 Course pipeline scheduled (runs in background after 3 s)")
     else:
         print("ℹ️  Course startup pipeline disabled (set RUN_COURSE_PIPELINE_ON_STARTUP=true to enable)")
+
+    # Keep AuraDB mentor graph in sync with PostgreSQL without requiring a
+    # manual dashboard import or a user access token.
+    if _bool_env("SYNC_MENTOR_GRAPH_ON_STARTUP", default=True):
+        import threading
+
+        def _sync_mentor_graph_on_startup():
+            db = SessionLocal()
+            driver = None
+            try:
+                from app.modules.graph.neo4j_client import get_driver
+                from app.modules.mentor_matching.graph_gds import sync_matching_graph
+
+                driver = get_driver()
+                if not driver:
+                    print("[WARN] Mentor graph sync skipped: Neo4j is unavailable")
+                    return
+                result = sync_matching_graph(driver, db)
+                print(
+                    "[OK] Mentor graph synced: "
+                    f"{result['mentors_synced']} mentors, "
+                    f"{result['mentees_synced']} mentees"
+                )
+            except Exception as exc:
+                print(f"[WARN] Mentor graph sync failed: {exc}")
+            finally:
+                db.close()
+                if driver:
+                    driver.close()
+
+        def _delayed_mentor_graph_sync():
+            time.sleep(5)
+            _sync_mentor_graph_on_startup()
+
+        threading.Thread(
+            target=_delayed_mentor_graph_sync,
+            daemon=True,
+            name="mentor-graph-sync",
+        ).start()
+        print("[OK] Mentor graph sync scheduled")
+
     # Auto-migration: tạo bảng interview.job_descriptions nếu chưa có
     try:
         with engine.connect() as conn:
