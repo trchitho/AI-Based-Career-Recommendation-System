@@ -21,6 +21,29 @@ from app.modules.auth.models import User
 router = APIRouter(tags=["learning-path"])
 
 
+def _pick_skill_name(item) -> str:
+    if isinstance(item, str):
+        return item
+    if isinstance(item, dict):
+        return (
+            item.get("name_vn")
+            or item.get("onet_skill_vn")
+            or item.get("name")
+            or item.get("onet_skill")
+            or item.get("skill_name")
+            or item.get("name_en")
+            or item.get("onet_skill_en")
+            or ""
+        )
+    return ""
+
+
+def _matched_or_cv_skills(matched_raw, cv_raw) -> List[str]:
+    matched = [_pick_skill_name(s) for s in matched_raw] if isinstance(matched_raw, list) else []
+    cv_skills = [_pick_skill_name(s) for s in cv_raw] if isinstance(cv_raw, list) else []
+    return [s for s in (matched or cv_skills) if s]
+
+
 # ═══════════════════════════════════════════════════════════════
 #  Schemas
 # ═══════════════════════════════════════════════════════════════
