@@ -102,6 +102,19 @@ class SkillGapService:
                     target = gaps['important'] if skill.get('importance', 0.5) >= 0.5 else gaps['nice_to_have']
                     target.append(self._gap_from_job_skill(skill))
 
+            existing_gap_names = {
+                str(item.get('name', '')).strip().lower()
+                for group in ('critical', 'important', 'nice_to_have')
+                for item in gaps.get(group, [])
+            }
+            if not gaps['nice_to_have']:
+                for skill in sorted(missing_target, key=lambda item: item.get('importance', 0)):
+                    skill_name = str(skill.get('name', '')).strip().lower()
+                    if skill_name and skill_name not in existing_gap_names:
+                        gaps['nice_to_have'].append(self._gap_from_job_skill(skill))
+                    if len(gaps['nice_to_have']) >= 10:
+                        break
+
             current = relation.get('current_career') or 'Nghề trong CV'
             target = relation.get('target_career') or ''
             for skill in analysis.get('extra_skills', []):
