@@ -30,6 +30,7 @@ const SkillHeatmapGrid: React.FC<Props> = ({ analysis, careerName }) => {
   const [tooltip, setTooltip] = useState<{ skill: SkillCell; x: number; y: number } | null>(null);
 
   const extraSkills = analysis.extra_skills || [];
+  const cvCareerRecommendedSkills = extraSkills.slice(0, 10);
   const cvCareerLabel = extraSkills[0]?.current_career || 'nghề CV';
   const targetCareerLabel = careerName || extraSkills[0]?.target_career || 'nghề Target';
 
@@ -38,7 +39,7 @@ const SkillHeatmapGrid: React.FC<Props> = ({ analysis, careerName }) => {
     ...(analysis.matched_skills || []).map(s => ({ name: translateSkillName(s.name), status: 'matched' as Status, category: translateSkillCategory(s.category) })),
     ...(analysis.skill_gaps?.critical || []).map(s => ({ name: translateSkillName(s.name), status: 'important' as Status, category: translateSkillCategory(s.category) })),
     ...(analysis.skill_gaps?.important || []).map(s => ({ name: translateSkillName(s.name), status: 'important' as Status, category: translateSkillCategory(s.category) })),
-    ...extraSkills.map(s => ({ name: translateSkillName(s.name), status: 'extra' as Status, category: translateSkillCategory(s.category) })),
+    ...cvCareerRecommendedSkills.map(s => ({ name: translateSkillName(s.name), status: 'extra' as Status, category: translateSkillCategory(s.category) })),
     ...(analysis.skill_gaps?.nice_to_have || []).map(s => ({ name: translateSkillName(s.name), status: 'nice_to_have' as Status, category: translateSkillCategory(s.category) })),
   ];
 

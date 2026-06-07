@@ -100,6 +100,7 @@ const LEVEL_LABELS: Record<string, string> = {
 };
 
 const normalizeSkill = (value: string) => value.trim().toLowerCase().replace(/\s+/g, " ");
+const COURSE_PAGE_SIZE = 9;
 
 const isTimeoutError = (error: any) => {
   const message = String(error?.message || "").toLowerCase();
@@ -175,6 +176,7 @@ const CourseRecommendationPage = ({
   const [activeGroup, setActiveGroup] = useState<PriorityGroup | "all">("all");
   const [activeSkill, setActiveSkill] = useState<string | null>(null);
   const [manualSkills, setManualSkills] = useState("");
+  const [coursePage, setCoursePage] = useState(1);
 
   const allInitialSkills = useMemo(
     () => [...initialGroups.important, ...initialGroups.nice_to_have, ...initialGroups.extra],
@@ -251,7 +253,7 @@ const CourseRecommendationPage = ({
     return base;
   }, [data, initialGroups.extra]);
 
-  const visibleGroups = (["important", "nice_to_have", "extra"] as PriorityGroup[])
+  const visibleGroups = (["important", "extra", "nice_to_have"] as PriorityGroup[])
     .filter((group) => activeGroup === "all" || activeGroup === group);
 
   const skillChips = useMemo(() => {
@@ -279,6 +281,57 @@ const CourseRecommendationPage = ({
     () => visibleGroups.flatMap((group) => filteredBySkill(groupedRecommendations[group])),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [visibleGroups.join("|"), activeSkill, groupedRecommendations]
+  );
+
+  useEffect(() => {
+    setCoursePage(1);
+  }, [activeGroup, activeSkill, data]);
+
+  const totalCoursePages = Math.max(1, Math.ceil(allVisibleRecommendations.length / COURSE_PAGE_SIZE));
+  const currentCoursePage = Math.min(coursePage, totalCoursePages);
+  const pagedRecommendations = allVisibleRecommendations.slice(
+    (currentCoursePage - 1) * COURSE_PAGE_SIZE,
+    currentCoursePage * COURSE_PAGE_SIZE
+  );
+
+  const coursePagination = allVisibleRecommendations.length > COURSE_PAGE_SIZE && (
+    <div className="px-5 sm:px-6 pb-5 sm:pb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <span className="text-xs font-bold text-gray-500 dark:text-gray-400">
+        Hiển thị {(currentCoursePage - 1) * COURSE_PAGE_SIZE + 1}-{Math.min(currentCoursePage * COURSE_PAGE_SIZE, allVisibleRecommendations.length)} / {allVisibleRecommendations.length} khóa học
+      </span>
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => setCoursePage((page) => Math.max(1, page - 1))}
+          disabled={currentCoursePage === 1}
+          className="px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-black text-gray-700 dark:text-gray-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-800"
+        >
+          Trước
+        </button>
+        {Array.from({ length: totalCoursePages }, (_, index) => index + 1).map((page) => (
+          <button
+            key={page}
+            type="button"
+            onClick={() => setCoursePage(page)}
+            className={`w-9 h-9 rounded-xl text-sm font-black border ${
+              page === currentCoursePage
+                ? "bg-indigo-600 text-white border-indigo-600"
+                : "bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+            }`}
+          >
+            {page}
+          </button>
+        ))}
+        <button
+          type="button"
+          onClick={() => setCoursePage((page) => Math.min(totalCoursePages, page + 1))}
+          disabled={currentCoursePage === totalCoursePages}
+          className="px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-black text-gray-700 dark:text-gray-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-800"
+        >
+          Sau
+        </button>
+      </div>
+    </div>
   );
 
   return (
@@ -324,7 +377,7 @@ const CourseRecommendationPage = ({
           </button>
         </div>
 
-        <div className="mt-5 grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="mt-5 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
           <div
             className={[
               "relative overflow-hidden text-left rounded-2xl border p-4 min-h-[104px]",
@@ -346,7 +399,7 @@ const CourseRecommendationPage = ({
               Không dùng để tìm khóa học, chỉ giữ làm mốc so sánh.
             </p>
           </div>
-          {(["important", "nice_to_have", "extra"] as PriorityGroup[]).filter(group => initialGroups[group].length > 0).map((group) => {
+          {(["important", "extra", "nice_to_have"] as PriorityGroup[]).filter(group => initialGroups[group].length > 0).map((group) => {
             const isActive = activeGroup === group;
             const dynamicLabel = group === "nice_to_have" && careerName
               ? `Nên có: ${careerName}`
@@ -472,8 +525,9 @@ const CourseRecommendationPage = ({
             <span className="text-sm font-bold text-gray-500 dark:text-gray-400">{allVisibleRecommendations.length} khóa học</span>
           </div>
           <div className="p-5 sm:p-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-            {allVisibleRecommendations.map((rec, i) => <CourseCard key={`all-${rec.course.external_id}-${i}`} rec={rec} />)}
+            {pagedRecommendations.map((rec, i) => <CourseCard key={`all-${rec.course.external_id}-${i}`} rec={rec} />)}
           </div>
+          {coursePagination}
         </section>
       )}
 
@@ -509,8 +563,9 @@ const CourseRecommendationPage = ({
               <span className="text-sm font-bold text-gray-500 dark:text-gray-400">{items.length} khóa học</span>
             </div>
             <div className="p-5 sm:p-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-              {items.map((rec, i) => <CourseCard key={`${group}-${rec.course.external_id}-${i}`} rec={rec} />)}
+              {pagedRecommendations.map((rec, i) => <CourseCard key={`${group}-${rec.course.external_id}-${i}`} rec={rec} />)}
             </div>
+            {coursePagination}
           </section>
         );
       })}

@@ -642,13 +642,10 @@ const SkillGapPage: React.FC = () => {
                 const skillGroups = {
                   critical: toNames(gaps?.critical),
                   important: toNames(gaps?.important),
-                  nice_to_have: toNames(gaps?.nice_to_have).slice(0, 10),
+                  nice_to_have: toNames(gaps?.nice_to_have),
                   extra: extraSkillNames.slice(0, 10),
                 };
-                const ownedSkills = [
-                  ...(analysis.cv_skills || []),
-                  ...(analysis.matched_skills || []),
-                ].map((s: any) => (typeof s === 'string' ? s : s?.name)).filter(Boolean);
+                const ownedSkills = toNames(analysis.matched_skills as any[]);
                 const cvCareerLabel = (analysis.extra_skills || [])[0]?.current_career || '';
                 const totalMissing = skillGroups.critical.length + skillGroups.important.length + skillGroups.nice_to_have.length + skillGroups.extra.length;
                 return totalMissing > 0 ? (
