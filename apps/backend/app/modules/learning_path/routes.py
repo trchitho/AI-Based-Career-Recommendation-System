@@ -472,7 +472,7 @@ def generate_personalized(
             if nm:
                 existing_skills.append(nm)
 
-    # TÁCH RIÊNG critical & important - đây là điểm cá nhân hóa quan trọng
+    # TÁCH RIÊNG nhóm Quan trọng & Nên có - đây là điểm cá nhân hóa quan trọng
     critical_skills: List[str] = []
     important_skills: List[str] = []
     if isinstance(skill_gaps_raw, dict):
@@ -481,6 +481,10 @@ def generate_personalized(
             if nm:
                 critical_skills.append(nm)
         for s in skill_gaps_raw.get("important", []):
+            nm = _pick_vn_name(s)
+            if nm:
+                critical_skills.append(nm)
+        for s in skill_gaps_raw.get("nice_to_have", []):
             nm = _pick_vn_name(s)
             if nm:
                 important_skills.append(nm)
