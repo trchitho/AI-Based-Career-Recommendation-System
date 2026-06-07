@@ -226,15 +226,27 @@ const CreatePersonalizedRoadmapPage = () => {
               <Target size={16} className="text-indigo-500" /> Bản đồ kỹ năng
             </h2>
             <div className="grid grid-cols-3 gap-3 mb-3">
-              <StatBox color="orange" value={config.total_critical} label="Quan trọng" />
-              <StatBox color="amber" value={config.total_important} label="Nên có" />
-              <StatBox color="emerald" value={config.total_existing} label="Đã có" />
+              {skillGroups.map(group => (
+                <StatBox
+                  key={group.key}
+                  color={group.color}
+                  value={group.value}
+                  label={group.label}
+                  active={activeSkillGroup === group.key}
+                  onClick={() => setActiveSkillGroup(group.key)}
+                />
+              ))}
             </div>
-            {config.critical_skills.length > 0 && (
-              <SkillTagList label="🔥 Quan trọng:" skills={config.critical_skills} colorClass="bg-orange-50 text-orange-700 border-orange-200" />
-            )}
-            {config.important_skills.length > 0 && (
-              <SkillTagList label="⭐ Nên có:" skills={config.important_skills} colorClass="bg-amber-50 text-amber-700 border-amber-200" />
+            {activeGroup && (
+              <SkillTagList
+                label={`${activeGroup.label}:`}
+                skills={activeGroup.skills}
+                colorClass={activeGroup.color === 'orange'
+                  ? 'bg-orange-50 text-orange-700 border-orange-200'
+                  : activeGroup.color === 'amber'
+                  ? 'bg-amber-50 text-amber-700 border-amber-200'
+                  : 'bg-emerald-50 text-emerald-700 border-emerald-200'}
+              />
             )}
           </div>
 
@@ -676,17 +688,27 @@ const NavButtons = ({ onPrev, onNext, disabled }: { onPrev?: () => void; onNext:
   </div>
 );
 
-const StatBox = ({ color, value, label }: { color: 'orange' | 'amber' | 'emerald'; value: number; label: string }) => {
+const StatBox = ({ color, value, label, active, onClick }: {
+  color: 'orange' | 'amber' | 'emerald';
+  value: number;
+  label: string;
+  active?: boolean;
+  onClick?: () => void;
+}) => {
   const styles = {
     orange: 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:border-orange-800',
     amber: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800',
     emerald: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-800',
   };
   return (
-    <div className={`${styles[color]} rounded-xl p-3 text-center border`}>
+    <button
+      type="button"
+      onClick={onClick}
+      className={`${styles[color]} rounded-xl p-3 text-center border transition-all ${active ? 'ring-2 ring-indigo-500 shadow-md' : 'hover:shadow-sm'}`}
+    >
       <div className="text-xl font-black">{value}</div>
       <div className="text-[11px] font-semibold mt-0.5">{label}</div>
-    </div>
+    </button>
   );
 };
 
