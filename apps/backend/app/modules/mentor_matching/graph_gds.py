@@ -14,6 +14,8 @@ from __future__ import annotations
 
 import logging
 import math
+import os
+import json
 from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
@@ -35,6 +37,29 @@ def _run(driver, cypher: str, **params) -> List[Dict[str, Any]]:
 def _run_one(driver, cypher: str, **params) -> Optional[Dict[str, Any]]:
     rows = _run(driver, cypher, **params)
     return rows[0] if rows else None
+
+
+def graph_schema_ready(driver) -> bool:
+    """Check graph metadata without referencing labels that may not exist."""
+    labels = {
+        row.get("label")
+        for row in _run(driver, "CALL db.labels() YIELD label RETURN label")
+    }
+    relationships = {
+        row.get("relationshipType")
+        for row in _run(
+            driver,
+            "CALL db.relationshipTypes() YIELD relationshipType RETURN relationshipType",
+        )
+    }
+    required_labels = {"Mentee", "Mentor", "Skill", "Career"}
+    required_relationships = {"WANTS_SKILL", "HAS_SKILL", "CAN_GUIDE_FOR"}
+    ready = required_labels.issubset(labels) and required_relationships.issubset(relationships)
+    if not ready:
+        logger.info(
+            "[gds] Mentor graph is not initialized; using PostgreSQL matching only"
+        )
+    return ready
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -327,6 +352,124 @@ def sync_personality_to_graph(driver, db) -> dict:
     return {"mentors_synced": mentor_count, "mentees_synced": mentee_count}
 
 
+def sync_matching_graph(driver, db) -> dict:
+    """Bootstrap the mentor matching graph from PostgreSQL profiles."""
+    from .models import MenteeProfile, MentorProfile
+
+    mentors = db.query(MentorProfile).filter(MentorProfile.is_active.is_(True)).all()
+    mentees = db.query(MenteeProfile).all()
+
+    mentor_rows = [
+        {
+            "user_id": int(profile.user_id),
+            "name": profile.full_name,
+            "position": profile.current_position or "",
+            "skills": [skill.strip() for skill in (profile.expertise_areas or []) if skill.strip()],
+            "riasec": json.dumps(profile.riasec_scores or {}, ensure_ascii=False),
+            "big5": json.dumps(profile.big_five_scores or {}, ensure_ascii=False),
+        }
+        for profile in mentors
+    ]
+    mentee_rows = [
+        {
+            "user_id": int(profile.user_id),
+            "name": profile.full_name,
+            "career": (profile.target_career or "").strip(),
+            "skills": [
+                skill.strip()
+                for skill in (profile.desired_skills or profile.current_skills or [])
+                if skill.strip()
+            ],
+            "riasec": json.dumps(profile.riasec_scores or {}, ensure_ascii=False),
+            "big5": json.dumps(profile.big_five_scores or {}, ensure_ascii=False),
+        }
+        for profile in mentees
+    ]
+
+    with driver.session() as session:
+        session.run(
+            "CREATE CONSTRAINT mentor_user_id IF NOT EXISTS "
+            "FOR (n:Mentor) REQUIRE n.user_id IS UNIQUE"
+        )
+        session.run(
+            "CREATE CONSTRAINT mentee_user_id IF NOT EXISTS "
+            "FOR (n:Mentee) REQUIRE n.user_id IS UNIQUE"
+        )
+        session.run(
+            "CREATE CONSTRAINT skill_name IF NOT EXISTS "
+            "FOR (n:Skill) REQUIRE n.name IS UNIQUE"
+        )
+        session.run(
+            "CREATE CONSTRAINT career_title IF NOT EXISTS "
+            "FOR (n:Career) REQUIRE n.title IS UNIQUE"
+        )
+        session.run(
+            """
+            UNWIND $rows AS row
+            MERGE (mentor:Mentor {user_id: row.user_id})
+            SET mentor.name = row.name,
+                mentor.current_position = row.position,
+                mentor.riasec_scores = row.riasec,
+                mentor.big_five_scores = row.big5
+            WITH mentor, row
+            OPTIONAL MATCH (mentor)-[old:HAS_SKILL]->(:Skill)
+            DELETE old
+            WITH mentor, row
+            UNWIND row.skills AS skill_name
+            MERGE (skill:Skill {name: skill_name})
+            MERGE (mentor)-[:HAS_SKILL]->(skill)
+            """,
+            rows=mentor_rows,
+        )
+        session.run(
+            """
+            UNWIND $rows AS row
+            MERGE (mentee:Mentee {user_id: row.user_id})
+            SET mentee.name = row.name,
+                mentee.target_career = row.career,
+                mentee.riasec_scores = row.riasec,
+                mentee.big_five_scores = row.big5
+            WITH mentee, row
+            OPTIONAL MATCH (mentee)-[old:WANTS_SKILL]->(:Skill)
+            DELETE old
+            WITH mentee, row
+            UNWIND row.skills AS skill_name
+            MERGE (skill:Skill {name: skill_name})
+            MERGE (mentee)-[:WANTS_SKILL]->(skill)
+            """,
+            rows=mentee_rows,
+        )
+        session.run(
+            """
+            UNWIND $rows AS row
+            WITH row WHERE row.position <> ''
+            MATCH (mentor:Mentor {user_id: row.user_id})
+            MERGE (career:Career {title: row.position})
+            MERGE (mentor)-[:CAN_GUIDE_FOR]->(career)
+            """,
+            rows=mentor_rows,
+        )
+        session.run(
+            """
+            UNWIND $rows AS row
+            WITH row WHERE row.career <> ''
+            MATCH (mentee:Mentee {user_id: row.user_id})
+            MERGE (career:Career {title: row.career})
+            MERGE (mentee)-[:TARGETS]->(career)
+            """,
+            rows=mentee_rows,
+        )
+
+    result = {
+        "mentors_synced": len(mentor_rows),
+        "mentees_synced": len(mentee_rows),
+        "mentor_skills_synced": sum(len(row["skills"]) for row in mentor_rows),
+        "mentee_skills_synced": sum(len(row["skills"]) for row in mentee_rows),
+    }
+    logger.info("[gds] Mentor matching graph synchronized: %s", result)
+    return result
+
+
 # ══════════════════════════════════════════════════════════════════
 # 6. Combined graph score for a single mentor
 # ══════════════════════════════════════════════════════════════════
@@ -342,9 +485,16 @@ def build_graph_score_map(
     Tính toán tất cả graph signals và trả về map:
       {mentor_user_id: {jaccard, path_score, pagerank}}
     """
+    if not graph_schema_ready(driver):
+        return {}
+
     jaccard_rows = compute_jaccard_skill_similarity(driver, mentee_user_id, top_k=50)
     path_rows    = find_mentors_via_career_path(driver, target_career, top_k=50)
-    pagerank_map = compute_mentor_pagerank(driver, top_k=50)
+    pagerank_map = (
+        compute_mentor_pagerank(driver, top_k=50)
+        if os.getenv("NEO4J_GDS_ENABLED", "false").lower() == "true"
+        else {}
+    )
 
     # Index by user_id
     jaccard_map  = {int(r["user_id"]): float(r["jaccard"])     for r in jaccard_rows if r.get("user_id")}

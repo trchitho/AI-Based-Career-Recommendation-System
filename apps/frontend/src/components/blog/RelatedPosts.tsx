@@ -10,7 +10,7 @@ interface RelatedPostsProps {
     title?: string;
 }
 
-const RelatedPosts = ({ posts, title = 'Related Articles' }: RelatedPostsProps) => {
+const RelatedPosts = ({ posts, title = 'Bài viết liên quan' }: RelatedPostsProps) => {
     const [localPosts, setLocalPosts] = useState<BlogPost[]>(posts);
 
     // Initialize with props

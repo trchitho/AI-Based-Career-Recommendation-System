@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import MainLayout from '../components/layout/MainLayout';
 import { ChatHistory } from '../components/chatbot/ChatHistory';
+import api from '../lib/api';
 
 interface Message { role: 'system' | 'user' | 'assistant'; content: string; timestamp?: string }
 
@@ -35,26 +36,12 @@ const ChatPage = () => {
     setIsTyping(true);
 
     try {
-      const token = localStorage.getItem('accessToken');
-      const res = await fetch('/api/chatbot/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({
+      const res = await api.post('/api/chatbot/chat', {
           message: userText,
           context: summary ?? null,
           session_id: sessionId,
-        }),
       });
-
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData?.detail || `HTTP ${res.status}`);
-      }
-
-      const data = await res.json();
+      const data = res.data;
       if (data.session_id) setSessionId(data.session_id);
       setMessages((m) => [
         ...m,
@@ -82,12 +69,8 @@ const ChatPage = () => {
     setError(null);
 
     try {
-      const token = localStorage.getItem('accessToken');
-      const res = await fetch(`/api/chatbot/sessions/${sid}/messages`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      if (!res.ok) return;
-      const data = await res.json();
+      const res = await api.get(`/api/chatbot/sessions/${sid}/messages`);
+      const data = res.data;
 
       const loaded: Message[] = [];
       for (const msg of data.messages ?? []) {
@@ -110,17 +93,9 @@ const ChatPage = () => {
     setError(null);
 
     try {
-      const token = localStorage.getItem('accessToken');
-      const res = await fetch('/api/chatbot/sessions/new', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({}),
-      });
-      if (res.ok) {
-        const data = await res.json();
+      const res = await api.post('/api/chatbot/sessions/new', {});
+      if (res.status === 200 || res.status === 201) {
+        const data = res.data;
         setSessionId(data.session_id);
       }
     } catch {

@@ -453,8 +453,8 @@ const BlogPage = () => {
                     {gridPosts.map((post) => {
                       const readingTime = calculateReadingTime(post.content_md || '');
                       const publishDate = post.published_at
-                        ? new Date(post.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-                        : 'Draft';
+                        ? new Date(post.published_at).toLocaleDateString('vi-VN', { day: 'numeric', month: 'long', year: 'numeric' })
+                        : 'Bản nháp';
                       const authorInitial = (post.author_name || 'A').charAt(0).toUpperCase();
 
                       return (
@@ -504,11 +504,11 @@ const BlogPage = () => {
                                   {authorInitial}
                                 </div>
                                 <span className="text-xs font-medium text-gray-600 dark:text-gray-300">
-                                  {post.author_name || 'Author'}
+                                  {post.author_name || 'Tác giả'}
                                 </span>
                               </div>
                               <span className="text-xs text-indigo-600 dark:text-indigo-400 font-semibold flex items-center gap-1 group-hover:gap-2 transition-all">
-                                Read More <ArrowRight className="w-3 h-3" />
+                                Đọc thêm <ArrowRight className="w-3 h-3" />
                               </span>
                             </div>
                           </div>
@@ -528,10 +528,10 @@ const BlogPage = () => {
                   </svg>
                 </div>
                 <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
-                  No articles found
+                  Không tìm thấy bài viết
                 </h3>
                 <p className="text-lg text-gray-600 dark:text-gray-400 mb-8">
-                  Try adjusting your search or browse all articles
+                  Hãy thay đổi từ khóa tìm kiếm hoặc xem tất cả bài viết
                 </p>
                 <button
                   onClick={() => {
@@ -540,7 +540,7 @@ const BlogPage = () => {
                   }}
                   className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition-all"
                 >
-                  Clear Filters
+                  Xóa bộ lọc
                 </button>
               </div>
             )}
@@ -686,13 +686,13 @@ const BlogCard = ({ post, onNavigate, getCategoryDisplayName, calculateReadingTi
           </div>
           <div className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-500">
             <Clock className="w-4 h-4" />
-            <span>{readingTime} read</span>
+            <span>{readingTime} đọc</span>
           </div>
         </div>
 
         {/* Read More */}
         <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-semibold text-sm mt-4 group-hover:gap-3 transition-all">
-          <span>Read Article</span>
+          <span>Đọc bài viết</span>
           <ArrowRight className="w-4 h-4" />
         </div>
       </div>

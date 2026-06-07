@@ -38,10 +38,16 @@ _USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) Gecko/20100101 Firefox/125.0",
 ]
 
-_TIMEOUT = httpx.Timeout(
-    connect_timeout=10.0, read_timeout=20.0,
-    write_timeout=10.0, pool_timeout=5.0
-)
+try:
+    _TIMEOUT = httpx.Timeout(connect=10.0, read=20.0, write=10.0, pool=5.0)
+except TypeError:
+    # httpx < 0.20 used the *_timeout keyword names.
+    _TIMEOUT = httpx.Timeout(
+        connect_timeout=10.0,
+        read_timeout=20.0,
+        write_timeout=10.0,
+        pool_timeout=5.0,
+    )
 
 
 @dataclass

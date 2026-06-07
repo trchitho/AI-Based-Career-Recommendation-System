@@ -24,7 +24,7 @@ const CareerRedirectPage = ({ isRoadmap = false }: CareerRedirectPageProps) => {
     useEffect(() => {
         const lookupCareer = async () => {
             if (!actualOnetCode) {
-                setError('Invalid career code');
+                setError('Mã nghề nghiệp không hợp lệ');
                 setLoading(false);
                 return;
             }
@@ -45,9 +45,9 @@ const CareerRedirectPage = ({ isRoadmap = false }: CareerRedirectPageProps) => {
                 console.error(`❌ Career lookup failed for ${actualOnetCode}:`, err);
 
                 if (err.response?.status === 404) {
-                    setError(`Career with code ${actualOnetCode} not found`);
+                    setError(`Không tìm thấy nghề nghiệp có mã ${actualOnetCode}`);
                 } else {
-                    setError('Failed to lookup career information');
+                    setError('Không thể tải thông tin nghề nghiệp');
                 }
             } finally {
                 setLoading(false);
@@ -63,7 +63,7 @@ const CareerRedirectPage = ({ isRoadmap = false }: CareerRedirectPageProps) => {
                 <div className="text-center">
                     <div className="w-16 h-16 border-4 border-gray-200 dark:border-gray-700 rounded-full border-t-blue-600 mb-4 animate-spin mx-auto"></div>
                     <p className="text-gray-500 font-medium">
-                        Looking up career {isRoadmap ? 'roadmap' : 'information'}...
+                        {isRoadmap ? 'Đang tải lộ trình nghề nghiệp...' : 'Đang tải thông tin nghề nghiệp...'}
                     </p>
                 </div>
             </div>
@@ -79,13 +79,13 @@ const CareerRedirectPage = ({ isRoadmap = false }: CareerRedirectPageProps) => {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
                         </svg>
                     </div>
-                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Career Not Found</h3>
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Không tìm thấy nghề nghiệp</h3>
                     <p className="text-gray-500 dark:text-gray-400 mb-8">{error}</p>
                     <a
                         href="/careers"
                         className="px-6 py-2.5 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-colors"
                     >
-                        Back to Career Fields
+                        Quay lại danh sách nghề nghiệp
                     </a>
                 </div>
             </div>

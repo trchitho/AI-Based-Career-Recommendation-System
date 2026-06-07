@@ -3,7 +3,7 @@
  * Aggregates job data from VietnamWorks categories
  */
 import { useQuery, UseQueryResult } from '@tanstack/react-query';
-import axios from 'axios';
+import api from '../lib/api';
 
 export interface SalaryTrend {
   period: string;
@@ -83,9 +83,7 @@ export const useTrendsSummary = (): UseQueryResult<TrendsSummary, Error> => {
     queryKey: ['trends-summary'],
     queryFn: async () => {
       try {
-        const response = await axios.get<TrendsSummary>(
-          'http://localhost:8000/api/trends/summary'
-        );
+        const response = await api.get<TrendsSummary>('/api/trends/summary');
         return response.data;
       } catch (error) {
         console.error('Error fetching trends summary:', error);
@@ -105,9 +103,7 @@ export const useTrendingSkills = () => {
   return useQuery({
     queryKey: ['trending-skills'],
     queryFn: async () => {
-      const response = await axios.get<{ skills: TrendingSkill[] }>(
-        'http://localhost:8000/api/trends/skills'
-      );
+      const response = await api.get<{ skills: TrendingSkill[] }>('/api/trends/skills');
       return response.data.skills;
     },
     refetchInterval: 60000, // Refresh every minute
@@ -121,9 +117,7 @@ export const useIndustryDemand = () => {
   return useQuery({
     queryKey: ['industry-demand'],
     queryFn: async () => {
-      const response = await axios.get<{ industries: IndustryGrowth[] }>(
-        'http://localhost:8000/api/trends/industries'
-      );
+      const response = await api.get<{ industries: IndustryGrowth[] }>('/api/trends/industries');
       return response.data.industries;
     },
     refetchInterval: 60000, // Refresh every minute
@@ -137,9 +131,7 @@ export const useRegionalDistribution = () => {
   return useQuery({
     queryKey: ['regional-distribution'],
     queryFn: async () => {
-      const response = await axios.get<{ regions: RegionalDemand[] }>(
-        'http://localhost:8000/api/trends/regions'
-      );
+      const response = await api.get<{ regions: RegionalDemand[] }>('/api/trends/regions');
       return response.data.regions;
     },
     refetchInterval: 60000, // Refresh every minute
@@ -153,9 +145,7 @@ export const useSalaryTrends = () => {
   return useQuery({
     queryKey: ['salary-trends'],
     queryFn: async () => {
-      const response = await axios.get<{ trends: SalaryTrend[] }>(
-        'http://localhost:8000/api/trends/salary'
-      );
+      const response = await api.get<{ trends: SalaryTrend[] }>('/api/trends/salary');
       return response.data.trends;
     },
     refetchInterval: 120000, // Refresh every 2 minutes

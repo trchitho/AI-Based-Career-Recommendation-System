@@ -39,8 +39,8 @@ import {
   PieChart,
   Pie
 } from 'recharts';
-import axios from 'axios';
 import { cn } from '../lib/utils';
+import api from '../lib/api';
 import useVietnamworksCategories, { useCategoryGroups, useCategorySearch } from '../hooks/useVietnamworksCategories';
 import { useTrendsSummary } from '../hooks/useTrends';
 import { useTheme } from '../contexts/ThemeContext';
@@ -50,7 +50,7 @@ const useCrawledTrends = () => {
   return useQuery({
     queryKey: ['crawled-trends-summary'],
     queryFn: async () => {
-      const response = await axios.get('http://localhost:8000/api/jobs/analytics/trends-summary');
+      const response = await api.get('/api/jobs/analytics/trends-summary');
       return response.data;
     },
     staleTime: 30 * 1000,       // 30s — refresh nhanh khi có data mới
@@ -239,7 +239,7 @@ const TrendsPage: React.FC = () => {
     setRefreshStatus('Đang tải...');
     try {
       // Đọc từ DB — dữ liệu đã được crawler cập nhật tự động mỗi 1 giờ
-      const response = await axios.get('http://localhost:8000/api/jobs/trending', {
+      const response = await api.get('/api/jobs/trending', {
         params: { active_only: true },
         timeout: 15000,
       });

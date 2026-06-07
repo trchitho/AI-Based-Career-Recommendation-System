@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AlertTriangle, History, MessageSquare, Trash2, Plus, Clock, RefreshCw, X } from 'lucide-react';
+import api from '../../lib/api';
 
 interface ChatSession {
   id: number;
@@ -88,15 +89,10 @@ export const ChatHistorySimple: React.FC<ChatHistoryProps> = ({
         return;
       }
 
-      const response = await fetch('/api/chatbot/sessions', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      const response = await api.get('/api/chatbot/sessions');
 
-      if (response.ok) {
-        const data = await response.json();
+      if (response.status === 200) {
+        const data = response.data;
         const sessionsList = data.sessions || [];
 
         // Debug log để xem dữ liệu thực tế

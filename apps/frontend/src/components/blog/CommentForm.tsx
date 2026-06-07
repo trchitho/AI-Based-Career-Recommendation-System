@@ -17,8 +17,8 @@ const CommentForm: React.FC<CommentFormProps> = ({
     parentId,
     onSubmit,
     onCancel,
-    placeholder = "Write a comment...",
-    submitText = "Post Comment",
+    placeholder = "Viết bình luận...",
+    submitText = "Đăng bình luận",
     isReply = false,
     isLoading = false
 }) => {
@@ -31,12 +31,12 @@ const CommentForm: React.FC<CommentFormProps> = ({
         e.preventDefault();
 
         if (!content.trim()) {
-            setError('Comment cannot be empty');
+            setError('Bình luận không được để trống');
             return;
         }
 
         if (content.length > 5000) {
-            setError('Comment is too long (maximum 5000 characters)');
+            setError('Bình luận quá dài (tối đa 5000 ký tự)');
             return;
         }
 
@@ -50,7 +50,7 @@ const CommentForm: React.FC<CommentFormProps> = ({
                 onCancel(); // Close reply form after successful submission
             }
         } catch (err: any) {
-            setError(err.message || 'Failed to post comment');
+            setError(err.message || 'Không thể đăng bình luận');
         } finally {
             setIsSubmitting(false);
         }
@@ -74,10 +74,10 @@ const CommentForm: React.FC<CommentFormProps> = ({
                         </svg>
                     </div>
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                        Join the Discussion
+                        Tham gia thảo luận
                     </h3>
                     <p className="text-gray-600 dark:text-gray-400 mb-4">
-                        Sign in to share your thoughts and engage with the community.
+                        Đăng nhập để chia sẻ suy nghĩ và trao đổi cùng cộng đồng.
                     </p>
                     <button
                         onClick={() => window.location.href = '/login'}
@@ -86,7 +86,7 @@ const CommentForm: React.FC<CommentFormProps> = ({
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
                         </svg>
-                        Sign In to Comment
+                        Đăng nhập để bình luận
                     </button>
                 </div>
             </div>
@@ -99,16 +99,16 @@ const CommentForm: React.FC<CommentFormProps> = ({
                 {/* User Info Header */}
                 <div className="flex items-center gap-3 p-4 border-b border-gray-200 dark:border-gray-700">
                     <img
-                        src={user?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.full_name || 'User')}&background=10b981&color=fff`}
-                        alt={user?.full_name || 'User'}
+                        src={user?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.full_name || 'Người dùng')}&background=10b981&color=fff`}
+                        alt={user?.full_name || 'Người dùng'}
                         className="w-8 h-8 rounded-full object-cover"
                     />
                     <div>
                         <p className="text-sm font-medium text-gray-900 dark:text-white">
-                            {user?.full_name || 'User'}
+                            {user?.full_name || 'Người dùng'}
                         </p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">
-                            {isReply ? 'Replying to comment' : 'Commenting as'}
+                            {isReply ? 'Đang trả lời bình luận' : 'Đang bình luận với tư cách'}
                         </p>
                     </div>
                 </div>
@@ -127,11 +127,11 @@ const CommentForm: React.FC<CommentFormProps> = ({
                     {/* Character Count */}
                     <div className="flex justify-between items-center mt-2">
                         <div className="text-xs text-gray-500 dark:text-gray-400">
-                            {content.length}/5000 characters
+                            {content.length}/5000 ký tự
                         </div>
                         {content.length > 4500 && (
                             <div className="text-xs text-orange-500">
-                                {5000 - content.length} characters remaining
+                                Còn {5000 - content.length} ký tự
                             </div>
                         )}
                     </div>
@@ -157,7 +157,7 @@ const CommentForm: React.FC<CommentFormProps> = ({
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        Be respectful and constructive
+                        Vui lòng trao đổi lịch sự và mang tính xây dựng
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -168,7 +168,7 @@ const CommentForm: React.FC<CommentFormProps> = ({
                                 disabled={isSubmitting || isLoading}
                                 className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors disabled:opacity-50"
                             >
-                                Cancel
+                                Hủy
                             </button>
                         )}
 
@@ -180,7 +180,7 @@ const CommentForm: React.FC<CommentFormProps> = ({
                             {isSubmitting ? (
                                 <>
                                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                    Posting...
+                                    Đang đăng...
                                 </>
                             ) : (
                                 <>

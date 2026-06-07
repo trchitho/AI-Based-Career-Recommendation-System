@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { History, MessageSquare, Trash2, Edit3, Plus, Clock } from 'lucide-react';
+import api from '../../lib/api';
 
 interface ChatSession {
   id: number;
@@ -48,14 +49,10 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({
         return;
       }
 
-      const response = await fetch('/api/chatbot/sessions', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const response = await api.get('/api/chatbot/sessions');
       
-      if (response.ok) {
-        const data = await response.json();
+      if (response.status === 200) {
+        const data = response.data;
         setSessions(data.sessions || []);
       } else {
         console.error('Failed to fetch sessions:', response.status, response.statusText);
@@ -80,14 +77,9 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({
         return;
       }
 
-      const response = await fetch(`/api/chatbot/sessions/${sessionId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const response = await api.delete(`/api/chatbot/sessions/${sessionId}`);
       
-      if (response.ok) {
+      if (response.status === 200 || response.status === 204) {
         setSessions(sessions.filter(s => s.id !== sessionId));
       } else {
         console.error('Failed to delete session:', response.status, response.statusText);
@@ -109,16 +101,11 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({
         return;
       }
 
-      const response = await fetch(`/api/chatbot/sessions/${sessionId}/title`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ title: newTitle })
+      const response = await api.put(`/api/chatbot/sessions/${sessionId}/title`, {
+        title: newTitle,
       });
       
-      if (response.ok) {
+      if (response.status === 200) {
         setSessions(sessions.map(s => 
           s.id === sessionId ? { ...s, title: newTitle } : s
         ));

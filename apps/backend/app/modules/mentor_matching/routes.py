@@ -456,7 +456,10 @@ def find_mentors_for_career(
 # ── Graph sync endpoint ───────────────────────────────────────────
 
 @router.post("/graph/sync-personality", summary="Dong bo RIASEC + Big5 len Neo4j Mentor/Mentee nodes")
-def sync_personality_to_graph(db: Session = Depends(get_db)):
+def sync_personality_to_graph(
+    current_user: User = Depends(get_current_user_from_token),
+    db: Session = Depends(get_db),
+):
     """Dong bo diem RIASEC va Big5 tu PostgreSQL len Mentor/Mentee nodes trong Neo4j."""
     neo4j_driver = _get_neo4j()
     if not neo4j_driver:
@@ -464,3 +467,16 @@ def sync_personality_to_graph(db: Session = Depends(get_db)):
     from .graph_gds import sync_personality_to_graph as _sync
     result = _sync(neo4j_driver, db)
     return {"status": "ok", **result}
+
+
+@router.post("/graph/sync", summary="Dong bo toan bo graph mentor matching len Neo4j")
+def sync_full_mentor_graph(
+    current_user: User = Depends(get_current_user_from_token),
+    db: Session = Depends(get_db),
+):
+    neo4j_driver = _get_neo4j()
+    if not neo4j_driver:
+        raise HTTPException(503, "Neo4j not available")
+    from .graph_gds import sync_matching_graph
+
+    return {"status": "ok", **sync_matching_graph(neo4j_driver, db)}

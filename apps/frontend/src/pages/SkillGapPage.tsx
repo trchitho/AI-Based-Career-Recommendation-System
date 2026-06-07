@@ -11,6 +11,7 @@ import { skillGapService } from '../services/skillGapService';
 import { careerService } from '../services/careerService';
 import { SkillGapAnalysis } from '../types/skillGap';
 import { useTheme } from '../contexts/ThemeContext';
+import { useSubscription } from '../hooks/useSubscription';
 import careerTitleVi from '../data/careerTitleVi.json';
 import './SkillGapPage.css';
 
@@ -108,6 +109,12 @@ const SkillGapPage: React.FC = () => {
   const navigate = useNavigate();
   const { analysisId } = useParams<{ analysisId?: string }>();
   const { theme } = useTheme();
+  const {
+    loading: checkingSubscription,
+    isPremium: hasAccess,
+    planName: userPlan,
+    refreshSubscription,
+  } = useSubscription();
   const isDark = theme === 'dark';
   const t = getThemeTokens(isDark);
 
@@ -127,38 +134,12 @@ const SkillGapPage: React.FC = () => {
   const [historyCareerNames, setHistoryCareerNames] = useState<Record<string, string>>({});
   const [historyLoading, setHistoryLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [checkingSubscription, setCheckingSubscription] = useState(true);
-  const [hasAccess, setHasAccess] = useState(false);
-  const [userPlan, setUserPlan] = useState<string>('Free');
-
   useEffect(() => {
-    checkSubscription();
-  }, []);
-
-  const checkSubscription = async () => {
-    try {
-      setCheckingSubscription(true);
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch('/api/subscription/status', {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        const plan = data.plan_name || 'Free';
-        setUserPlan(plan);
-        setHasAccess(plan !== 'Free');
-      } else {
-        setHasAccess(false);
-        setUserPlan('Free');
-      }
-    } catch (err) {
-      console.error('Subscription check error:', err);
-      setHasAccess(false);
-      setUserPlan('Free');
-    } finally {
-      setCheckingSubscription(false);
-    }
-  };
+    refreshSubscription();
+    const handleSubscriptionUpdated = () => refreshSubscription();
+    window.addEventListener('subscription-updated', handleSubscriptionUpdated);
+    return () => window.removeEventListener('subscription-updated', handleSubscriptionUpdated);
+  }, [refreshSubscription]);
 
   const loadHistory = useCallback(async () => {
     setHistoryLoading(true);

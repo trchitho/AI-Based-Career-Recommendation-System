@@ -7,6 +7,7 @@ import { PremiumFeaturePrompt } from './PremiumFeaturePrompt';
 import { useSubscription } from '../../hooks/useSubscription';
 import { useFeatureAccess } from '../../hooks/useFeatureAccess';
 import { blogService } from '../../services/blogService';
+import api from '../../lib/api';
 
 interface Message {
   id: string;
@@ -236,20 +237,23 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
     formData.append('voice_preference', 'female');
 
     try {
-      const response = await fetch('/api/interview/voice/tts', {
-        method: 'POST',
-        body: formData,
+      const response = await api.post('/api/interview/voice/tts', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 60000,
       });
-
-      if (!response.ok) return false;
-
-      const data = await response.json();
+      const data = response.data;
       const audioUrl = data?.audio_url;
       if (!audioUrl || data?.tts_success === false) return false;
 
       stopSpeaking();
 
-      const audio = new Audio(audioUrl);
+      const resolvedAudioUrl = /^https?:|^data:|^blob:/.test(audioUrl)
+        ? audioUrl
+        : new URL(
+            audioUrl,
+            new URL(api.defaults.baseURL || '/', window.location.origin).toString(),
+          ).toString();
+      const audio = new Audio(resolvedAudioUrl);
       speechAudioRef.current = audio;
       audio.onplay = () => {
         setIsSpeaking(true);
@@ -444,51 +448,13 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
     setIsLoading(true);
 
     try {
-      const token = localStorage.getItem('accessToken');
-
       // Sử dụng endpoint chính thức với authentication và database
-      const response = await fetch('/api/chatbot/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
+      const response = await api.post('/api/chatbot/chat', {
           message: textToSend,
           session_id: currentSessionId
-        })
       });
 
-      if (!response.ok) {
-        // Nếu lỗi auth hoặc server, fallback về test endpoint
-        console.warn('Main endpoint failed, using fallback');
-        const fallbackResponse = await fetch('/api/chatbot/test-chat', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            message: textToSend
-          })
-        });
-
-        if (!fallbackResponse.ok) {
-          throw new Error('Both endpoints failed');
-        }
-
-        const fallbackData = await fallbackResponse.json();
-        const botMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          text: fallbackData.response + '\n\n*Lưu ý: Tin nhắn này chưa được lưu vào lịch sử do lỗi hệ thống.*',
-          sender: 'bot',
-          timestamp: new Date(),
-          type: messageType as any
-        };
-        setMessages(prev => [...prev, botMessage]);
-        return;
-      }
-
-      const data = await response.json();
+      const data = response.data;
 
       // Cập nhật session_id nếu có
       if (data.session_id && !currentSessionId) {
@@ -528,15 +494,9 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
 
   const loadSessionMessages = async (sessionId: number) => {
     try {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch(`/api/chatbot/sessions/${sessionId}/messages`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
+      const response = await api.get(`/api/chatbot/sessions/${sessionId}/messages`);
+      if (response.status === 200) {
+        const data = response.data;
         const loadedMessages: Message[] = [];
 
         // Add welcome message based on user plan
@@ -609,19 +569,12 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
 
       if (token) {
         // Gọi API để tạo session mới
-        const response = await fetch('/api/chatbot/sessions/new', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            title: 'Cuộc trò chuyện mới'
-          })
+        const response = await api.post('/api/chatbot/sessions/new', {
+          title: 'Cuộc trò chuyện mới'
         });
 
-        if (response.ok) {
-          const data = await response.json();
+        if (response.status === 200 || response.status === 201) {
+          const data = response.data;
           console.log('New session created:', data.session_id);
           setCurrentSessionId(data.session_id);
         } else {

@@ -345,7 +345,7 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ postId, onCommentUpda
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                     </svg>
                     <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                        Comments ({totalComments})
+                        Bình luận ({totalComments})
                     </h3>
                 </div>
 
@@ -353,7 +353,7 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ postId, onCommentUpda
                 <div className="flex items-center gap-2">
                     <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-indigo-700' : 'bg-gray-400'}`}></div>
                     <span className="text-xs text-gray-500 dark:text-gray-400">
-                        {isConnected ? 'Live' : 'Offline'}
+                        {isConnected ? 'Trực tuyến' : 'Ngoại tuyến'}
                     </span>
                 </div>
             </div>
@@ -363,7 +363,7 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ postId, onCommentUpda
                 <CommentForm
                     postId={postId}
                     onSubmit={handleCreateComment}
-                    placeholder="Share your thoughts on this article..."
+                    placeholder="Chia sẻ suy nghĩ của bạn về bài viết..."
                 />
             </div>
 
@@ -380,7 +380,7 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ postId, onCommentUpda
                         onClick={() => loadComments(1, false)}
                         className="mt-2 text-sm text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 underline"
                     >
-                        Try again
+                        Thử lại
                     </button>
                 </div>
             )}
@@ -406,10 +406,10 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ postId, onCommentUpda
                                 </svg>
                             </div>
                             <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
-                                No comments yet
+                                Chưa có bình luận
                             </h4>
                             <p className="text-sm text-gray-600 dark:text-gray-400">
-                                Be the first to share your thoughts!
+                                Hãy là người đầu tiên chia sẻ suy nghĩ!
                             </p>
                         </div>
                     ) : (
@@ -438,14 +438,14 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ postId, onCommentUpda
                                 {loadingMore ? (
                                     <>
                                         <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
-                                        Loading...
+                                        Đang tải...
                                     </>
                                 ) : (
                                     <>
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                         </svg>
-                                        Load more
+                                        Xem thêm
                                     </>
                                 )}
                             </button>

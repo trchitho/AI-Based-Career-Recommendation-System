@@ -49,7 +49,7 @@ const BlogDetailPage = () => {
                 const related = await blogService.getRelated(slug, 3);
                 setRelatedPosts(related);
             } catch (e: any) {
-                setError(e?.response?.data?.detail || e?.message || 'Failed to load article');
+                setError(e?.response?.data?.detail || 'Không thể tải bài viết');
             } finally {
                 setLoading(false);
             }
@@ -115,7 +115,7 @@ const BlogDetailPage = () => {
     const calculateReadingTime = (content: string) => {
         const words = content.split(/\s+/).length;
         const minutes = Math.ceil(words / 200);
-        return `${minutes} min read`;
+        return `${minutes} phút đọc`;
     };
 
     // Convert category slug to display name
@@ -153,7 +153,7 @@ const BlogDetailPage = () => {
         } else {
             // Fallback: copy to clipboard
             navigator.clipboard.writeText(window.location.href);
-            alert('Link copied to clipboard!');
+            alert('Đã sao chép liên kết!');
         }
     };
 
@@ -181,14 +181,14 @@ const BlogDetailPage = () => {
                             </svg>
                         </div>
                         <p className="text-red-600 dark:text-red-400 font-semibold text-lg mb-6">
-                            {error || 'Article not found'}
+                            {error || 'Không tìm thấy bài viết'}
                         </p>
                         <button
                             onClick={() => navigate('/blog')}
                             className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl transition-all"
                         >
                             <ArrowLeft className="w-5 h-5" />
-                            Back to Blog
+                            Quay lại Blog
                         </button>
                     </div>
                 </div>
@@ -198,12 +198,12 @@ const BlogDetailPage = () => {
 
     const readingTime = calculateReadingTime(post.content_md || '');
     const publishDate = post.published_at
-        ? new Date(post.published_at).toLocaleDateString('en-US', {
+        ? new Date(post.published_at).toLocaleDateString('vi-VN', {
             month: 'long',
             day: 'numeric',
             year: 'numeric'
         })
-        : 'Draft';
+        : 'Bản nháp';
 
     return (
         <MainLayout>
@@ -216,7 +216,7 @@ const BlogDetailPage = () => {
                             className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 font-medium transition-all duration-250"
                         >
                             <ArrowLeft className="w-5 h-5" />
-                            Back to Blog
+                            Quay lại Blog
                         </button>
                     </div>
                 </div>
@@ -252,7 +252,7 @@ const BlogDetailPage = () => {
                             {post.view_count !== undefined && (
                                 <div className="flex items-center gap-1.5">
                                     <Eye className="w-4 h-4" />
-                                    <span>{post.view_count} views</span>
+                                    <span>{post.view_count} lượt xem</span>
                                 </div>
                             )}
                             <div className="flex items-center gap-1.5">
@@ -268,7 +268,7 @@ const BlogDetailPage = () => {
                                 className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-250 font-medium text-gray-700 dark:text-gray-300 text-sm"
                             >
                                 <Share2 className="w-4 h-4" />
-                                <span>Share</span>
+                                <span>Chia sẻ</span>
                             </button>
                         </div>
                     </div>
@@ -377,7 +377,7 @@ const BlogDetailPage = () => {
                                 {post.tags && post.tags.length > 0 && (
                                     <div className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
                                         <div className="flex flex-wrap items-center gap-3">
-                                            <span className="text-gray-600 dark:text-gray-400 font-medium">Tags:</span>
+                                            <span className="text-gray-600 dark:text-gray-400 font-medium">Kỹ năng:</span>
                                             {post.tags.map((tag) => (
                                                 <span
                                                     key={tag}
@@ -406,7 +406,7 @@ const BlogDetailPage = () => {
                                         <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
                                             <h3 className="text-base font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                                                 <List className="w-5 h-5" />
-                                                Table of Contents
+                                                Mục lục
                                             </h3>
                                             <nav className="space-y-2.5">
                                                 {headings.map((heading) => (
@@ -427,14 +427,14 @@ const BlogDetailPage = () => {
                                         {/* Share Buttons in Sidebar */}
                                         <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
                                             <h3 className="text-base font-bold text-gray-900 dark:text-white mb-4">
-                                                Share Article
+                                                Chia sẻ bài viết
                                             </h3>
                                             <button
                                                 onClick={handleShare}
                                                 className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-green-600 hover:bg-green-700 text-white font-semibold transition-all duration-250"
                                             >
                                                 <Share2 className="w-4 h-4" />
-                                                Share
+                                                Chia sẻ
                                             </button>
                                         </div>
                                     </div>
@@ -451,7 +451,7 @@ const BlogDetailPage = () => {
                                 className="lg:hidden fixed bottom-6 right-6 z-40 flex items-center gap-2 px-5 py-3 rounded-full bg-green-600 hover:bg-green-700 text-white font-semibold shadow-lg transition-all duration-250"
                             >
                                 <List className="w-5 h-5" />
-                                Contents
+                                Mục lục
                             </button>
 
                             {/* Mobile TOC Overlay */}
@@ -464,7 +464,7 @@ const BlogDetailPage = () => {
                                         <div className="flex items-center justify-between mb-4">
                                             <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
                                                 <List className="w-5 h-5" />
-                                                Table of Contents
+                                                Mục lục
                                             </h3>
                                             <button
                                                 onClick={() => setTocOpen(false)}

@@ -623,8 +623,12 @@ class RecService:
                 if code and code.strip().upper()[0] in dims
             }
             if weights and primary_dims:
-                fit = max(weights.get(dim, 0.0) for dim in primary_dims)
-                score = 0.55 + fit * 0.40
+                # Use the complete assessment vector. Taking only the maximum
+                # dimension made different assessments with the same top trait
+                # produce effectively identical recommendations.
+                fit = sum(weights.get(dim, 0.0) for dim in primary_dims) / len(primary_dims)
+                coverage = sum(weights.get(dim, 0.0) for dim in primary_dims)
+                score = 0.50 + fit * 0.35 + min(coverage, 2.0) * 0.05
             else:
                 score = 0.55
 

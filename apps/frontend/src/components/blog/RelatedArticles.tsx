@@ -74,10 +74,10 @@ const RelatedArticles = ({ posts }: RelatedArticlesProps) => {
                 {/* Section Header */}
                 <div className="mb-10">
                     <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                        Related Articles
+                        Bài viết liên quan
                     </h2>
                     <p className="text-base text-gray-600 dark:text-gray-400">
-                        Continue exploring career insights and advice
+                        Tiếp tục khám phá kiến thức và lời khuyên nghề nghiệp
                     </p>
                 </div>
 
