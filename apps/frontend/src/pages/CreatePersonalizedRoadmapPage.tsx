@@ -67,7 +67,7 @@ const CreatePersonalizedRoadmapPage = () => {
     if (!config) return [];
     return [
       { key: 'critical' as const, color: 'orange' as const, value: config.total_critical, label: 'Quan trọng', skills: config.critical_skills },
-      { key: 'important' as const, color: 'amber' as const, value: config.total_important, label: 'Nên có', skills: config.important_skills },
+      { key: 'important' as const, color: 'amber' as const, value: config.total_important, label: `Nên có (${config.career_title})`, skills: config.important_skills },
       { key: 'existing' as const, color: 'emerald' as const, value: config.total_existing, label: 'Đã có', skills: config.existing_skills },
     ];
   }, [config]);
