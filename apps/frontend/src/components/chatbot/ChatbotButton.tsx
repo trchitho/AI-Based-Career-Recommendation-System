@@ -167,11 +167,8 @@ export const ChatbotButton: React.FC = () => {
 
       {/* Messenger popup */}
       {isMessengerOpen && (
-        <div className={`fixed z-50 ${isMessengerMinimized ? 'h-14' : 'h-[min(70vh,520px)]'} rounded-2xl overflow-hidden shadow-2xl border border-gray-200 dark:border-gray-700 transition-all duration-300`}
+        <div className={`fixed bottom-[calc(76px+env(safe-area-inset-bottom))] left-3 right-3 z-50 w-auto rounded-2xl border border-gray-200 shadow-2xl transition-all duration-300 dark:border-gray-700 sm:left-auto sm:right-4 sm:w-[420px] lg:right-6 lg:w-[460px] ${isMessengerMinimized ? 'h-14 overflow-hidden' : 'h-[min(60dvh,440px)] max-h-[calc(100dvh-112px)] overflow-hidden sm:h-[min(68dvh,560px)] lg:h-[min(70dvh,620px)]'}`}
           style={{
-            width: 'min(calc(100vw - 24px), 420px)',
-            right: 'calc(12px + env(safe-area-inset-right))',
-            bottom: 'calc(84px + env(safe-area-inset-bottom))',
             background: 'var(--neu-bg-card,#f0f0f3)',
           }}
         >

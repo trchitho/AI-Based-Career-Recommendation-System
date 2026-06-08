@@ -645,12 +645,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
 
   return (
     <div
-      className={`fixed bg-white rounded-lg shadow-xl border border-gray-200 flex flex-col z-40 transition-all duration-300 ${isMinimized ? 'h-12' : 'h-[min(72vh,600px)]'}`}
-      style={{
-        width: 'min(calc(100vw - 24px), 420px)',
-        right: 'calc(12px + env(safe-area-inset-right))',
-        bottom: 'calc(84px + env(safe-area-inset-bottom))',
-      }}
+      className={`fixed bottom-[calc(76px+env(safe-area-inset-bottom))] left-3 right-3 z-50 flex w-auto flex-col rounded-2xl border border-gray-200 bg-white shadow-2xl transition-all duration-300 sm:left-auto sm:right-4 sm:w-[420px] lg:right-6 lg:w-[460px] ${isMinimized ? 'h-12 overflow-hidden' : 'h-[min(60dvh,440px)] max-h-[calc(100dvh-112px)] overflow-hidden sm:h-[min(68dvh,560px)] lg:h-[min(70dvh,620px)]'}`}
     >
       {/* Header */}
       <div className={`bg-gradient-to-r ${canUseCareerCounseling ? 'from-purple-600 to-blue-600' : 'from-blue-600 to-blue-700'} text-white p-3 sm:p-4 rounded-t-lg flex justify-between items-center gap-2`}>
