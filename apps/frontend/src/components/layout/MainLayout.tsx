@@ -360,7 +360,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                   type="button"
                   aria-label={(showSidebar ? mobileSidebarOpen : isMobileMenuOpen) ? 'Đóng menu điều hướng' : 'Mở menu điều hướng'}
                   aria-expanded={showSidebar ? mobileSidebarOpen : isMobileMenuOpen}
-                  className={`relative z-[60] h-11 w-11 cursor-pointer items-center justify-center rounded-lg text-gray-600 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-indigo-500 dark:text-gray-400 dark:hover:bg-gray-800 ${showSidebar ? 'inline-flex' : 'inline-flex md:hidden'}`}
+                  className={`relative z-[60] h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg text-gray-600 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-indigo-500 dark:text-gray-400 dark:hover:bg-gray-800 ${showSidebar ? 'inline-flex' : 'inline-flex md:hidden'}`}
                   onClick={() => {
                     if (!showSidebar) {
                       setIsMobileMenuOpen(value => !value);
