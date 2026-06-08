@@ -23,29 +23,29 @@ const ProfileSummaryCard: React.FC<ProfileSummaryCardProps> = ({ profile }) => {
   });
 
   return (
-    <div className="relative h-full flex flex-col justify-center overflow-hidden p-10 bg-white/70 dark:bg-gray-800/60 backdrop-blur-sm">
+    <div className="relative h-full flex flex-col justify-center overflow-hidden p-5 sm:p-8 lg:p-10 bg-white/70 dark:bg-gray-800/60 backdrop-blur-sm">
 
       {/* Decorative Background Elements */}
       <div className="absolute top-0 right-0 h-full w-1/2 bg-indigo-50/60 dark:bg-indigo-950/10 rounded-l-full transform translate-x-1/3 scale-125 pointer-events-none opacity-60"></div>
       <div className="absolute bottom-0 left-0 w-32 h-32 bg-indigo-700/5 rounded-full blur-2xl pointer-events-none -ml-10 -mb-10"></div>
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-400/40 via-purple-400/40 to-transparent rounded-t-[28px]"></div>
 
-      <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-start gap-8 w-full">
+      <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-start gap-5 sm:gap-8 w-full min-w-0">
 
         {/* Avatar Square */}
-        <div className="w-24 h-24 bg-primary-avatar rounded-card-feature flex items-center justify-center text-white text-4xl font-bold shadow-xl shadow-indigo-900/20 shrink-0 border-4 border-white/80 dark:border-gray-700/80">
+        <div className="w-20 h-20 sm:w-24 sm:h-24 bg-primary-avatar rounded-card-feature flex items-center justify-center text-white text-3xl sm:text-4xl font-bold shadow-xl shadow-indigo-900/20 shrink-0 border-4 border-white/80 dark:border-gray-700/80">
           {displayName.charAt(0).toUpperCase()}
         </div>
 
-        <div className="flex-1 text-center sm:text-left flex flex-col justify-center">
-          <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-1.5 tracking-tight">
+        <div className="flex-1 min-w-0 text-center sm:text-left flex flex-col justify-center">
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white mb-1.5 tracking-tight break-words">
             {displayName}
           </h2>
-          <p className="text-gray-500 dark:text-gray-400 font-medium mb-5 text-base">
+          <p className="text-gray-500 dark:text-gray-400 font-medium mb-5 text-sm sm:text-base break-all">
             {profile.email}
           </p>
 
-          <div className="inline-flex items-center justify-center sm:justify-start gap-2 text-sm font-semibold text-gray-400 dark:text-gray-500">
+          <div className="inline-flex flex-wrap items-center justify-center sm:justify-start gap-2 text-sm font-semibold text-gray-400 dark:text-gray-500">
             <div className="w-8 h-8 rounded-full bg-white/60 dark:bg-gray-700/60 border border-gray-200/50 dark:border-gray-600/50 flex items-center justify-center">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />

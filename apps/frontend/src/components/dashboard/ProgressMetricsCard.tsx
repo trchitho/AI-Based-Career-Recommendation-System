@@ -10,12 +10,12 @@ const ProgressMetricsCard: React.FC<ProgressMetricsCardProps> = ({ metrics }) =>
   const { t } = useTranslation();
 
   return (
-    <div className="h-full flex flex-col justify-center p-8 bg-white/70 dark:bg-gray-800/60 backdrop-blur-sm relative overflow-hidden">
+    <div className="h-full flex flex-col justify-center p-5 sm:p-8 bg-white/70 dark:bg-gray-800/60 backdrop-blur-sm relative overflow-hidden">
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500/60 via-purple-500/40 to-transparent rounded-t-[28px]"></div>
 
       {/* Title Header */}
-      <div className="flex items-center justify-between mb-8">
-        <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+      <div className="flex items-center justify-between gap-3 mb-6 sm:mb-8">
+        <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2 min-w-0">
           <span className="w-1 h-5 bg-indigo-700 rounded-full"></span>
           {t("dashboard.progress.title")}
         </h3>
@@ -27,11 +27,11 @@ const ProgressMetricsCard: React.FC<ProgressMetricsCardProps> = ({ metrics }) =>
       </div>
 
       {/* Metrics Grid */}
-      <div className="flex justify-between items-stretch text-center divide-x divide-gray-100 dark:divide-gray-700">
+      <div className="grid grid-cols-3 gap-2 text-center">
 
         {/* Assessments */}
-        <div className="flex-1 px-2 group cursor-default flex flex-col items-center justify-start">
-          <div className="text-4xl font-extrabold text-gray-900 dark:text-white mb-2 group-hover:text-indigo-800 transition-colors duration-300">
+        <div className="group cursor-default flex flex-col items-center justify-start rounded-xl px-1 py-2 bg-gray-50/60 dark:bg-gray-900/20">
+          <div className="text-2xl sm:text-4xl font-extrabold text-gray-900 dark:text-white mb-2 group-hover:text-indigo-800 transition-colors duration-300">
             {metrics.completedAssessments}
           </div>
           <div className="text-[10px] sm:text-xs text-gray-400 font-bold uppercase tracking-wider leading-tight min-h-[2.5em] flex items-center">
@@ -40,8 +40,8 @@ const ProgressMetricsCard: React.FC<ProgressMetricsCardProps> = ({ metrics }) =>
         </div>
 
         {/* Active Roadmaps */}
-        <div className="flex-1 px-2 group cursor-default flex flex-col items-center justify-start">
-          <div className="text-4xl font-extrabold text-gray-900 dark:text-white mb-2 group-hover:text-indigo-800 transition-colors duration-300">
+        <div className="group cursor-default flex flex-col items-center justify-start rounded-xl px-1 py-2 bg-gray-50/60 dark:bg-gray-900/20">
+          <div className="text-2xl sm:text-4xl font-extrabold text-gray-900 dark:text-white mb-2 group-hover:text-indigo-800 transition-colors duration-300">
             {metrics.activeRoadmaps}
           </div>
           <div className="text-[10px] sm:text-xs text-gray-400 font-bold uppercase tracking-wider leading-tight min-h-[2.5em] flex items-center">
@@ -50,8 +50,8 @@ const ProgressMetricsCard: React.FC<ProgressMetricsCardProps> = ({ metrics }) =>
         </div>
 
         {/* Milestones */}
-        <div className="flex-1 px-2 group cursor-default flex flex-col items-center justify-start">
-          <div className="text-4xl font-extrabold text-gray-900 dark:text-white mb-2 group-hover:text-indigo-800 transition-colors duration-300">
+        <div className="group cursor-default flex flex-col items-center justify-start rounded-xl px-1 py-2 bg-gray-50/60 dark:bg-gray-900/20">
+          <div className="text-2xl sm:text-4xl font-extrabold text-gray-900 dark:text-white mb-2 group-hover:text-indigo-800 transition-colors duration-300">
             {metrics.completedMilestones}
           </div>
           <div className="text-[10px] sm:text-xs text-gray-400 font-bold uppercase tracking-wider leading-tight min-h-[2.5em] flex items-center">

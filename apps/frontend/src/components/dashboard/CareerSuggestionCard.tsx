@@ -27,14 +27,14 @@ const CareerSuggestionCard: React.FC<CareerSuggestionCardProps> = ({ career }) =
   return (
     <div
       onClick={handleViewCareer}
-      className="group bg-white/60 dark:bg-gray-800/50 backdrop-blur-sm rounded-card-feature border border-white/60 dark:border-gray-700/60 p-6 md:p-8 
+      className="group bg-white/60 dark:bg-gray-800/50 backdrop-blur-sm rounded-card-feature border border-white/60 dark:border-gray-700/60 p-5 sm:p-6 md:p-8 
                  shadow-sm hover:shadow-xl hover:shadow-indigo-900/10 dark:shadow-none 
-                 transition-all duration-slow cursor-pointer flex flex-col justify-between h-full min-h-[320px] relative overflow-hidden"
+                 transition-all duration-slow cursor-pointer flex flex-col justify-between h-full min-h-[280px] sm:min-h-[320px] relative overflow-hidden"
     >
       <div>
         {/* Header: Title & Score */}
-        <div className="flex justify-between items-start mb-6">
-          <div className="pr-4">
+        <div className="flex flex-wrap justify-between items-start gap-3 mb-6">
+          <div className="min-w-0 flex-1">
             <h3 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white leading-snug group-hover:text-indigo-800 dark:group-hover:text-indigo-400 transition-colors line-clamp-2">
               {displayTitle}
             </h3>
@@ -72,8 +72,8 @@ const CareerSuggestionCard: React.FC<CareerSuggestionCardProps> = ({ career }) =
       </div>
 
       {/* Footer Action */}
-      <div className="mt-auto pt-5 border-t border-gray-100/60 dark:border-gray-700/50 flex items-center justify-between">
-        <span className="text-sm font-semibold text-indigo-800 dark:text-indigo-400 group-hover:underline transition-colors">
+      <div className="mt-auto pt-5 border-t border-gray-100/60 dark:border-gray-700/50 flex items-center justify-between gap-3">
+        <span className="text-sm font-semibold text-indigo-800 dark:text-indigo-400 group-hover:underline transition-colors break-words">
           Xem chi tiết nghề nghiệp
         </span>
         <div className="w-9 h-9 rounded-full bg-indigo-800 text-white flex items-center justify-center shadow-md group-hover:bg-indigo-900 transition-all duration-200">
