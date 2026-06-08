@@ -336,7 +336,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       )}
 
       {/* MAIN CONTENT AREA */}
-      <div className={`flex-1 min-w-0 flex flex-col ${fullscreen ? 'h-screen overflow-hidden' : ''} ${showSidebar && !sidebarCollapsed ? 'md:ml-16 xl:ml-60' : showSidebar && sidebarCollapsed ? 'md:ml-16' : 'ml-0'
+      <div className={`flex-1 min-w-0 flex flex-col ${fullscreen ? 'h-screen overflow-hidden' : ''} ${showSidebar && !sidebarCollapsed ? 'md:ml-52 lg:ml-60' : showSidebar && sidebarCollapsed ? 'md:ml-16' : 'ml-0'
         }`}>
 
         {/* HEADER */}
