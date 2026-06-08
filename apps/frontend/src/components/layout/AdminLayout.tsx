@@ -92,7 +92,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   );
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', width: '100%', background: '#f8fafc' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', width: '100%', maxWidth: '100vw', overflowX: 'hidden', background: '#f8fafc' }}>
 
       {/* Desktop Sidebar - fixed width, no collapse */}
       <aside
@@ -119,7 +119,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       {mobileOpen && (
         <div className="fixed inset-0 z-40 md:hidden">
           <div className="absolute inset-0 bg-black/50" onClick={() => setMobileOpen(false)} />
-          <aside className="absolute left-0 top-0 h-full w-56 bg-[#1e1b4b] z-50 flex flex-col">
+          <aside className="absolute left-0 top-0 h-full w-[min(84vw,18rem)] bg-[#1e1b4b] z-50 flex flex-col">
             <SidebarContent />
           </aside>
         </div>
@@ -131,13 +131,16 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         {/* Top bar */}
         <header className="flex items-center gap-4 px-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex-shrink-0" style={{ height: 56, position: 'sticky', top: 0, zIndex: 20 }}>
           <button
+            type="button"
+            aria-label={mobileOpen ? 'Đóng menu quản trị' : 'Mở menu quản trị'}
+            aria-expanded={mobileOpen}
             className="md:hidden p-1.5 rounded-lg text-gray-500 hover:bg-gray-100"
             onClick={() => setMobileOpen(o => !o)}
           >
             {mobileOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
 
-          <h1 className="text-base font-bold text-gray-800 dark:text-white">{currentPage}</h1>
+          <h1 className="min-w-0 truncate text-base font-bold text-gray-800 dark:text-white">{currentPage}</h1>
 
           <div className="ml-auto flex items-center gap-3">
             <div className="w-7 h-7 rounded-full bg-indigo-600 flex items-center justify-center">
@@ -148,7 +151,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         </header>
 
         {/* Page content */}
-        <main style={{ flex: 1, padding: '1.5rem', background: '#f8fafc', minHeight: 'calc(100vh - 56px)' }}
+        <main style={{ flex: 1, padding: 'clamp(1rem, 3vw, 1.5rem)', background: '#f8fafc', minHeight: 'calc(100vh - 56px)', minWidth: 0, maxWidth: '100%' }}
           className="dark:bg-gray-900">
           {children}
         </main>
