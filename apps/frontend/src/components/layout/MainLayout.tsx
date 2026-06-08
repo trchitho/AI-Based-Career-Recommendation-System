@@ -130,6 +130,19 @@ const MainLayout = ({ children }: MainLayoutProps) => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  useEffect(() => {
+    setMobileSidebarOpen(false);
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMobileSidebarOpen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   // Xử lý click ra ngoài để đóng dropdown
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -335,8 +348,17 @@ const MainLayout = ({ children }: MainLayoutProps) => {
               <div className="flex items-center gap-4 flex-1 justify-end">
                 {/* Mobile menu button */}
                 <button
-                  className="md:hidden p-2 text-gray-600 dark:text-gray-400 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
-                  onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
+                  type="button"
+                  aria-label={mobileSidebarOpen ? 'Đóng menu điều hướng' : 'Mở menu điều hướng'}
+                  aria-expanded={mobileSidebarOpen}
+                  className="relative z-[60] inline-flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg text-gray-600 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-indigo-500 dark:text-gray-400 dark:hover:bg-gray-800"
+                  onClick={() => {
+                    if (window.innerWidth < 768) {
+                      setMobileSidebarOpen(value => !value);
+                    } else {
+                      setSidebarCollapsed(value => !value);
+                    }
+                  }}
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
