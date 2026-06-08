@@ -80,8 +80,9 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // State cho Mobile Menu
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  // State cho top header navigation menu
+  const [topNavOpen, setTopNavOpen] = useState(false);
+  const topNavRef = useRef<HTMLDivElement>(null);
 
   // Sidebar collapse state - tách biệt mobile và desktop với localStorage persistence
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
@@ -132,12 +133,15 @@ const MainLayout = ({ children }: MainLayoutProps) => {
 
   useEffect(() => {
     setMobileSidebarOpen(false);
-    setIsMobileMenuOpen(false);
+    setTopNavOpen(false);
   }, [location.pathname]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setMobileSidebarOpen(false);
+      if (event.key === 'Escape') {
+        setMobileSidebarOpen(false);
+        setTopNavOpen(false);
+      }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
@@ -148,6 +152,9 @@ const MainLayout = ({ children }: MainLayoutProps) => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsDropdownOpen(false);
+      }
+      if (topNavRef.current && !topNavRef.current.contains(event.target as Node)) {
+        setTopNavOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -320,7 +327,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
               </div>
 
               {/* Desktop Navigation - KHÔNG ảnh hưởng đến sidebar state */}
-              <nav className="hidden xl:flex items-center space-x-2 lg:space-x-4 whitespace-nowrap">
+              <nav className="hidden lg:flex items-center gap-1 xl:gap-4 whitespace-nowrap">
                 {navLinks.map((item) => (
                   <NavLink
                     key={item.to}
@@ -358,18 +365,10 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                 {/* Mobile menu button */}
                 <button
                   type="button"
-                  aria-label={(showSidebar ? mobileSidebarOpen : isMobileMenuOpen) ? 'Đóng menu điều hướng' : 'Mở menu điều hướng'}
-                  aria-expanded={showSidebar ? mobileSidebarOpen : isMobileMenuOpen}
-                  className={`relative z-[60] h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg text-gray-600 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-indigo-500 dark:text-gray-400 dark:hover:bg-gray-800 ${showSidebar ? 'inline-flex' : 'inline-flex md:hidden'}`}
-                  onClick={() => {
-                    if (!showSidebar) {
-                      setIsMobileMenuOpen(value => !value);
-                    } else if (window.innerWidth < 768) {
-                      setMobileSidebarOpen(value => !value);
-                    } else {
-                      setSidebarCollapsed(value => !value);
-                    }
-                  }}
+                  aria-label={topNavOpen ? 'Đóng menu điều hướng' : 'Mở menu điều hướng'}
+                  aria-expanded={topNavOpen}
+                  className="relative z-[60] inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg text-gray-600 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-indigo-500 dark:text-gray-400 dark:hover:bg-gray-800 lg:hidden"
+                  onClick={() => setTopNavOpen(value => !value)}
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -461,17 +460,17 @@ const MainLayout = ({ children }: MainLayoutProps) => {
             </div>
           </div>
 
-          {/* Mobile menu */}
-          {isMobileMenuOpen && (
-            <div className="md:hidden border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 animate-fade-in-scale">
-              <nav className="px-4 py-4 space-y-2">
+          {/* Mobile/tablet top navigation */}
+          {topNavOpen && (
+            <div ref={topNavRef} className="fixed left-3 right-3 top-[80px] z-[55] rounded-2xl border border-gray-200 bg-white p-2 shadow-2xl animate-fade-in-scale dark:border-gray-700 dark:bg-gray-900 lg:hidden">
+              <nav className="flex flex-col gap-1">
                 {navLinks.map((item) => (
                   <NavLink
                     key={item.to}
                     to={item.to}
-                    onClick={() => setIsMobileMenuOpen(false)}
+                    onClick={() => setTopNavOpen(false)}
                     className={({ isActive }) =>
-                      `block px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105 ${isActive
+                      `block rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-200 ${isActive
                         ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-400"
                         : "text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-700"
                       }`
