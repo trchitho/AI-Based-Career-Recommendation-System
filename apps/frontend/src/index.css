@@ -112,8 +112,23 @@
     @apply bg-background text-foreground antialiased;
     overflow-x: hidden;
     min-width: 320px;
+    max-width: 100vw;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     line-height: 1.6;
+  }
+
+  #root {
+    width: 100%;
+    max-width: 100vw;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  main,
+  section,
+  article {
+    min-width: 0;
+    max-width: 100%;
   }
 
   /* Heading font */
@@ -126,6 +141,15 @@
     font-family: 'Inter', 'Plus Jakarta Sans', sans-serif;
     line-height: 1.25;
     letter-spacing: -0.02em;
+    overflow-wrap: anywhere;
+  }
+
+  h1:not([class*="text-"]) {
+    font-size: clamp(2rem, 6vw, 4.5rem);
+  }
+
+  h2:not([class*="text-"]) {
+    font-size: clamp(1.5rem, 4vw, 3rem);
   }
 
   /* Focus ring */
