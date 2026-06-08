@@ -167,8 +167,14 @@ export const ChatbotButton: React.FC = () => {
 
       {/* Messenger popup */}
       {isMessengerOpen && (
-        <div className={`fixed bottom-28 right-6 z-50 w-80 ${isMessengerMinimized ? 'h-14' : 'h-[480px]'} rounded-2xl overflow-hidden shadow-2xl border border-gray-200 dark:border-gray-700 transition-all duration-300`}
-          style={{ background: 'var(--neu-bg-card,#f0f0f3)' }}>
+        <div className={`fixed z-50 ${isMessengerMinimized ? 'h-14' : 'h-[min(70vh,520px)]'} rounded-2xl overflow-hidden shadow-2xl border border-gray-200 dark:border-gray-700 transition-all duration-300`}
+          style={{
+            width: 'min(calc(100vw - 24px), 420px)',
+            right: 'calc(12px + env(safe-area-inset-right))',
+            bottom: 'calc(84px + env(safe-area-inset-bottom))',
+            background: 'var(--neu-bg-card,#f0f0f3)',
+          }}
+        >
           <ChatInboxPanel
             onUnreadChange={fetchUnread}
             onClose={() => {
@@ -186,10 +192,18 @@ export const ChatbotButton: React.FC = () => {
 
       {/* Floating Messenger Button */}
       {!isMessengerOpen && !isMentorChatOpen && (
-      <div className={`fixed ${isChatbotOpen ? 'bottom-6 right-6' : 'bottom-20 right-6'} z-50 transition-all duration-300`}>
+      <div
+        className="fixed z-50 transition-all duration-300"
+        style={{
+          right: 'calc(16px + env(safe-area-inset-right))',
+          bottom: isChatbotOpen
+            ? 'calc(16px + env(safe-area-inset-bottom))'
+            : 'calc(76px + env(safe-area-inset-bottom))',
+        }}
+      >
         <button
           onClick={handleToggleMessenger}
-          className="relative bg-gradient-to-r from-emerald-500 to-green-600 text-white p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+          className="relative flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl sm:h-14 sm:w-14 lg:h-16 lg:w-16"
           title="Tin nhắn Mentor"
         >
           <GraduationCap size={20} />
@@ -214,7 +228,13 @@ export const ChatbotButton: React.FC = () => {
 
       {/* Floating Chatbot Button */}
       {!isChatbotOpen && (
-      <div className="fixed bottom-6 right-6 z-50">
+      <div
+        className="fixed z-50"
+        style={{
+          right: 'calc(16px + env(safe-area-inset-right))',
+          bottom: 'calc(16px + env(safe-area-inset-bottom))',
+        }}
+      >
         <button
           onClick={() => {
             setIsChatbotOpen(o => {
@@ -228,7 +248,7 @@ export const ChatbotButton: React.FC = () => {
             });
             setShowWelcome(false);
           }}
-          className={`relative bg-gradient-to-r from-blue-500 to-blue-600 text-white p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 group ${isChatbotOpen ? 'bg-gray-500' : ''}`}
+          className={`group relative flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl sm:h-14 sm:w-14 lg:h-16 lg:w-16 ${isChatbotOpen ? 'bg-gray-500' : ''}`}
           title="Chatbot tư vấn nghề nghiệp"
         >
           <div className="relative">
@@ -249,8 +269,8 @@ export const ChatbotButton: React.FC = () => {
 
       {/* Welcome popup */}
       {showWelcome && !isChatbotOpen && (
-        <div className="fixed bottom-20 right-6 z-40 animate-bounce-in">
-          <div className="bg-white rounded-lg shadow-xl border border-gray-200 p-3 max-w-xs relative">
+        <div className="fixed z-40 animate-bounce-in" style={{ right: 'calc(16px + env(safe-area-inset-right))', bottom: 'calc(76px + env(safe-area-inset-bottom))' }}>
+          <div className="bg-white rounded-lg shadow-xl border border-gray-200 p-3 max-w-[calc(100vw-32px)] sm:max-w-xs relative">
             <button onClick={() => setShowWelcome(false)}
               className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 w-4 h-4 flex items-center justify-center">
               <X size={12} />
