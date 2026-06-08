@@ -358,11 +358,13 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                 {/* Mobile menu button */}
                 <button
                   type="button"
-                  aria-label={mobileSidebarOpen ? 'Đóng menu điều hướng' : 'Mở menu điều hướng'}
-                  aria-expanded={mobileSidebarOpen}
-                  className="relative z-[60] inline-flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg text-gray-600 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-indigo-500 dark:text-gray-400 dark:hover:bg-gray-800"
+                  aria-label={(showSidebar ? mobileSidebarOpen : isMobileMenuOpen) ? 'Đóng menu điều hướng' : 'Mở menu điều hướng'}
+                  aria-expanded={showSidebar ? mobileSidebarOpen : isMobileMenuOpen}
+                  className={`relative z-[60] h-11 w-11 cursor-pointer items-center justify-center rounded-lg text-gray-600 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-indigo-500 dark:text-gray-400 dark:hover:bg-gray-800 ${showSidebar ? 'inline-flex' : 'inline-flex md:hidden'}`}
                   onClick={() => {
-                    if (window.innerWidth < 768) {
+                    if (!showSidebar) {
+                      setIsMobileMenuOpen(value => !value);
+                    } else if (window.innerWidth < 768) {
                       setMobileSidebarOpen(value => !value);
                     } else {
                       setSidebarCollapsed(value => !value);
