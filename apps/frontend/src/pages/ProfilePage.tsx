@@ -284,7 +284,7 @@ const ProfilePage = () => {
             </div>
 
             {/* ── HÀNG 1: RIASEC + Big Five ── */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px,100%), 1fr))', gap: '1.25rem', marginBottom: '1.25rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px,100%), 1fr))', gap: '1rem', marginBottom: '1.25rem' }}>
 
               {/* DNA Nghề Nghiệp (RIASEC) */}
               <div style={{ background: 'var(--neu-bg-card, #fff)', borderRadius: 16, padding: '1.5rem', border: '1px solid var(--neu-border, #e5e7eb)', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
@@ -303,7 +303,7 @@ const ProfilePage = () => {
                 )}
 
                 {riasec ? (
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.75rem' }}>
                     {riasecSorted.map(([key, val]) => {
                       const pct = Math.round(val);  // already 0-100
                       return (
@@ -350,14 +350,14 @@ const ProfilePage = () => {
                       const level = big5Level(val);
                       const color = big5Color(val);
                       return (
-                        <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                          <div style={{ width: 120, fontSize: '0.78rem', fontWeight: 600, color: 'var(--neu-text, #374151)', flexShrink: 0 }}>
+                        <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0 }}>
+                          <div style={{ width: 'min(120px, 38vw)', fontSize: '0.78rem', fontWeight: 600, color: 'var(--neu-text, #374151)', flexShrink: 0, overflowWrap: 'anywhere' }}>
                             {BIG5_LABELS[key]}
                           </div>
                           <div style={{ flex: 1, height: 7, background: '#f3f4f6', borderRadius: 99, overflow: 'hidden' }}>
                             <div style={{ height: '100%', width: `${pct}%`, background: color, borderRadius: 99 }} />
                           </div>
-                          <div style={{ width: 60, fontSize: '0.72rem', fontWeight: 700, color, textAlign: 'right', flexShrink: 0 }}>
+                          <div style={{ width: 52, fontSize: '0.72rem', fontWeight: 700, color, textAlign: 'right', flexShrink: 0 }}>
                             {level}
                           </div>
                         </div>
@@ -373,7 +373,7 @@ const ProfilePage = () => {
             </div>
 
             {/* ── ROW 2: Account Info + Chat ── */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px,100%), 1fr))', gap: '1.25rem', marginBottom: '1.25rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px,100%), 1fr))', gap: '1rem', marginBottom: '1.25rem' }}>
 
               {/* Account Info */}
               <div style={{ background: 'var(--neu-bg-card, #fff)', borderRadius: 16, padding: '1.5rem', border: '1px solid var(--neu-border, #e5e7eb)', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
