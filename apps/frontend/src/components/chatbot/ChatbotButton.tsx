@@ -190,81 +190,65 @@ export const ChatbotButton: React.FC = () => {
         </div>
       )}
 
-      {/* Floating Messenger Button */}
-      {!isMessengerOpen && !isMentorChatOpen && (
-      <div
-        className="fixed z-50 transition-all duration-300"
-        style={{
-          right: 'calc(16px + env(safe-area-inset-right))',
-          bottom: isChatbotOpen
-            ? 'calc(16px + env(safe-area-inset-bottom))'
-            : 'calc(76px + env(safe-area-inset-bottom))',
-        }}
-      >
-        <button
-          onClick={handleToggleMessenger}
-          className="relative flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl sm:h-14 sm:w-14 lg:h-16 lg:w-16"
-          title="Tin nhắn Mentor"
-        >
-          <GraduationCap size={20} />
-
-          {/* Unread badge — đỏ, hiện số thực */}
-          {unreadCount > 0 && (
-            <span
-              className="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-white font-bold border-2 border-white"
-              style={{ fontSize: '0.65rem', background: '#ef4444', lineHeight: 1 }}
-            >
-              {unreadCount > 99 ? '99+' : unreadCount}
-            </span>
-          )}
-
-          {/* Chấm xanh khi không có tin chưa đọc */}
-          {unreadCount === 0 && (
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-300 rounded-full border-2 border-white" />
-          )}
-        </button>
-      </div>
-      )}
-
-      {/* Floating Chatbot Button */}
-      {!isChatbotOpen && (
-      <div
-        className="fixed z-50"
-        style={{
-          right: 'calc(16px + env(safe-area-inset-right))',
-          bottom: 'calc(16px + env(safe-area-inset-bottom))',
-        }}
-      >
-        <button
-          onClick={() => {
-            setIsChatbotOpen(o => {
-              const next = !o;
-              if (next) {
-                setIsMessengerOpen(false);
-                setIsMessengerMinimized(false);
-                setIsMentorChatOpen(false);
-              }
-              return next;
-            });
-            setShowWelcome(false);
+      {/* Floating buttons */}
+      {((!isMessengerOpen && !isMentorChatOpen) || !isChatbotOpen) && (
+        <div
+          className="fixed z-50 flex flex-col gap-2.5 sm:gap-3 lg:gap-3.5"
+          style={{
+            right: 'clamp(12px, 2vw, 24px)',
+            bottom: 'calc(16px + env(safe-area-inset-bottom))',
           }}
-          className={`group relative flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl sm:h-14 sm:w-14 lg:h-16 lg:w-16 ${isChatbotOpen ? 'bg-gray-500' : ''}`}
-          title="Chatbot tư vấn nghề nghiệp"
         >
-          <div className="relative">
-            <Bot size={20} className="transition-transform duration-200" />
-          </div>
-          <div className="absolute -top-1 -right-1 w-3 h-3 bg-indigo-400 rounded-full border-2 border-white animate-pulse" />
-          {!isChatbotOpen && (
-            <div className="absolute inset-0 rounded-full bg-blue-400 opacity-20 animate-ping" />
+          {!isMessengerOpen && !isMentorChatOpen && (
+            <button
+              onClick={handleToggleMessenger}
+              className="relative flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl sm:h-12 sm:w-12 lg:h-14 lg:w-14"
+              title="Tin nhắn Mentor"
+            >
+              <GraduationCap size={22} />
+
+              {/* Unread badge — đỏ, hiện số thực */}
+              {unreadCount > 0 && (
+                <span
+                  className="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-white font-bold border-2 border-white"
+                  style={{ fontSize: '0.65rem', background: '#ef4444', lineHeight: 1 }}
+                >
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
+
+              {/* Chấm xanh khi không có tin chưa đọc */}
+              {unreadCount === 0 && (
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-300 rounded-full border-2 border-white" />
+              )}
+            </button>
           )}
-        </button>
-        <div className="absolute bottom-full right-0 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-          <div className="bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
-            Chatbot tư vấn nghề nghiệp
-          </div>
+
+          {!isChatbotOpen && (
+            <button
+              onClick={() => {
+                setIsChatbotOpen(o => {
+                  const next = !o;
+                  if (next) {
+                    setIsMessengerOpen(false);
+                    setIsMessengerMinimized(false);
+                    setIsMentorChatOpen(false);
+                  }
+                  return next;
+                });
+                setShowWelcome(false);
+              }}
+              className="group relative flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl sm:h-12 sm:w-12 lg:h-14 lg:w-14"
+              title="Chatbot tư vấn nghề nghiệp"
+            >
+              <div className="relative">
+                <Bot size={22} className="transition-transform duration-200" />
+              </div>
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-indigo-400 rounded-full border-2 border-white animate-pulse" />
+              <div className="absolute inset-0 rounded-full bg-blue-400 opacity-20 animate-ping" />
+            </button>
+          )}
         </div>
-      </div>
       )}
 
       {/* Welcome popup */}
