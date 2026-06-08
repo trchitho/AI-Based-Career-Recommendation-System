@@ -214,15 +214,15 @@ const MainLayout = ({ children }: MainLayoutProps) => {
 
           {/* Sidebar */}
           <aside
-            className={`fixed left-0 top-0 h-screen bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 z-[60] flex flex-col transition-all duration-300 md:top-[72px] md:h-[calc(100vh-72px)] md:z-40 ${sidebarCollapsed ? 'md:w-16' : 'md:w-52 lg:w-60'
-              } ${mobileSidebarOpen ? 'w-[min(84vw,18rem)] translate-x-0' : 'w-[min(84vw,18rem)] -translate-x-full md:translate-x-0'
+            className={`fixed left-0 top-0 h-screen w-[33vw] bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 z-[60] flex flex-col transition-all duration-300 md:top-[72px] md:h-[calc(100vh-72px)] md:z-40 ${sidebarCollapsed ? 'md:w-16' : 'md:w-52 lg:w-60'
+              } ${mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
               }`}
           >
             {/* Sidebar content */}
-            <div className="flex-1 flex flex-col p-4">
+            <div className="flex-1 flex flex-col p-2 md:p-4">
 
               {/* Toggle button */}
-              <div className={`flex ${sidebarCollapsed ? 'justify-center' : 'justify-between'} mb-4`}>
+              <div className={`flex justify-center ${sidebarCollapsed ? 'md:justify-center' : 'md:justify-between'} mb-4`}>
                 <button
                   type="button"
                   aria-label="Đóng menu điều hướng"
@@ -261,7 +261,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                       }
                     }}
                     className={({ isActive }) =>
-                      `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${sidebarCollapsed ? 'justify-center w-10 h-10 mx-auto' : ''
+                      `flex items-center justify-center gap-3 rounded-lg px-2 py-2 text-sm font-medium transition-colors md:justify-start md:px-3 ${sidebarCollapsed ? 'md:justify-center md:w-10 md:h-10 md:mx-auto' : ''
                       } ${isActive
                         ? "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400"
                         : "text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
@@ -269,7 +269,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                     }
                   >
                     <span className="flex-shrink-0">{item.icon}</span>
-                    {!sidebarCollapsed && <span>{item.label}</span>}
+                    {!sidebarCollapsed && <span className="hidden md:inline">{item.label}</span>}
                   </NavLink>
                 ))}
               </nav>
@@ -277,14 +277,14 @@ const MainLayout = ({ children }: MainLayoutProps) => {
               {/* User info at bottom */}
               {user && (
                 <div className="mt-auto pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <div className={`flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-700 ${sidebarCollapsed ? 'justify-center' : ''
+                  <div className={`flex items-center justify-center gap-3 rounded-lg bg-gray-50 p-2 dark:bg-gray-700 md:p-3 ${sidebarCollapsed ? 'md:justify-center' : 'md:justify-start'
                     }`}>
                     <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
                       {displayInitial}
                     </div>
                     {!sidebarCollapsed && (
                       <>
-                        <div className="flex-1 min-w-0">
+                        <div className="hidden flex-1 min-w-0 md:block">
                           <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
                             {displayName}
                           </p>
@@ -294,7 +294,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                         </div>
                         <button
                           onClick={handleLogout}
-                          className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 flex-shrink-0"
+                          className="hidden flex-shrink-0 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 md:block"
                           title="Đăng xuất"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
