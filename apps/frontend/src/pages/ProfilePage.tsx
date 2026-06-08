@@ -609,13 +609,13 @@ const ProfilePage = () => {
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                   {/* Email - không cho sửa */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0', borderBottom: '1px solid var(--neu-border, #f3f4f6)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', padding: '0.5rem 0', borderBottom: '1px solid var(--neu-border, #f3f4f6)' }}>
                     <span style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 500 }}>Email</span>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--neu-text, #111)' }}>{profileData.profile.email}</span>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--neu-text, #111)', overflowWrap: 'anywhere', textAlign: 'right' }}>{profileData.profile.email}</span>
                   </div>
 
                   {/* Họ tên - editable */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0', borderBottom: '1px solid var(--neu-border, #f3f4f6)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', padding: '0.5rem 0', borderBottom: '1px solid var(--neu-border, #f3f4f6)' }}>
                     <span style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 500 }}>Họ tên</span>
                     {isEditing ? (
                       <input
@@ -626,19 +626,19 @@ const ProfilePage = () => {
                         style={{
                           fontSize: '0.85rem', fontWeight: 600, color: 'var(--neu-text, #111)',
                           border: '1px solid var(--neu-accent, #6366f1)', borderRadius: 6,
-                          padding: '4px 8px', width: '60%', textAlign: 'right',
+                          padding: '4px 8px', width: 'min(100%, 240px)', textAlign: 'right',
                           outline: 'none', background: 'var(--neu-bg, #f9fafb)',
                         }}
                         placeholder="Nhập họ tên"
                         autoFocus
                       />
                     ) : (
-                      <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--neu-text, #111)' }}>{displayName(profileData.profile)}</span>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--neu-text, #111)', overflowWrap: 'anywhere', textAlign: 'right' }}>{displayName(profileData.profile)}</span>
                     )}
                   </div>
 
                   {/* Ngày sinh - editable */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0', borderBottom: '1px solid var(--neu-border, #f3f4f6)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', padding: '0.5rem 0', borderBottom: '1px solid var(--neu-border, #f3f4f6)' }}>
                     <span style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 500 }}>Ngày sinh</span>
                     {isEditing ? (
                       <input
@@ -662,7 +662,7 @@ const ProfilePage = () => {
                   </div>
 
                   {/* Tham gia - không cho sửa */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0', borderBottom: '1px solid var(--neu-border, #f3f4f6)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', padding: '0.5rem 0', borderBottom: '1px solid var(--neu-border, #f3f4f6)' }}>
                     <span style={{ fontSize: '0.82rem', color: '#9ca3af', fontWeight: 500 }}>Tham gia</span>
                     <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--neu-text, #111)' }}>{new Date(profileData.profile.created_at).toLocaleDateString('vi-VN')}</span>
                   </div>
