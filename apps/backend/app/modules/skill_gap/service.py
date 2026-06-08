@@ -338,10 +338,25 @@ class SkillGapService:
             .all()
 
     @staticmethod
+    def _can_apply_cv_matched_fallback(analysis: SkillGapAnalysis) -> bool:
+        matched = analysis.matched_skills if isinstance(analysis.matched_skills, list) else []
+        if any(isinstance(skill, dict) and skill.get('match_type') == 'same_career_cv_skill' for skill in matched):
+            return True
+        if matched:
+            return False
+        extra = analysis.extra_skills if isinstance(analysis.extra_skills, list) else []
+        if extra:
+            return False
+        try:
+            return float(analysis.match_percentage or 0) >= 60
+        except (TypeError, ValueError):
+            return False
+
+    @staticmethod
     def _apply_cv_matched_fallback(analysis: SkillGapAnalysis) -> SkillGapAnalysis:
         matched = analysis.matched_skills if isinstance(analysis.matched_skills, list) else []
         cv_skills = analysis.cv_skills if isinstance(analysis.cv_skills, list) else []
-        if matched or not cv_skills:
+        if matched or not cv_skills or not SkillGapService._can_apply_cv_matched_fallback(analysis):
             return analysis
 
         analysis.matched_skills = [
