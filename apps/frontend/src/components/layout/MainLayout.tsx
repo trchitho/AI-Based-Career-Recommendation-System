@@ -199,25 +199,34 @@ const MainLayout = ({ children }: MainLayoutProps) => {
         <>
           {/* Mobile overlay */}
           <div
-            className={`fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden ${mobileSidebarOpen ? 'block' : 'hidden'
+            className={`fixed inset-0 bg-black/50 backdrop-blur-sm z-[55] md:hidden ${mobileSidebarOpen ? 'block' : 'hidden'
               }`}
+            aria-hidden="true"
             onClick={() => setMobileSidebarOpen(false)}
           />
 
           {/* Sidebar */}
           <aside
-            className={`fixed left-0 top-[72px] h-[calc(100vh-72px)] bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 z-40 flex flex-col transition-all duration-300 ${sidebarCollapsed ? 'md:w-16' : 'md:w-52'
-              } ${mobileSidebarOpen ? 'w-52 translate-x-0' : 'w-52 -translate-x-full md:translate-x-0'
+            className={`fixed left-0 top-0 h-screen bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 z-[60] flex flex-col transition-all duration-300 md:top-[72px] md:h-[calc(100vh-72px)] md:z-40 ${sidebarCollapsed ? 'md:w-16' : 'md:w-52 lg:w-60'
+              } ${mobileSidebarOpen ? 'w-[min(84vw,18rem)] translate-x-0' : 'w-[min(84vw,18rem)] -translate-x-full md:translate-x-0'
               }`}
           >
             {/* Sidebar content */}
             <div className="flex-1 flex flex-col p-4">
 
               {/* Toggle button */}
-              <div className={`flex ${sidebarCollapsed ? 'justify-center' : 'justify-end'} mb-4`}>
+              <div className={`flex ${sidebarCollapsed ? 'justify-center' : 'justify-between'} mb-4`}>
+                <button
+                  type="button"
+                  aria-label="Đóng menu điều hướng"
+                  onClick={() => setMobileSidebarOpen(false)}
+                  className="md:hidden p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                >
+                  ✕
+                </button>
                 <button
                   onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                  className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                  className="hidden md:flex p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                   title={sidebarCollapsed ? 'Mở rộng' : 'Thu gọn'}
                 >
                   <svg
@@ -232,7 +241,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
               </div>
 
               {/* Nav items */}
-              <nav className="flex-1 space-y-2">
+              <nav className="flex-1 space-y-2 pt-16 md:pt-0">
                 {sidebarItems.map((item) => (
                   <NavLink
                     key={item.to}
@@ -296,7 +305,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       )}
 
       {/* MAIN CONTENT AREA */}
-      <div className={`flex-1 min-w-0 flex flex-col ${fullscreen ? 'h-screen overflow-hidden' : ''} ${showSidebar && !sidebarCollapsed ? 'md:ml-52' : showSidebar && sidebarCollapsed ? 'md:ml-16' : 'ml-0'
+      <div className={`flex-1 min-w-0 flex flex-col ${fullscreen ? 'h-screen overflow-hidden' : ''} ${showSidebar && !sidebarCollapsed ? 'md:ml-52 lg:ml-60' : showSidebar && sidebarCollapsed ? 'md:ml-16' : 'ml-0'
         }`}>
 
         {/* HEADER */}
@@ -311,7 +320,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
               </div>
 
               {/* Desktop Navigation - KHÔNG ảnh hưởng đến sidebar state */}
-              <nav className="hidden md:flex items-center space-x-2 lg:space-x-4 whitespace-nowrap">
+              <nav className="hidden xl:flex items-center space-x-2 lg:space-x-4 whitespace-nowrap">
                 {navLinks.map((item) => (
                   <NavLink
                     key={item.to}
