@@ -216,19 +216,19 @@ const ProfilePage = () => {
         )}
 
         {!loading && !error && profileData && (
-          <div style={{ maxWidth: 1100, margin: '0 auto', padding: '2rem 1.5rem' }}>
+          <div style={{ width: '100%', maxWidth: 1100, margin: '0 auto', padding: 'clamp(1rem, 3vw, 2rem) clamp(1rem, 4vw, 1.5rem)' }}>
 
             {/* ── HEADER CARD ── */}
             <div style={{
               background: 'linear-gradient(135deg, var(--neu-accent) 0%, var(--color-primary-hover) 60%, #0f766e 100%)',
-              borderRadius: 20, padding: '2rem 2.5rem',
+              borderRadius: 20, padding: 'clamp(1.25rem, 4vw, 2rem) clamp(1rem, 5vw, 2.5rem)',
               display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
               gap: '1.5rem', flexWrap: 'wrap',
               marginBottom: '1.5rem',
               boxShadow: '0 8px 32px rgba(26,35,126,0.3)',
             }}>
               {/* Left: avatar + name */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap', minWidth: 0, flex: '1 1 280px' }}>
                 <div style={{
                   width: 72, height: 72, borderRadius: '50%',
                   background: 'rgba(255,255,255,0.2)',
@@ -239,8 +239,8 @@ const ProfilePage = () => {
                 }}>
                   {initials(profileData.profile)}
                 </div>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.3rem' }}>
+                <div style={{ minWidth: 0, flex: '1 1 180px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.3rem', flexWrap: 'wrap' }}>
                     <span style={{
                       fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.1em',
                       textTransform: 'uppercase', color: 'rgba(255,255,255,0.9)',
@@ -250,10 +250,10 @@ const ProfilePage = () => {
                        DNA Nghề Nghiệp Đã Xác Minh
                     </span>
                   </div>
-                  <h1 style={{ fontSize: '1.9rem', fontWeight: 900, color: '#fff', margin: 0, lineHeight: 1.1 }}>
+                  <h1 style={{ fontSize: 'clamp(1.5rem, 6vw, 1.9rem)', fontWeight: 900, color: '#fff', margin: 0, lineHeight: 1.15, overflowWrap: 'anywhere' }}>
                     {displayName(profileData.profile)}
                   </h1>
-                  <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.65)', marginTop: '0.3rem' }}>
+                  <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.75)', marginTop: '0.3rem', overflowWrap: 'anywhere', lineHeight: 1.45 }}>
                     {profileData.profile.email}
                     {topRiasecKey && (
                       <span> · DNA trung bình nổi bật: <strong style={{ color: 'rgba(255,255,255,0.9)' }}>{RIASEC_LABELS[topRiasecKey] || topRiasecKey}</strong></span>
@@ -263,8 +263,8 @@ const ProfilePage = () => {
               </div>
 
               {/* Right: stats + action buttons */}
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.75rem' }}>
-                <div style={{ display: 'flex', gap: '0.6rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: '0.75rem', flex: '1 1 220px', maxWidth: 360 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(86px, 1fr))', gap: '0.6rem' }}>
                   <div style={{ textAlign: 'center', background: 'rgba(255,255,255,0.1)', borderRadius: 10, padding: '0.5rem 0.9rem' }}>
                     <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#fff' }}>{assessmentCount}</div>
                     <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.6)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Bài Test</div>
