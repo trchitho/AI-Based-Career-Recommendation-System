@@ -644,11 +644,17 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className={`fixed bottom-32 right-6 bg-white rounded-lg shadow-xl border border-gray-200 flex flex-col z-40 transition-all duration-300 ${isMinimized ? 'w-80 h-12' : 'w-96 h-[600px]'
-      }`}>
+    <div
+      className={`fixed bg-white rounded-lg shadow-xl border border-gray-200 flex flex-col z-40 transition-all duration-300 ${isMinimized ? 'h-12' : 'h-[min(72vh,600px)]'}`}
+      style={{
+        width: 'min(calc(100vw - 24px), 420px)',
+        right: 'calc(12px + env(safe-area-inset-right))',
+        bottom: 'calc(84px + env(safe-area-inset-bottom))',
+      }}
+    >
       {/* Header */}
-      <div className={`bg-gradient-to-r ${canUseCareerCounseling ? 'from-purple-600 to-blue-600' : 'from-blue-600 to-blue-700'} text-white p-4 rounded-t-lg flex justify-between items-center`}>
-        <div className="flex items-center gap-2">
+      <div className={`bg-gradient-to-r ${canUseCareerCounseling ? 'from-purple-600 to-blue-600' : 'from-blue-600 to-blue-700'} text-white p-3 sm:p-4 rounded-t-lg flex justify-between items-center gap-2`}>
+        <div className="flex items-center gap-2 min-w-0">
           <div className="relative">
             <Bot size={20} />
             <div className="absolute -top-1 -right-1 w-3 h-3 bg-indigo-400 rounded-full border-2 border-white"></div>
@@ -658,21 +664,21 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
               </div>
             )}
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-semibold text-sm">Trợ lý Nghề nghiệp AI</span>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="font-semibold text-sm truncate">Trợ lý Nghề nghiệp AI</span>
               {canUseCareerCounseling && (
                 <span className="text-xs bg-yellow-400 text-purple-800 px-2 py-0.5 rounded-full font-medium">
                   {planName?.includes('Pro') ? 'Pro' : planName}
                 </span>
               )}
             </div>
-            <div className="text-xs opacity-90">
+            <div className="text-xs opacity-90 truncate">
               {currentSessionId ? `Phiên ${currentSessionId}` : (canUseCareerCounseling ? 'Gemini API - hỗ trợ 24/7' : 'Tư vấn nghề nghiệp thông minh')}
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 shrink-0">
           {canUseCareerCounseling && (
             <button
               onClick={() => setShowBlogCreator(true)}
@@ -883,7 +889,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
 
           {/* Input */}
           <div className="p-3 border-t border-gray-200 bg-white rounded-b-lg">
-            <div className="flex gap-2">
+            <div className="flex gap-2 min-w-0">
               <input
                 type="text"
                 value={inputMessage}
