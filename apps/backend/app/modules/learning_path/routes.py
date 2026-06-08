@@ -48,6 +48,20 @@ def _has_same_career_marker(matched_raw) -> bool:
     )
 
 
+def _allow_cv_fallback_for_same_career(matched_raw, extra_raw=None, match_percentage=None) -> bool:
+    if _has_same_career_marker(matched_raw):
+        return True
+    if isinstance(matched_raw, list) and any(_pick_skill_name(s) for s in matched_raw):
+        return False
+    extra_skills = [_pick_skill_name(s) for s in extra_raw] if isinstance(extra_raw, list) else []
+    if any(extra_skills):
+        return False
+    try:
+        return float(match_percentage or 0) >= 60
+    except (TypeError, ValueError):
+        return False
+
+
 def _matched_or_cv_skills(matched_raw, cv_raw, *, allow_cv_fallback: bool = False) -> List[str]:
     matched = [_pick_skill_name(s) for s in matched_raw] if isinstance(matched_raw, list) else []
     cv_skills = [_pick_skill_name(s) for s in cv_raw] if isinstance(cv_raw, list) else []
