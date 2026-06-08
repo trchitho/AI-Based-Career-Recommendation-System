@@ -311,6 +311,20 @@ const MainLayout = ({ children }: MainLayoutProps) => {
         </>
       )}
 
+      {showSidebar && !mobileSidebarOpen && (
+        <button
+          type="button"
+          aria-label="Mở thanh điều hướng bên trái"
+          aria-expanded={mobileSidebarOpen}
+          onClick={() => setMobileSidebarOpen(true)}
+          className="fixed left-3 top-[88px] z-40 inline-flex h-11 w-11 items-center justify-center rounded-full border border-gray-200 bg-white/95 text-gray-700 shadow-lg transition hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-gray-700 dark:bg-gray-800/95 dark:text-gray-200 md:hidden"
+        >
+          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      )}
+
       {/* MAIN CONTENT AREA */}
       <div className={`flex-1 min-w-0 flex flex-col ${fullscreen ? 'h-screen overflow-hidden' : ''} ${showSidebar && !sidebarCollapsed ? 'md:ml-52 lg:ml-60' : showSidebar && sidebarCollapsed ? 'md:ml-16' : 'ml-0'
         }`}>
