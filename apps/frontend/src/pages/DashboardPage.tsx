@@ -72,18 +72,18 @@ const DashboardPage = () => {
         <div className="fixed top-[-10%] right-[-5%] w-[600px] h-[600px] bg-indigo-400/10 rounded-full blur-[120px] pointer-events-none z-0"></div>
         <div className="fixed bottom-[-10%] left-[-5%] w-[500px] h-[500px] bg-indigo-400/10 rounded-full blur-[100px] pointer-events-none z-0"></div>
 
-        <div className="relative z-10 max-w-7xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
+        <div className="relative z-10 w-full max-w-7xl mx-auto py-6 sm:py-8 lg:py-10 px-4 sm:px-6 lg:px-8">
 
           {/* --- HEADER DASHBOARD --- */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 animate-fade-in-up">
-            <div>
-              <h2 className="text-3xl md:text-4xl font-extrabold premium-gradient mb-2 tracking-tight flex items-center gap-3 w-fit">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6 mb-8 lg:mb-10 animate-fade-in-up">
+            <div className="min-w-0">
+              <h2 className="font-extrabold premium-gradient mb-2 tracking-tight flex flex-wrap items-center gap-2 sm:gap-3" style={{ fontSize: 'clamp(1.5rem, 4vw, 3rem)' }}>
                 {t('dashboard.title')}
-                <span className="text-sm font-bold px-3 py-1 bg-indigo-50/80 dark:bg-indigo-950/50 text-indigo-900 dark:text-indigo-400 rounded-full border border-indigo-200/50 dark:border-indigo-800/50 shadow-sm backdrop-blur-sm">
+                <span className="text-xs sm:text-sm font-bold px-3 py-1 bg-indigo-50/80 dark:bg-indigo-950/50 text-indigo-900 dark:text-indigo-400 rounded-full border border-indigo-200/50 dark:border-indigo-800/50 shadow-sm backdrop-blur-sm">
                   {t('dashboard.overview')}
                 </span>
               </h2>
-              <p className="text-gray-500 dark:text-gray-400 font-medium text-lg">
+              <p className="text-gray-500 dark:text-gray-400 font-medium text-sm sm:text-base lg:text-lg">
                 {t('dashboard.overview')}
               </p>
             </div>
@@ -136,9 +136,9 @@ const DashboardPage = () => {
               {void console.log(' [DashboardPage] topCareerSuggestions.length:', dashboardData.topCareerSuggestions.length)}
 
               {/* TOP ROW: Profile & Metrics */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
                 {/* Profile Summary - Main Card */}
-                <div className="lg:col-span-2 flex flex-col h-full">
+                <div className="xl:col-span-2 flex flex-col h-full min-w-0">
                   <div className="h-full glass rounded-[28px] overflow-hidden relative group p-1 transition-all duration-300 hover:shadow-2xl">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-indigo-700/10 to-transparent rounded-bl-[100px] pointer-events-none group-hover:from-indigo-700/20 transition-all duration-500"></div>
                     <ProfileSummaryCard profile={dashboardData.profileSummary} />
@@ -147,7 +147,7 @@ const DashboardPage = () => {
 
                 {/* Metrics - Side Card */}
                 {dashboardData.hasCompletedAssessment && (
-                  <div className="lg:col-span-1 flex flex-col h-full">
+                  <div className="xl:col-span-1 flex flex-col h-full min-w-0">
                     <div className="h-full glass rounded-[28px] p-1 transition-all duration-300 hover:shadow-2xl">
                       <ProgressMetricsCard metrics={dashboardData.progressMetrics} />
                     </div>
