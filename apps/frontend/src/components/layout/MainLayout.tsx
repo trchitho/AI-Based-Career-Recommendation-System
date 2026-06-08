@@ -317,9 +317,9 @@ const MainLayout = ({ children }: MainLayoutProps) => {
           aria-label="Mở thanh điều hướng bên trái"
           aria-expanded={mobileSidebarOpen}
           onClick={() => setMobileSidebarOpen(true)}
-          className="fixed left-3 top-[88px] z-40 inline-flex h-11 w-11 items-center justify-center rounded-full border border-gray-200 bg-white/95 text-gray-700 shadow-lg transition hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-gray-700 dark:bg-gray-800/95 dark:text-gray-200 md:hidden"
+          className="fixed left-3 top-[88px] z-40 inline-flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-white/95 text-gray-700 shadow-md transition hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-gray-700 dark:bg-gray-800/95 dark:text-gray-200 md:hidden"
         >
-          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
         </button>
