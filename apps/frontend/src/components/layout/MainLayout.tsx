@@ -205,6 +205,10 @@ const MainLayout = ({ children }: MainLayoutProps) => {
           --color-primary: #6d28d9;
           --color-primary-glow: rgba(109, 40, 217, 0.35);
         }
+        @keyframes sidebarTriggerDim { to { opacity: 0.5; } }
+        .mobile-sidebar-trigger { animation: sidebarTriggerDim 0.2s ease 15s forwards; }
+        .mobile-sidebar-trigger:hover,
+        .mobile-sidebar-trigger:focus-visible { animation: none; opacity: 1; }
       `}</style>
 
       {/* SIDEBAR - Fixed left side, full height */}
@@ -220,7 +224,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
 
           {/* Sidebar */}
           <aside
-            className={`fixed left-0 top-0 h-screen w-[33vw] bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 z-[60] flex flex-col transition-all duration-300 md:top-[72px] md:h-[calc(100vh-72px)] md:z-40 ${sidebarCollapsed ? 'md:w-16' : 'md:w-52 lg:w-60'
+            className={`fixed left-0 top-0 h-screen w-[43vw] min-w-[8.5rem] max-w-[12rem] bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 z-[60] flex flex-col transition-all duration-300 md:top-[72px] md:h-[calc(100vh-72px)] md:z-40 md:min-w-0 md:max-w-none ${sidebarCollapsed ? 'md:w-16' : 'md:w-52 lg:w-60'
               } ${mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
               }`}
           >
@@ -267,7 +271,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                       }
                     }}
                     className={({ isActive }) =>
-                      `flex items-center justify-center gap-3 rounded-lg px-2 py-2 text-sm font-medium transition-colors md:justify-start md:px-3 ${sidebarCollapsed ? 'md:justify-center md:w-10 md:h-10 md:mx-auto' : ''
+                      `flex items-center gap-2 rounded-lg px-2 py-2 text-[11px] font-medium transition-colors md:gap-3 md:text-sm md:px-3 ${sidebarCollapsed ? 'md:justify-center md:w-10 md:h-10 md:mx-auto' : ''
                       } ${isActive
                         ? "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400"
                         : "text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
@@ -275,7 +279,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                     }
                   >
                     <span className="flex-shrink-0">{item.icon}</span>
-                    {!sidebarCollapsed && <span className="hidden md:inline">{item.label}</span>}
+                    {!sidebarCollapsed && <span className="min-w-0 truncate md:inline">{item.label}</span>}
                   </NavLink>
                 ))}
               </nav>
@@ -323,7 +327,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
           aria-label="Mở thanh điều hướng bên trái"
           aria-expanded={mobileSidebarOpen}
           onClick={() => setMobileSidebarOpen(true)}
-          className="fixed left-3 top-[88px] z-40 inline-flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-white/95 text-gray-700 shadow-md transition hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-gray-700 dark:bg-gray-800/95 dark:text-gray-200 md:hidden"
+          className="mobile-sidebar-trigger fixed left-0 top-[88px] z-40 inline-flex h-8 w-7 items-center justify-center rounded-r-full border border-l-0 border-gray-200 bg-white/95 text-gray-700 shadow-md transition hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-gray-700 dark:bg-gray-800/95 dark:text-gray-200 md:hidden"
         >
           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
