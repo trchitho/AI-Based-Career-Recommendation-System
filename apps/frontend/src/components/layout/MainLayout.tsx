@@ -83,6 +83,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   // State cho top header navigation menu
   const [topNavOpen, setTopNavOpen] = useState(false);
   const topNavRef = useRef<HTMLDivElement>(null);
+  const topNavButtonRef = useRef<HTMLButtonElement>(null);
 
   // Sidebar collapse state - tách biệt mobile và desktop với localStorage persistence
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
@@ -153,7 +154,12 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsDropdownOpen(false);
       }
-      if (topNavRef.current && !topNavRef.current.contains(event.target as Node)) {
+      if (
+        topNavRef.current &&
+        topNavButtonRef.current &&
+        !topNavRef.current.contains(event.target as Node) &&
+        !topNavButtonRef.current.contains(event.target as Node)
+      ) {
         setTopNavOpen(false);
       }
     };
@@ -332,11 +338,11 @@ const MainLayout = ({ children }: MainLayoutProps) => {
         {/* HEADER */}
         {!analysisLocked && !fullscreen && (
         <header className={`fixed top-0 left-0 right-0 z-50 transition-[background-color,box-shadow] duration-300 ease-in-out bg-[#ffffff] dark:bg-[rgba(15,23,42,0.9)] border-b border-[rgba(15,23,42,0.06)] dark:border-[rgba(255,255,255,0.08)] shadow-[0_8px_28px_rgba(15,23,42,0.04)] h-[72px] flex items-center`}>
-          <div className="w-full px-6 md:px-10 lg:px-14">
+          <div className="w-full px-3 sm:px-5 md:px-10 lg:px-14">
             <div className="flex items-center justify-between h-full relative">
 
               {/* Logo */}
-              <div className="flex-shrink-0 flex-1 flex justify-start">
+              <div className="min-w-0 flex-1 flex justify-start">
                 <AppLogo className="hover:-translate-y-[1px] transition-transform duration-250 ease-out" />
               </div>
 
@@ -375,13 +381,14 @@ const MainLayout = ({ children }: MainLayoutProps) => {
               </nav>
 
               {/* Right side */}
-              <div className="flex items-center gap-4 flex-1 justify-end">
+              <div className="flex flex-1 items-center justify-end gap-2 sm:gap-4">
                 {/* Mobile menu button */}
                 <button
+                  ref={topNavButtonRef}
                   type="button"
                   aria-label={topNavOpen ? 'Đóng menu điều hướng' : 'Mở menu điều hướng'}
                   aria-expanded={topNavOpen}
-                  className="relative z-[60] inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg text-gray-600 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-indigo-500 dark:text-gray-400 dark:hover:bg-gray-800 lg:hidden"
+                  className="relative z-[60] inline-flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-lg text-gray-600 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-indigo-500 dark:text-gray-400 dark:hover:bg-gray-800 sm:h-11 sm:w-11 lg:hidden"
                   onClick={() => setTopNavOpen(value => !value)}
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -401,7 +408,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                   <div className="relative ml-2" ref={dropdownRef}>
                     <button
                       onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                      className="flex items-center justify-center w-[42px] h-[42px] rounded-full bg-gradient-to-br from-[#7c3aed] to-[#4f46e5] shadow-[0_10px_24px_rgba(79,70,229,0.28)] hover:-translate-y-[1px] hover:scale-[1.03] hover:shadow-[0_14px_30px_rgba(79,70,229,0.34)] transition-all duration-250 ease-out border-none outline-none"
+                      className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#7c3aed] to-[#4f46e5] shadow-[0_10px_24px_rgba(79,70,229,0.28)] transition-all duration-250 ease-out border-none outline-none hover:-translate-y-[1px] hover:scale-[1.03] hover:shadow-[0_14px_30px_rgba(79,70,229,0.34)] sm:h-[42px] sm:w-[42px]"
                     >
                       <span className="text-white text-[16px] font-bold">
                         {displayInitial}

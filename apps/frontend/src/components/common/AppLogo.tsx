@@ -19,7 +19,7 @@ const AppLogo = ({ linkTo = '/home', className = '' }: AppLogoProps) => {
         <img src={app.logo_url} alt="Logo" className="h-8 w-auto object-contain mr-2" />
       ) : null}
 
-      <span className="text-[24px] font-[800] tracking-[-0.04em] text-[#0f172a] dark:text-[#f8fafc]">
+      <span className="text-[20px] font-[800] tracking-[-0.03em] text-[#0f172a] dark:text-[#f8fafc] sm:text-[24px] sm:tracking-[-0.04em]">
         Career<span className="text-[#4f46e5]">Verse</span>
       </span>
     </div>
