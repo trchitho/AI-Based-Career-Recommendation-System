@@ -247,6 +247,7 @@ def get_skill_gap_plans(
             sga.matched_skills_count,
             sga.cv_skills,
             sga.matched_skills,
+            sga.extra_skills,
             sga.skill_gaps,
             sga.learning_plan_cache,
             sga.created_at::text AS created_at,
@@ -306,11 +307,19 @@ def get_skill_gap_plans(
 
         matched_raw = row["matched_skills"] or []
         cv_raw = row["cv_skills"] or []
+        extra_raw = row["extra_skills"] or []
         if isinstance(matched_raw, str):
             matched_raw = json.loads(matched_raw)
         if isinstance(cv_raw, str):
             cv_raw = json.loads(cv_raw)
-        matched_count = len(_matched_or_cv_skills(matched_raw, cv_raw))
+        if isinstance(extra_raw, str):
+            extra_raw = json.loads(extra_raw)
+        allow_cv_fallback = _allow_cv_fallback_for_same_career(
+            matched_raw, extra_raw, row["match_percentage"]
+        )
+        matched_count = len(_matched_or_cv_skills(
+            matched_raw, cv_raw, allow_cv_fallback=allow_cv_fallback
+        ))
         critical_count = len(skill_gaps.get("critical") or []) + len(skill_gaps.get("important") or [])
         important_count = len(skill_gaps.get("nice_to_have") or [])
 
