@@ -251,7 +251,7 @@ const ResultsPage = () => {
               </div>
 
               {/* 2. Tabs */}
-              <div className="res-tabs">
+              <div className="res-tabs" role="tablist" aria-label="Nội dung kết quả đánh giá">
                 {[
                   { id: 'summary',         label: 'Tóm tắt' },
                   { id: 'detailed',        label: 'Phân tích chi tiết' },
@@ -259,6 +259,12 @@ const ResultsPage = () => {
                 ].map((tab) => (
                   <button
                     key={tab.id}
+                    id={`result-tab-${tab.id}`}
+                    type="button"
+                    role="tab"
+                    aria-selected={activeTab === tab.id}
+                    aria-controls={`result-panel-${tab.id}`}
+                    tabIndex={activeTab === tab.id ? 0 : -1}
                     className={`res-tab-btn${activeTab === tab.id ? ' active' : ''}`}
                     onClick={() => setActiveTab(tab.id as typeof activeTab)}
                   >
@@ -271,7 +277,7 @@ const ResultsPage = () => {
               <div>
                 {/* SUMMARY */}
                 {activeTab === 'summary' && (
-                  <div className="res-summary-grid">
+                  <div id="result-panel-summary" role="tabpanel" aria-labelledby="result-tab-summary" className="res-summary-grid">
                     {/* Highlights */}
                     <div className="res-section res-highlights-section">
                       <div className="res-section-header">
@@ -353,7 +359,7 @@ const ResultsPage = () => {
 
                 {/* DETAILED */}
                 {activeTab === 'detailed' && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                  <div id="result-panel-detailed" role="tabpanel" aria-labelledby="result-tab-detailed" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                     {/* RIASEC */}
                     <div className="res-section">
                       <div className="res-section-header">
@@ -371,6 +377,9 @@ const ResultsPage = () => {
 
                       <div className="res-chart-box">
                         <p className="res-chart-title">Biểu Đồ Radar</p>
+                        <p className="sr-only">
+                          Điểm RIASEC: {Object.entries(results.riasec_scores || {}).map(([key, value]) => `${key} ${value}`).join(', ')}
+                        </p>
                         <div className="res-chart-inner">
                           <RIASECSpiderChart scores={results.riasec_scores} />
                         </div>
@@ -401,6 +410,9 @@ const ResultsPage = () => {
 
                       <div className="res-chart-box">
                         <p className="res-chart-title">Biểu Đồ Cột</p>
+                        <p className="sr-only">
+                          Điểm Big Five: {Object.entries(results.big_five_scores || {}).map(([key, value]) => `${key} ${value}`).join(', ')}
+                        </p>
                         <div className="res-chart-inner">
                           <BigFiveBarChart scores={results.big_five_scores} />
                         </div>
@@ -418,12 +430,14 @@ const ResultsPage = () => {
 
                 {/* RECOMMENDATIONS */}
                 {activeTab === 'recommendations' && (
-                  <CareerRecommendationsDisplay
-                    items={recItems}
-                    requestId={recRequestId}
-                    loading={recLoading}
-                    error={recError}
-                  />
+                  <div id="result-panel-recommendations" role="tabpanel" aria-labelledby="result-tab-recommendations">
+                    <CareerRecommendationsDisplay
+                      items={recItems}
+                      requestId={recRequestId}
+                      loading={recLoading}
+                      error={recError}
+                    />
+                  </div>
                 )}
               </div>
 
@@ -433,10 +447,14 @@ const ResultsPage = () => {
                   <h3>Kết quả có hữu ích không?</h3>
                   <p>Giúp chúng tôi cải thiện AI bằng cách đánh giá kết quả của bạn.</p>
 
-                  <div className="res-rating-row">
+                  <div className="res-rating-row" role="radiogroup" aria-label="Đánh giá mức độ hữu ích của kết quả">
                     {[1,2,3,4,5].map((v) => (
                       <button
                         key={v}
+                        type="button"
+                        role="radio"
+                        aria-checked={fbRating === v}
+                        aria-label={`Đánh giá ${v} trên 5`}
                         className="res-rating-btn"
                         style={{
                           background: fbRating === v ? '#6366f1' : '#ffffff',
@@ -453,6 +471,8 @@ const ResultsPage = () => {
                   </div>
 
                   <textarea
+                    id="results-feedback-comment"
+                    aria-label="Nhận xét thêm về kết quả"
                     className="res-feedback-textarea"
                     placeholder="Nhận xét thêm? (Không bắt buộc)"
                     rows={3}
@@ -462,6 +482,7 @@ const ResultsPage = () => {
 
                   <div>
                     <button
+                      type="button"
                       className="res-submit-btn"
                       disabled={!fbRating}
                       onClick={async () => {
