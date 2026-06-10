@@ -685,37 +685,48 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
           )}
           {isSpeaking && (
             <button
+              type="button"
               onClick={stopSpeaking}
-              className="text-red-300 hover:text-red-100 p-1 rounded animate-pulse"
+              aria-label="Dừng đọc nội dung"
+              className="focus-ring text-red-300 hover:text-red-100 p-1 rounded animate-pulse"
               title="Dừng đọc"
             >
               <VolumeX size={16} />
             </button>
           )}
           <button
+            type="button"
             onClick={() => setShowHistory(true)}
-            className="text-white hover:text-gray-200 p-1 rounded"
+            aria-label="Mở lịch sử chat"
+            className="focus-ring text-white hover:text-gray-200 p-1 rounded"
             title="Lịch sử chat"
           >
             <History size={16} />
           </button>
           <button
+            type="button"
             onClick={createNewSession}
-            className="text-white hover:text-gray-200 p-1 rounded"
+            aria-label="Tạo cuộc trò chuyện mới"
+            className="focus-ring text-white hover:text-gray-200 p-1 rounded"
             title="Cuộc trò chuyện mới"
           >
             <RotateCcw size={16} />
           </button>
           <button
+            type="button"
             onClick={() => setIsMinimized(!isMinimized)}
-            className="text-white hover:text-gray-200 p-1 rounded"
+            aria-label={isMinimized ? 'Mở rộng chatbot' : 'Thu nhỏ chatbot'}
+            aria-pressed={isMinimized}
+            className="focus-ring text-white hover:text-gray-200 p-1 rounded"
             title={isMinimized ? 'Mở rộng' : 'Thu nhỏ'}
           >
             {isMinimized ? <Maximize2 size={16} /> : <Minus size={16} />}
           </button>
           <button
+            type="button"
             onClick={onClose}
-            className="text-white hover:text-gray-200 p-1 rounded"
+            aria-label="Đóng chatbot"
+            className="focus-ring text-white hover:text-gray-200 p-1 rounded"
           >
             <X size={16} />
           </button>
@@ -808,7 +819,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
           )}
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-gray-50">
+          <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-gray-50" aria-live="polite" aria-relevant="additions text">
             {messages.map((message) => (
               <div
                 key={message.id}
@@ -837,8 +848,14 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
                       </div>
                       {message.sender === 'bot' && canUseCareerCounseling && (
                         <button
+                          type="button"
                           onClick={() => speakMessage(message.text, message.id)}
-                          className={`mt-1 p-1 rounded transition-colors ${isSpeaking && currentSpeakingMessageId === message.id
+                          aria-label={
+                            isSpeaking && currentSpeakingMessageId === message.id
+                              ? 'Dừng đọc tin nhắn'
+                              : 'Đọc tin nhắn'
+                          }
+                          className={`focus-ring mt-1 p-1 rounded transition-colors ${isSpeaking && currentSpeakingMessageId === message.id
                             ? 'text-red-500 hover:text-red-700 animate-pulse'
                             : 'text-blue-500 hover:text-blue-700'
                             }`}
@@ -865,7 +882,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
               </div>
             ))}
             {isLoading && (
-              <div className="flex justify-start">
+              <div className="flex justify-start" role="status" aria-live="polite">
                 <div className="bg-white p-3 rounded-lg shadow-sm border rounded-bl-sm">
                   <div className="flex items-center gap-2">
                     <Bot size={16} className="text-blue-600" />
@@ -886,7 +903,9 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
           <div className="p-3 border-t border-gray-200 bg-white rounded-b-lg">
             <div className="flex gap-2 min-w-0">
               <input
+                id="careerverse-chat-input"
                 type="text"
+                aria-label="Nhập câu hỏi cho CareerVerse AI"
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyDown={handleKeyDown}
@@ -896,8 +915,11 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
               />
               {canUseCareerCounseling && (
                 <button
+                  type="button"
                   onClick={isRecording ? stopVoiceInput : startVoiceInput}
                   disabled={isLoading}
+                  aria-label={isRecording ? "Dừng ghi âm giọng nói" : "Ghi âm giọng nói"}
+                  aria-pressed={isRecording}
                   className={`p-2 rounded-lg transition-colors flex items-center justify-center ${isRecording
                     ? 'bg-red-600 text-white hover:bg-red-700'
                     : 'bg-blue-600 text-white hover:bg-blue-700'
@@ -908,8 +930,10 @@ export const Chatbot: React.FC<ChatbotProps> = ({ isOpen, onClose }) => {
                 </button>
               )}
               <button
+                type="button"
                 onClick={() => sendMessage()}
                 disabled={!inputMessage.trim() || isLoading}
+                aria-label="Gửi câu hỏi cho CareerVerse AI"
                 className="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
               >
                 <Send size={16} />
