@@ -120,7 +120,7 @@ const LoginPage = () => {
 
               {/* Messages */}
               {verifyMsg && (
-                <div className="rounded-xl bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-800 p-4 text-sm">
+                <div role="status" className="rounded-xl bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-800 p-4 text-sm">
                   <div className="flex gap-3">
                     <svg className="w-5 h-5 text-indigo-800 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     <div>
@@ -136,7 +136,7 @@ const LoginPage = () => {
               )}
 
               {error && (
-                <div className="rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4 flex gap-3 items-start">
+                <div id="login-error" role="alert" className="rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4 flex gap-3 items-start">
                   <svg className="w-5 h-5 text-red-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                   <p className="text-sm text-red-600 dark:text-red-300 font-medium leading-tight">{error}</p>
                 </div>
@@ -144,13 +144,16 @@ const LoginPage = () => {
 
               {/* Email Input */}
               <div className="space-y-2.5">
-                <label className="block text-[14px] font-semibold text-gray-700 dark:text-gray-300">
+                <label htmlFor="login-email" className="block text-[14px] font-semibold text-gray-700 dark:text-gray-300">
                   {t('auth.email')}
                 </label>
                 <div className="relative">
                   <input
+                    id="login-email"
                     type="email"
                     required
+                    aria-invalid={!!error}
+                    aria-describedby={error ? 'login-error' : undefined}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="name@company.com"
@@ -165,7 +168,7 @@ const LoginPage = () => {
               {/* Password Input */}
               <div className="space-y-2.5">
                 <div className="flex justify-between items-center">
-                  <label className="block text-[14px] font-semibold text-gray-700 dark:text-gray-300">
+                  <label htmlFor="login-password" className="block text-[14px] font-semibold text-gray-700 dark:text-gray-300">
                     {t('auth.password')}
                   </label>
                   <Link to="/forgot" className="text-[14px] font-semibold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors">
@@ -174,8 +177,11 @@ const LoginPage = () => {
                 </div>
                 <div className="relative">
                   <input
+                    id="login-password"
                     type={showPassword ? 'text' : 'password'}
                     required
+                    aria-invalid={!!error}
+                    aria-describedby={error ? 'login-error' : undefined}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
@@ -186,8 +192,10 @@ const LoginPage = () => {
                   </div>
                   <button
                     type="button"
+                    aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiển thị mật khẩu'}
+                    aria-pressed={showPassword}
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-[16px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                    className="focus-ring absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition-colors hover:text-gray-600 dark:hover:text-gray-300"
                   >
                     {showPassword ? (
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-5.523 0-10-4-10-7 0-1.07.37-2.144 1.075-3.15M4.22 4.22l15.56 15.56M9.9 9.9A3 3 0 0114.1 14.1" /></svg>
