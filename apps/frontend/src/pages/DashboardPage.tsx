@@ -129,12 +129,6 @@ const DashboardPage = () => {
           {/* --- DASHBOARD CONTENT --- */}
           {!loading && !error && dashboardData && (
             <div className="space-y-10 animate-fade-in-up">
-              {/* Debug logging */}
-              {void console.log(' [DashboardPage] dashboardData:', dashboardData)}
-              {void console.log(' [DashboardPage] hasCompletedAssessment:', dashboardData.hasCompletedAssessment)}
-              {void console.log(' [DashboardPage] topCareerSuggestions:', dashboardData.topCareerSuggestions)}
-              {void console.log(' [DashboardPage] topCareerSuggestions.length:', dashboardData.topCareerSuggestions.length)}
-
               {/* TOP ROW: Profile & Metrics */}
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
                 {/* Profile Summary - Main Card */}

@@ -10,12 +10,12 @@ const ProgressMetricsCard: React.FC<ProgressMetricsCardProps> = ({ metrics }) =>
   const { t } = useTranslation();
 
   return (
-    <div className="h-full flex flex-col justify-center p-5 sm:p-8 bg-white/70 dark:bg-gray-800/60 backdrop-blur-sm relative overflow-hidden">
+    <section className="h-full flex flex-col justify-center p-5 sm:p-8 bg-white/70 dark:bg-gray-800/60 backdrop-blur-sm relative overflow-hidden" aria-labelledby="dashboard-progress-title">
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500/60 via-purple-500/40 to-transparent rounded-t-[28px]"></div>
 
       {/* Title Header */}
       <div className="flex items-center justify-between gap-3 mb-6 sm:mb-8">
-        <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2 min-w-0">
+        <h3 id="dashboard-progress-title" className="text-base sm:text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2 min-w-0">
           <span className="w-1 h-5 bg-indigo-700 rounded-full"></span>
           {t("dashboard.progress.title")}
         </h3>
@@ -30,7 +30,7 @@ const ProgressMetricsCard: React.FC<ProgressMetricsCardProps> = ({ metrics }) =>
       <div className="grid grid-cols-3 gap-2 text-center">
 
         {/* Assessments */}
-        <div className="group cursor-default flex flex-col items-center justify-start rounded-xl px-1 py-2 bg-gray-50/60 dark:bg-gray-900/20">
+        <div className="group cursor-default flex flex-col items-center justify-start rounded-xl px-1 py-2 bg-gray-50/60 dark:bg-gray-900/20" aria-label={`${metrics.completedAssessments} ${t("dashboard.stats.assessmentsCompleted")}`}>
           <div className="text-2xl sm:text-4xl font-extrabold text-gray-900 dark:text-white mb-2 group-hover:text-indigo-800 transition-colors duration-300">
             {metrics.completedAssessments}
           </div>
@@ -40,7 +40,7 @@ const ProgressMetricsCard: React.FC<ProgressMetricsCardProps> = ({ metrics }) =>
         </div>
 
         {/* Active Roadmaps */}
-        <div className="group cursor-default flex flex-col items-center justify-start rounded-xl px-1 py-2 bg-gray-50/60 dark:bg-gray-900/20">
+        <div className="group cursor-default flex flex-col items-center justify-start rounded-xl px-1 py-2 bg-gray-50/60 dark:bg-gray-900/20" aria-label={`${metrics.activeRoadmaps} ${t("dashboard.stats.activeRoadmaps")}`}>
           <div className="text-2xl sm:text-4xl font-extrabold text-gray-900 dark:text-white mb-2 group-hover:text-indigo-800 transition-colors duration-300">
             {metrics.activeRoadmaps}
           </div>
@@ -50,7 +50,7 @@ const ProgressMetricsCard: React.FC<ProgressMetricsCardProps> = ({ metrics }) =>
         </div>
 
         {/* Milestones */}
-        <div className="group cursor-default flex flex-col items-center justify-start rounded-xl px-1 py-2 bg-gray-50/60 dark:bg-gray-900/20">
+        <div className="group cursor-default flex flex-col items-center justify-start rounded-xl px-1 py-2 bg-gray-50/60 dark:bg-gray-900/20" aria-label={`${metrics.completedMilestones} ${t("dashboard.stats.milestonesAchieved")}`}>
           <div className="text-2xl sm:text-4xl font-extrabold text-gray-900 dark:text-white mb-2 group-hover:text-indigo-800 transition-colors duration-300">
             {metrics.completedMilestones}
           </div>
@@ -60,7 +60,7 @@ const ProgressMetricsCard: React.FC<ProgressMetricsCardProps> = ({ metrics }) =>
         </div>
 
       </div>
-    </div>
+    </section>
   );
 };
 

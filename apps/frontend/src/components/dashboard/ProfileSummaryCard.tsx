@@ -23,7 +23,7 @@ const ProfileSummaryCard: React.FC<ProfileSummaryCardProps> = ({ profile }) => {
   });
 
   return (
-    <div className="relative h-full flex flex-col justify-center overflow-hidden p-5 sm:p-8 lg:p-10 bg-white/70 dark:bg-gray-800/60 backdrop-blur-sm">
+    <section className="relative h-full flex flex-col justify-center overflow-hidden p-5 sm:p-8 lg:p-10 bg-white/70 dark:bg-gray-800/60 backdrop-blur-sm" aria-labelledby="dashboard-profile-title">
 
       {/* Decorative Background Elements */}
       <div className="absolute top-0 right-0 h-full w-1/2 bg-indigo-50/60 dark:bg-indigo-950/10 rounded-l-full transform translate-x-1/3 scale-125 pointer-events-none opacity-60"></div>
@@ -33,12 +33,12 @@ const ProfileSummaryCard: React.FC<ProfileSummaryCardProps> = ({ profile }) => {
       <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-start gap-5 sm:gap-8 w-full min-w-0">
 
         {/* Avatar Square */}
-        <div className="w-20 h-20 sm:w-24 sm:h-24 bg-primary-avatar rounded-card-feature flex items-center justify-center text-white text-3xl sm:text-4xl font-bold shadow-xl shadow-indigo-900/20 shrink-0 border-4 border-white/80 dark:border-gray-700/80">
+        <div role="img" aria-label={`Ảnh đại diện của ${displayName}`} className="w-20 h-20 sm:w-24 sm:h-24 bg-primary-avatar rounded-card-feature flex items-center justify-center text-white text-3xl sm:text-4xl font-bold shadow-xl shadow-indigo-900/20 shrink-0 border-4 border-white/80 dark:border-gray-700/80">
           {displayName.charAt(0).toUpperCase()}
         </div>
 
         <div className="flex-1 min-w-0 text-center sm:text-left flex flex-col justify-center">
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white mb-1.5 tracking-tight break-words">
+          <h2 id="dashboard-profile-title" className="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white mb-1.5 tracking-tight break-words">
             {displayName}
           </h2>
           <p className="text-gray-500 dark:text-gray-400 font-medium mb-5 text-sm sm:text-base break-all">
@@ -57,7 +57,7 @@ const ProfileSummaryCard: React.FC<ProfileSummaryCardProps> = ({ profile }) => {
 
         {/* Edit Profile Button removed - editing is done on Profile page */}
       </div>
-    </div>
+    </section>
   );
 };
 
