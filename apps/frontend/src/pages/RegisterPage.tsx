@@ -211,7 +211,7 @@ const RegisterPage = () => {
 
               {/* Messages (Success/Info) */}
               {info && (
-                <div className="rounded-xl bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-800 p-4 text-sm">
+                <div role="status" className="rounded-xl bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-800 p-4 text-sm">
                   <div className="flex gap-3">
                     <svg className="w-5 h-5 text-indigo-800 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     <div>
@@ -233,7 +233,7 @@ const RegisterPage = () => {
 
               {/* Error Block */}
               {error && (
-                <div className="rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4 flex gap-3 items-start">
+                <div id="register-error" role="alert" className="rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4 flex gap-3 items-start">
                   <svg className="w-5 h-5 text-red-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                   <p className="text-sm text-red-600 dark:text-red-300 font-medium leading-tight">{error}</p>
                 </div>
@@ -242,10 +242,11 @@ const RegisterPage = () => {
               {/* NAME FIELDS (Grid 2 cols) */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2.5">
-                  <label className="block text-[14px] font-semibold text-gray-700 dark:text-gray-300">
+                  <label htmlFor="register-first-name" className="block text-[14px] font-semibold text-gray-700 dark:text-gray-300">
                     {t("auth.firstName")}
                   </label>
                   <input
+                    id="register-first-name"
                     type="text"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
@@ -254,10 +255,11 @@ const RegisterPage = () => {
                   />
                 </div>
                 <div className="space-y-2.5">
-                  <label className="block text-[14px] font-semibold text-gray-700 dark:text-gray-300">
+                  <label htmlFor="register-last-name" className="block text-[14px] font-semibold text-gray-700 dark:text-gray-300">
                     {t("auth.lastName")}
                   </label>
                   <input
+                    id="register-last-name"
                     type="text"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
@@ -269,13 +271,16 @@ const RegisterPage = () => {
 
               {/* EMAIL */}
               <div className="space-y-2.5">
-                <label className="block text-[14px] font-semibold text-gray-700 dark:text-gray-300">
+                <label htmlFor="register-email" className="block text-[14px] font-semibold text-gray-700 dark:text-gray-300">
                   {t("auth.email")}
                 </label>
                 <div className="flex gap-2">
                   <input
+                    id="register-email"
                     type="email"
                     required
+                    aria-invalid={!!error}
+                    aria-describedby={error ? 'register-error' : undefined}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@example.com"
@@ -294,13 +299,16 @@ const RegisterPage = () => {
 
               {/* PASSWORD */}
               <div className="space-y-2.5">
-                <label className="block text-[14px] font-semibold text-gray-700 dark:text-gray-300">
+                <label htmlFor="register-password" className="block text-[14px] font-semibold text-gray-700 dark:text-gray-300">
                   {t("auth.password")}
                 </label>
                 <div className="relative">
                   <input
+                    id="register-password"
                     type={showPassword ? "text" : "password"}
                     required
+                    aria-invalid={!!error}
+                    aria-describedby={error ? 'register-error' : undefined}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
@@ -308,8 +316,10 @@ const RegisterPage = () => {
                   />
                   <button
                     type="button"
+                    aria-label={showPassword ? "Ẩn mật khẩu" : "Hiển thị mật khẩu"}
+                    aria-pressed={showPassword}
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-[16px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                    className="focus-ring absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition-colors hover:text-gray-600 dark:hover:text-gray-300"
                   >
                     {showPassword ? (
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-5.523 0-10-4-10-7 0-1.07.37-2.144 1.075-3.15M4.22 4.22l15.56 15.56M9.9 9.9A3 3 0 0114.1 14.1" /></svg>
@@ -322,13 +332,16 @@ const RegisterPage = () => {
 
               {/* CONFIRM PASSWORD */}
               <div className="space-y-2.5">
-                <label className="block text-[14px] font-semibold text-gray-700 dark:text-gray-300">
+                <label htmlFor="register-confirm-password" className="block text-[14px] font-semibold text-gray-700 dark:text-gray-300">
                   {t("auth.confirmPassword")}
                 </label>
                 <div className="relative">
                   <input
+                    id="register-confirm-password"
                     type={showConfirmPwd ? "text" : "password"}
                     required
+                    aria-invalid={!!error}
+                    aria-describedby={error ? 'register-error' : undefined}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="••••••••"
@@ -336,8 +349,10 @@ const RegisterPage = () => {
                   />
                   <button
                     type="button"
+                    aria-label={showConfirmPwd ? "Ẩn mật khẩu xác nhận" : "Hiển thị mật khẩu xác nhận"}
+                    aria-pressed={showConfirmPwd}
                     onClick={() => setShowConfirmPwd(!showConfirmPwd)}
-                    className="absolute right-4 top-[16px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                    className="focus-ring absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition-colors hover:text-gray-600 dark:hover:text-gray-300"
                   >
                     {showConfirmPwd ? (
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-5.523 0-10-4-10-7 0-1.07.37-2.144 1.075-3.15M4.22 4.22l15.56 15.56M9.9 9.9A3 3 0 0114.1 14.1" /></svg>
@@ -351,10 +366,11 @@ const RegisterPage = () => {
               {/* Verification code input (inline) */}
               {codeSent && (
                 <div className="space-y-2.5">
-                  <label className="block text-[14px] font-semibold text-gray-700 dark:text-gray-300">
+                  <label htmlFor="register-verification-code" className="block text-[14px] font-semibold text-gray-700 dark:text-gray-300">
                     {t('auth.verificationCode')}
                   </label>
                   <input
+                    id="register-verification-code"
                     type="tel"
                     value={verificationCode}
                     onChange={(e) => setVerificationCode(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
