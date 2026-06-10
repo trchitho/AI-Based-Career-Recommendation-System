@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X, AlertTriangle, Crown, ArrowRight, Sparkles, Zap } from 'lucide-react';
 
@@ -19,6 +19,15 @@ export const LimitExceededModal: React.FC<LimitExceededModalProps> = ({
 }) => {
   const navigate = useNavigate();
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const handleUpgrade = () => {
@@ -27,8 +36,15 @@ export const LimitExceededModal: React.FC<LimitExceededModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 w-full max-w-lg shadow-2xl border border-gray-100 dark:border-gray-700 relative overflow-hidden">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="assessment-limit-title"
+        aria-describedby="assessment-limit-description"
+        className="bg-white dark:bg-gray-800 rounded-3xl p-8 w-full max-w-lg shadow-2xl border border-gray-100 dark:border-gray-700 relative overflow-hidden"
+        onClick={(event) => event.stopPropagation()}
+      >
         {/* Animated background */}
         <div className="absolute inset-0 bg-gradient-to-br from-orange-50/50 via-red-50/50 to-pink-50/50 dark:from-orange-900/10 dark:via-red-900/10 dark:to-pink-900/10"></div>
         <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-400/20 to-red-400/20 rounded-full blur-2xl"></div>
@@ -41,7 +57,7 @@ export const LimitExceededModal: React.FC<LimitExceededModalProps> = ({
                 <AlertTriangle className="text-white" size={28} />
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                <h3 id="assessment-limit-title" className="text-2xl font-bold text-gray-900 dark:text-white">
                   Limit Reached
                 </h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -50,8 +66,10 @@ export const LimitExceededModal: React.FC<LimitExceededModalProps> = ({
               </div>
             </div>
             <button
+              type="button"
+              aria-label="Đóng thông báo giới hạn"
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+              className="focus-ring text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
             >
               <X size={20} />
             </button>
@@ -61,7 +79,7 @@ export const LimitExceededModal: React.FC<LimitExceededModalProps> = ({
             <div className="mb-6 flex justify-center text-6xl">
               
             </div>
-            <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
+            <p id="assessment-limit-description" className="text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
               {message || "You have used all your free assessments this month. Upgrade to Premium to continue exploring your career path!"}
             </p>
 
@@ -113,12 +131,14 @@ export const LimitExceededModal: React.FC<LimitExceededModalProps> = ({
 
           <div className="flex gap-4">
             <button
+              type="button"
               onClick={onClose}
               className="flex-1 px-6 py-3 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-semibold"
             >
               Maybe Later
             </button>
             <button
+              type="button"
               onClick={handleUpgrade}
               className="flex-1 px-6 py-3 bg-gradient-to-r from-indigo-800 via-emerald-600 to-violet-600 hover:from-indigo-900 hover:via-emerald-700 hover:to-violet-700 text-white rounded-xl transition-all duration-200 font-semibold flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
             >
