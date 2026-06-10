@@ -140,7 +140,8 @@ const StandardQuizMode = ({ questions, onComplete, onCancel }: StandardQuizModeP
         </div>
 
         {/* Answer Options */}
-        <div className="space-y-3 relative z-10">
+        <fieldset className="space-y-3 relative z-10" role="radiogroup">
+          <legend className="sr-only">{currentQuestion.question_text}</legend>
           {currentQuestion.question_type === 'SCALE' ? (
             // Likert Scale (1-5) with puzzle theme
             <div className="space-y-4">
@@ -152,6 +153,10 @@ const StandardQuizMode = ({ questions, onComplete, onCancel }: StandardQuizModeP
                 {[1, 2, 3, 4, 5].map((value) => (
                   <button
                     key={value}
+                    type="button"
+                    role="radio"
+                    aria-checked={currentAnswer === value}
+                    aria-label={`${value} trên 5`}
                     onClick={() => handleAnswer(value)}
                     className={`flex-1 h-20 rounded-xl font-semibold text-lg transition-all duration-200 relative overflow-hidden ${currentAnswer === value
                       ? 'bg-gradient-to-br from-blue-500 to-cyan-500 text-white shadow-lg scale-105'
@@ -173,6 +178,9 @@ const StandardQuizMode = ({ questions, onComplete, onCancel }: StandardQuizModeP
             currentQuestion.options?.map((option, index) => (
               <button
                 key={index}
+                type="button"
+                role="radio"
+                aria-checked={currentAnswer === option}
                 onClick={() => handleAnswer(option)}
                 className={`w-full p-5 rounded-xl text-left font-medium transition-all duration-200 relative overflow-hidden ${currentAnswer === option
                   ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg scale-105'
@@ -198,7 +206,7 @@ const StandardQuizMode = ({ questions, onComplete, onCancel }: StandardQuizModeP
               </button>
             ))
           )}
-        </div>
+        </fieldset>
       </div>
 
       {/* Navigation Buttons */}
