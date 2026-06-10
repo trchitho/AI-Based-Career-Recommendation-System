@@ -224,6 +224,8 @@ const MainLayout = ({ children }: MainLayoutProps) => {
 
           {/* Sidebar */}
           <aside
+            id="careerverse-sidebar"
+            aria-label="Điều hướng chức năng"
             className={`fixed left-0 top-0 h-screen w-[43vw] min-w-[8.5rem] max-w-[12rem] bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 z-[60] flex flex-col transition-all duration-300 md:top-[72px] md:h-[calc(100vh-72px)] md:z-40 md:min-w-0 md:max-w-none ${sidebarCollapsed ? 'md:w-16' : 'md:w-52 lg:w-60'
               } ${mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
               }`}
@@ -258,12 +260,13 @@ const MainLayout = ({ children }: MainLayoutProps) => {
               </div>
 
               {/* Nav items */}
-              <nav className="flex-1 space-y-2 pt-16 md:pt-0">
+              <nav className="flex-1 space-y-2 pt-16 md:pt-0" aria-label="Menu chức năng CareerVerse">
                 {sidebarItems.map((item) => (
                   <NavLink
                     key={item.to}
                     to={item.to}
                     title={sidebarCollapsed ? item.label : undefined}
+                    aria-label={item.label}
                     onClick={() => {
                       // Đóng mobile sidebar khi click vào navigation item trên mobile
                       if (window.innerWidth < 768) {
@@ -326,6 +329,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
           type="button"
           aria-label="Mở thanh điều hướng bên trái"
           aria-expanded={mobileSidebarOpen}
+          aria-controls="careerverse-sidebar"
           onClick={() => setMobileSidebarOpen(true)}
           className="mobile-sidebar-trigger fixed left-0 top-[88px] z-40 inline-flex h-8 w-7 items-center justify-center rounded-r-full border border-l-0 border-gray-200 bg-white/95 text-gray-700 shadow-md transition hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-gray-700 dark:bg-gray-800/95 dark:text-gray-200 md:hidden"
         >
@@ -351,7 +355,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
               </div>
 
               {/* Desktop Navigation - KHÔNG ảnh hưởng đến sidebar state */}
-              <nav className="hidden lg:flex items-center gap-1 xl:gap-4 whitespace-nowrap">
+              <nav className="hidden lg:flex items-center gap-1 xl:gap-4 whitespace-nowrap" aria-label="Điều hướng chính">
                 {navLinks.map((item) => (
                   <NavLink
                     key={item.to}
@@ -392,7 +396,8 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                   type="button"
                   aria-label={topNavOpen ? 'Đóng menu điều hướng' : 'Mở menu điều hướng'}
                   aria-expanded={topNavOpen}
-                  className="relative z-[60] inline-flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-lg text-gray-600 transition-colors hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-indigo-500 dark:text-gray-400 dark:hover:bg-gray-800 sm:h-11 sm:w-11 lg:hidden"
+                  aria-controls="careerverse-top-nav"
+                  className="focus-ring relative z-[60] inline-flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-lg text-gray-600 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 sm:h-11 sm:w-11 lg:hidden"
                   onClick={() => setTopNavOpen(value => !value)}
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -487,8 +492,8 @@ const MainLayout = ({ children }: MainLayoutProps) => {
 
           {/* Mobile/tablet top navigation */}
           {topNavOpen && (
-            <div ref={topNavRef} className="fixed left-3 right-3 top-[80px] z-[55] rounded-2xl border border-gray-200 bg-white p-2 shadow-2xl animate-fade-in-scale dark:border-gray-700 dark:bg-gray-900 lg:hidden">
-              <nav className="flex flex-col gap-1">
+            <div ref={topNavRef} id="careerverse-top-nav" className="fixed left-3 right-3 top-[80px] z-[55] rounded-2xl border border-gray-200 bg-white p-2 shadow-2xl animate-fade-in-scale dark:border-gray-700 dark:bg-gray-900 lg:hidden">
+              <nav className="flex flex-col gap-1" aria-label="Điều hướng chính">
                 {navLinks.map((item) => (
                   <NavLink
                     key={item.to}
