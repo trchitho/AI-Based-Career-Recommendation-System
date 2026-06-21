@@ -219,10 +219,12 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         self.route_limits = {
             "POST:/api/recommendations": (10, 60),  # 10 requests per minute
             "POST:/api/assessments": (5, 60),  # 5 assessments per minute
-            # "POST:/api/auth/login": (50, 300),  # DISABLED for debugging
+            "POST:/api/auth/login": (20, 60),  # 20 requests per minute
             "POST:/api/auth/register": (3, 300),  # 3 registrations per 5 minutes
             "GET:/bff/catalog/career": (30, 60),  # 30 career requests per minute
             "POST:/api/interview": (10, 60),  # 10 interview requests per minute
+            "POST:/api/chatbot/chat": (10, 60),  # 10 chat requests per minute
+            "POST:/api/skill-gap/analyze": (5, 60),  # 5 CV analyses per minute
         }
 
     def _get_route_limit(self, method: str, path: str) -> tuple[int, int]:
