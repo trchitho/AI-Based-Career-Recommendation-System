@@ -7,6 +7,21 @@ from sqlalchemy import text
 from app.core.db import SessionLocal
 import uuid
 
+# Check if PostgreSQL server is online to run database tests
+db_available = False
+try:
+    db = SessionLocal()
+    db.execute(text("SELECT 1"))
+    db_available = True
+    db.close()
+except Exception:
+    db_available = False
+
+pytestmark = pytest.mark.skipif(
+    not db_available,
+    reason="PostgreSQL database server is not running or connection was refused"
+)
+
 
 def get_db_session():
     """Get database session for testing"""
