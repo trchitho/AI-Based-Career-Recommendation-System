@@ -291,6 +291,10 @@ class EdgeTTSService:
     def get_available_voices(self) -> Dict[str, str]:
         return self.VOICES.copy()
 
+    def validate_voice_preference(self, voice_preference: str) -> bool:
+        """Validate voice preference."""
+        return voice_preference in self.VOICES
+
     def reset_failure_tracking(self):
         """Reset failure tracking - useful for testing or manual reset"""
         self._consecutive_failures = 0
