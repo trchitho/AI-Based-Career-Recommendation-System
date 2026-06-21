@@ -3,9 +3,18 @@ from __future__ import annotations
 
 import logging
 import os
+import contextvars
 
 # Tên logger chung cho backend
 LOGGER_NAME = "career_backend"
+
+request_id_ctx: contextvars.ContextVar[str] = contextvars.ContextVar("request_id", default="-")
+
+
+class RequestIDFilter(logging.Filter):
+    def filter(self, record: logging.LogRecord) -> bool:
+        record.request_id = request_id_ctx.get()
+        return True
 
 
 def _configure_root_logger() -> logging.Logger:
@@ -24,17 +33,18 @@ def _configure_root_logger() -> logging.Logger:
         logger.setLevel(level)
 
         handler = logging.StreamHandler()
+        handler.addFilter(RequestIDFilter())
 
-        # Format ngắn gọn hơn cho production
+        # Format ngắn gọn hơn cho production với request_id
         if level <= logging.INFO:
             # Detailed format for DEBUG/INFO
             formatter = logging.Formatter(
-                fmt="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+                fmt="%(asctime)s | %(levelname)s | %(name)s | [Req: %(request_id)s] | %(message)s",
                 datefmt="%H:%M:%S",
             )
         else:
             # Concise format for WARNING/ERROR
-            formatter = logging.Formatter(fmt="%(levelname)s | %(message)s")
+            formatter = logging.Formatter(fmt="%(levelname)s | [Req: %(request_id)s] | %(message)s")
 
         handler.setFormatter(formatter)
         logger.addHandler(handler)
@@ -50,3 +60,4 @@ logger: logging.Logger = _configure_root_logger()
 if logger.level <= logging.DEBUG:
     logger.debug("Logger '%s' initialized.", LOGGER_NAME)
     logger.debug("Log level set to %s.", logging.getLevelName(logger.level))
+
