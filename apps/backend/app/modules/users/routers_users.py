@@ -323,7 +323,7 @@ def get_progress_current(request: Request):
 @router.patch("/{user_id}/role")
 def update_role(request: Request, user_id: int, payload: dict):
     # Only admin can change roles
-    _ = require_admin(request)
+    admin_id = require_admin(request)
     session = _db(request)
     u = session.get(User, user_id)
     if not u:
@@ -331,7 +331,23 @@ def update_role(request: Request, user_id: int, payload: dict):
     role = (payload.get("role") or "").strip().lower()
     if role not in {"admin", "user", "manager"}:
         raise HTTPException(status_code=400, detail="Invalid role")
+    old_role = u.role
     u.role = role
     session.commit()
     session.refresh(u)
+
+    # Log audit
+    client_ip = request.client.host if request.client else None
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        client_ip = forwarded.split(",")[0].strip()
+    _log_audit(
+        session=session,
+        user_id=admin_id,
+        action="role_change",
+        resource_type="user",
+        resource_id=str(user_id),
+        details={"old_role": old_role, "new_role": role, "target_user_id": user_id},
+        ip_address=client_ip,
+    )
     return u.to_dict()
