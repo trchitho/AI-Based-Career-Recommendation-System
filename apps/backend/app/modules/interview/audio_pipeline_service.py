@@ -306,8 +306,13 @@ class AudioPipelineService:
         except Exception as exc:
             logger.warning(f"[AudioPipeline] Metadata save failed (non-blocking): {exc}")
 
+        import base64
+        inline_url = None
+        if not audio_url and audio_data:
+            inline_url = f"data:audio/mp3;base64,{base64.b64encode(audio_data).decode()}"
+
         return {
-            "audio_url": audio_url,
+            "audio_url": audio_url or inline_url,
             "duration_seconds": duration_seconds,
             "word_timestamps": word_timestamps,
             "question_text": question_text,
