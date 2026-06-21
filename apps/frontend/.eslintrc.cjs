@@ -1,5 +1,6 @@
 module.exports = {
     root: true,
+    reportUnusedDisableDirectives: false,
     env: { browser: true, es2020: true },
     parser: '@typescript-eslint/parser',
     parserOptions: {
@@ -25,5 +26,11 @@ module.exports = {
         '@typescript-eslint/no-empty-object-type': 'off',
         '@typescript-eslint/no-unsafe-function-type': 'off',
         '@typescript-eslint/no-wrapper-object-types': 'off',
+        'no-prototype-builtins': 'off',
+        'no-empty': 'off',
+        'no-useless-catch': 'off',
+        'no-case-declarations': 'off',
+        'no-useless-escape': 'off',
+        '@typescript-eslint/no-unused-expressions': 'off',
     },
 }
