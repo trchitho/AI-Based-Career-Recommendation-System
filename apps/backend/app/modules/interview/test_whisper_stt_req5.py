@@ -77,10 +77,10 @@ class TestFileSizeLimit:
 class TestDurationValidation:
     @pytest.mark.asyncio
     async def test_audio_too_short_raises_error(self):
-        """Tiêu chí 5.4: audio < 3 giây → STTDurationError"""
+        """Tiêu chí 5.4: audio < 1 giây → STTDurationError"""
         svc = make_stt_service()
 
-        with patch.object(svc, "_run_whisper", return_value=("Xin chào", 1.5)):
+        with patch.object(svc, "_run_whisper", return_value=("Xin chào", 0.5)):
             with pytest.raises(STTDurationError, match="too short"):
                 await svc.transcribe(SAMPLE_AUDIO)
 
@@ -125,7 +125,7 @@ class TestDurationValidation:
 
     def test_duration_constants(self):
         """Kiểm tra constants đúng giá trị"""
-        assert MIN_DURATION_SECONDS == 3.0
+        assert MIN_DURATION_SECONDS == 1.0
         assert MAX_DURATION_SECONDS == 300.0
 
 
@@ -232,13 +232,17 @@ class TestWhisperTranscription:
         }
         svc._model = mock_model
 
-        transcript, duration = svc._run_whisper("/tmp/test.wav", "vi")
+        with patch("subprocess.run") as mock_run:
+            mock_proc = MagicMock()
+            mock_proc.stdout = b"\x00\x00" * 16000  # 1.0s of silent audio
+            mock_run.return_value = mock_proc
+            transcript, duration = svc._run_whisper("/tmp/test.wav", "vi")
 
         mock_model.transcribe.assert_called_once()
         call_kwargs = mock_model.transcribe.call_args
         assert call_kwargs[1]["language"] == "vi"
         assert transcript == "Xin chào"
-        assert duration == 5.0
+        assert duration == 1.0
 
 
 # ─────────────────────────────────────────────────────────────────────────────
