@@ -30,7 +30,6 @@ const StreamingLearningPlan: React.FC<Props> = ({ analysisId, careerId, autoStar
       onDone: (data) => {
         setStatus('done');
         if (data.plan) setPlan(data.plan as LearningPlanType);
-        else if (data.from_cache && data.plan) setPlan(data.plan as LearningPlanType);
       },
       onError: (msg) => { setStatus('error'); setErrorMsg(msg); },
     });
