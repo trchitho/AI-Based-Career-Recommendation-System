@@ -495,7 +495,7 @@ class EdgeTTSService:
 
         result: Dict[str, Any] = {
             "audio_data": audio_data,
-            "audio_url": data_url,   # default to inline data URL
+            "audio_url": None,       # default to None (no inline data URL pollution)
             "duration_seconds": duration,
             "voice_used": voice_name,
             "question_text": text,
