@@ -134,7 +134,10 @@ class TestSynthesizeText:
         mock_communicate = MagicMock()
         mock_communicate.stream = MagicMock(return_value=make_mock_stream(b"", []))
 
-        with patch("app.modules.interview.edge_tts_service.edge_tts.Communicate", return_value=mock_communicate):
+        with (
+            patch("app.modules.interview.edge_tts_service.edge_tts.Communicate", return_value=mock_communicate),
+            patch.object(svc, "_try_fallback_voice", side_effect=RuntimeError("Failed to generate audio"))
+        ):
             with pytest.raises(RuntimeError, match="Failed to generate audio"):
                 await svc.synthesize_text(SAMPLE_TEXT, "female")
 
