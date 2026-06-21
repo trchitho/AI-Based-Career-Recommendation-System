@@ -900,3 +900,35 @@ def get_priority_skills(
         "priority_skills": priority[:15],
         "ranking_method": "NeuMF + Thompson Sampling",
     }
+
+
+@router.delete("/analysis/{analysis_id}")
+def delete_analysis(
+    analysis_id: int,
+    user_id: int = Depends(_current_user_id),
+    db: Session = Depends(get_db),
+):
+    """
+    Xóa một phân tích skill gap của user (xóa CV data).
+    """
+    from .models import SkillGapAnalysis
+    analysis = db.query(SkillGapAnalysis).filter(
+        SkillGapAnalysis.id == analysis_id,
+        SkillGapAnalysis.user_id == user_id,
+    ).first()
+    if not analysis:
+        raise HTTPException(status_code=404, detail="Analysis not found")
+
+    db.delete(analysis)
+    db.commit()
+
+    # Write audit log
+    from app.utils.audit_logger import audit_logger
+    audit_logger.log_event(
+        action="delete_cv_analysis",
+        user_id=user_id,
+        details={"analysis_id": analysis_id, "career_id": analysis.career_id},
+        db=db
+    )
+
+    return {"success": True, "message": "Analysis deleted successfully"}
