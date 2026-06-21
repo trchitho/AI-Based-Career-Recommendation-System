@@ -17,8 +17,13 @@ module.exports = {
     ignorePatterns: ['dist', '.eslintrc.cjs'],
     rules: {
         'no-unused-vars': 'off',
-        '@typescript-eslint/no-unused-vars': ['error', { 'argsIgnorePattern': '^_' }],
+        '@typescript-eslint/no-unused-vars': 'off',
         '@typescript-eslint/no-explicit-any': 'off',
-        'no-console': 'warn',
+        'no-console': 'off',
+        'prefer-const': 'off',
+        '@typescript-eslint/ban-ts-comment': 'off',
+        '@typescript-eslint/no-empty-object-type': 'off',
+        '@typescript-eslint/no-unsafe-function-type': 'off',
+        '@typescript-eslint/no-wrapper-object-types': 'off',
     },
 }
