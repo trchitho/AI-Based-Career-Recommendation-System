@@ -547,6 +547,20 @@ def create_app() -> FastAPI:
         
         return response
 
+    # Request ID middleware to assign and track request identifiers
+    @app.middleware("http")
+    async def request_id_middleware(request: Request, call_next):
+        import uuid
+        from app.core.logging import request_id_ctx
+        request_id = request.headers.get("X-Request-ID", str(uuid.uuid4()))
+        token = request_id_ctx.set(request_id)
+        try:
+            response = await call_next(request)
+            response.headers["X-Request-ID"] = request_id
+            return response
+        finally:
+            request_id_ctx.reset(token)
+
     # JWT Auth middleware — sets request.state.user (TC02 session management)
     # Added FIRST (inner) so db_session_middleware (outer) sets db BEFORE auth runs
     from .core.auth_middleware import jwt_auth_middleware
