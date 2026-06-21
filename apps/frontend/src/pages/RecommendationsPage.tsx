@@ -531,6 +531,10 @@ const RecommendationsPage = () => {
           }
 
         </div >
+
+        <div className="mt-8 p-4 bg-gray-50 dark:bg-gray-800 rounded-2xl text-center text-xs text-gray-500 dark:text-gray-400 border border-gray-100 dark:border-gray-700 max-w-3xl mx-auto leading-relaxed">
+          * Lưu ý: Các gợi ý nghề nghiệp từ AI chỉ mang tính chất hướng dẫn tham khảo hướng nghiệp và không bảo đảm cơ hội việc làm hoặc chẩn đoán tâm lý. Người dùng nên tự đánh giá, đối chiếu thực tế và tham khảo thêm ý kiến chuyên gia.
+        </div>
       </div >
     </MainLayout >
   );
