@@ -284,8 +284,8 @@ const ChatPage = () => {
                   <svg className="w-6 h-6 transform rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
                 </button>
               </form>
-              <p className="text-center text-[10px] text-gray-400 dark:text-gray-500 mt-2">
-                AI có thể mắc lỗi. Hãy xác minh thông tin quan trọng trước khi áp dụng.
+              <p className="text-center text-[10px] text-gray-400 dark:text-gray-500 mt-2 max-w-xl mx-auto px-4">
+                * Lưu ý: Lời khuyên định hướng nghề nghiệp từ AI chỉ mang tính chất tham khảo, không phải chẩn đoán tâm lý lâm sàng hay y khoa và không đảm bảo cơ hội việc làm. Người dùng nên kiểm chứng thông tin và tham khảo thêm ý kiến từ các mentor hoặc giảng viên chuyên môn.
               </p>
             </div>
           </div>
