@@ -13,8 +13,28 @@ Property: transcribe(audio_of(text)) == text  (round-trip equivalence)
 
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
-from hypothesis import given, settings, HealthCheck
-from hypothesis import strategies as st
+try:
+    from hypothesis import given, settings, HealthCheck
+    from hypothesis import strategies as st
+    HAS_HYPOTHESIS = True
+except ImportError:
+    HAS_HYPOTHESIS = False
+    given = lambda *args, **kwargs: lambda f: f
+    settings = lambda *args, **kwargs: lambda f: f
+    class HealthCheck:
+        too_slow = "too_slow"
+    class MockSt:
+        def text(self, *args, **kwargs):
+            class MockFilter:
+                def filter(self, *args, **kwargs):
+                    return self
+            return MockFilter()
+        def characters(self, *args, **kwargs):
+            return self
+        def sampled_from(self, *args, **kwargs):
+            return self
+    st = MockSt()
+
 
 from app.modules.interview.whisper_stt_service import (
     WhisperSTTService,
@@ -44,6 +64,7 @@ SAMPLE_AUDIO = b"\xff\xfb\x90\x00" * 5000  # ~20KB fake audio
 # Property 1: Audio-Text Equivalence
 # ─────────────────────────────────────────────────────────────────────────────
 
+@pytest.mark.skipif(not HAS_HYPOTHESIS, reason="Hypothesis not installed")
 class TestAudioTextEquivalence:
     """
     Property 1: Audio-Text Equivalence
