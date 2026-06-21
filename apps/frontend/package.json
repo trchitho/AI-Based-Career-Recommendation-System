@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "test": "vitest --run",
     "test:watch": "vitest",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
+    "lint": "eslint . --ext ts,tsx --max-warnings 0"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.9",
