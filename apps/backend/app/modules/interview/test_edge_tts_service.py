@@ -46,7 +46,10 @@ class TestEdgeTTSService:
     @pytest.mark.asyncio
     async def test_synthesize_text_edge_tts_failure(self, tts_service):
         """Test handling of Edge TTS failure."""
-        with patch('edge_tts.Communicate') as mock_communicate_class:
+        with (
+            patch('edge_tts.Communicate') as mock_communicate_class,
+            patch.object(tts_service, "_try_fallback_voice", side_effect=RuntimeError("TTS synthesis failed"))
+        ):
             mock_communicate_class.side_effect = Exception("Edge TTS API error")
             
             with pytest.raises(RuntimeError, match="TTS synthesis failed"):
