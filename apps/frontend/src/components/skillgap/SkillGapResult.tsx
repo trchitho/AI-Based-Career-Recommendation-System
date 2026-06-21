@@ -585,6 +585,10 @@ const SkillGapResult: React.FC<SkillGapResultProps> = ({ analysis, onStartInterv
           <Download size={16} /> {isDownloading ? 'Đang tạo báo cáo...' : 'Tải xuống báo cáo'}
         </button>
       </div>
+
+      <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-850/50 rounded-2xl text-center text-xs text-gray-500 dark:text-gray-400 border border-gray-100 dark:border-gray-800 max-w-3xl mx-auto leading-relaxed">
+        * Lưu ý: Kết quả phân tích khoảng cách kỹ năng (Skill Gap) từ AI chỉ mang tính chất tham khảo hướng nghiệp và không bảo đảm cơ hội việc làm hoặc chẩn đoán tâm lý. Vui lòng thảo luận thêm với các mentor hoặc giảng viên chuyên môn để có định hướng tốt nhất.
+      </div>
     </div>
   );
 };
