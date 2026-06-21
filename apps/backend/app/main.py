@@ -592,6 +592,18 @@ def create_app() -> FastAPI:
             logger.exception("Detailed health check failed")
             return {"status": "error", "message": "Failed to retrieve detailed health status"}
 
+    @app.get("/ready", tags=["system"])
+    async def ready(request: Request):
+        """Readiness check"""
+        try:
+            from sqlalchemy import text
+            request.state.db.execute(text("SELECT 1"))
+            return {"status": "ready"}
+        except Exception as e:
+            logger.error(f"Readiness check failed: {e}")
+            from fastapi import Response
+            return Response(content='{"status": "degraded"}', status_code=503, media_type="application/json")
+
     @app.get("/metrics", tags=["system"])
     def get_metrics():
         """Get comprehensive performance metrics"""
